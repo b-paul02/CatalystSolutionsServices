@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Work — Catalyst Solutions Services</title>
+<script src="partials.js"></script>
+</head>
+<body>
+<div id="nav" data-active="work"></div>
+
+<section style="position:relative; padding:84px 32px 56px; overflow:hidden;">
+  <div style="position:absolute; inset:0; background:radial-gradient(ellipse 60% 50% at 50% 0%, rgba(124,58,237,0.24), transparent 65%); pointer-events:none;"></div>
+  <div style="position:relative; max-width:820px; margin:0 auto; text-align:center;">
+    <div style="display:inline-flex; align-items:center; gap:8px; padding:7px 15px; border-radius:100px; background:rgba(124,58,237,0.12); border:1px solid rgba(168,85,247,0.28); margin-bottom:24px;">
+      <span style="width:6px; height:6px; border-radius:50%; background:#A855F7; box-shadow:0 0 10px #A855F7;"></span>
+      <span style="font-size:12.5px; font-weight:500; color:#C4B5FD;">Work & Case Studies</span>
+    </div>
+    <h1 style="font-size:52px; font-weight:800; line-height:1.08; letter-spacing:-0.03em; color:#fff; margin:0 0 20px;">Growth Systems We Build</h1>
+    <p style="font-size:17.5px; line-height:1.62; color:#9CA3AF; margin:0;">Illustrative examples of how we approach common growth challenges. These are sample systems that show our methodology, not specific client results.</p>
+  </div>
+</section>
+
+<section style="padding:40px 32px 96px;">
+  <div id="studies" style="max-width:1240px; margin:0 auto; display:grid; grid-template-columns:repeat(2,1fr); gap:20px;"></div>
+</section>
+
+<div id="cta" data-eyebrow="Your system, built right" data-heading="Let's Build Your Growth System" data-copy="Every engagement starts with understanding your goals. Let's map what a system like these could look like for you." data-button="Let's Build Your Growth System"></div>
+<div id="footer"></div>
+
+<script>
+const ms = "font-family:'Material Symbols Outlined';";
+const studies = [
+  {label:'Sample Case Study', type:'B2B SaaS', title:'Pipeline Growth System', icon:'conversion_path', bg:'linear-gradient(135deg,#4C1D95,#7C3AED)', challenge:'A SaaS team had traffic but inconsistent, low-quality leads reaching sales.', solution:'Rebuilt landing pages, added conversion tracking, and automated lead routing and follow-up.', outcome:'Improved lead quality and a more predictable, measurable pipeline.'},
+  {label:'Example Growth System', type:'Professional Services', title:'Search Visibility Growth', icon:'travel_explore', bg:'linear-gradient(135deg,#1E3A8A,#3B82F6)', challenge:'A services firm was invisible for the terms their buyers searched most.', solution:'Fixed technical SEO, built a content strategy, and optimized for AI search answers.', outcome:'Stronger organic visibility and a growing stream of inbound inquiries.'},
+  {label:'Illustrative Project', type:'Ecommerce', title:'Marketing Automation System', icon:'automation', bg:'linear-gradient(135deg,#5B21B6,#A855F7)', challenge:"A store relied on manual follow-up that didn't scale with order volume.", solution:'Implemented CRM automation, AI workflows, and self-building reporting dashboards.', outcome:'Reduced manual work and more consistent customer follow-up.'},
+  {label:'Sample Case Study', type:'Local Business', title:'Local Lead Generation System', icon:'pin_drop', bg:'linear-gradient(135deg,#6D28D9,#A855F7)', challenge:'A local business struggled to appear in map results and gather reviews.', solution:'Optimized the Google Business Profile and launched a steady review-generation system.', outcome:'Stronger local visibility and a healthier reputation footprint.'},
+  {label:'Example Growth System', type:'Startup', title:'SaaS MVP Launch System', icon:'rocket', bg:'linear-gradient(135deg,#3730A3,#6366F1)', challenge:'A founder needed to validate an idea without over-building or overspending.', solution:'Scoped and shipped a focused MVP with analytics and onboarding built in.', outcome:'A launch-ready product positioned to gather real user feedback.'},
+  {label:'Illustrative Project', type:'B2B Services', title:'Analytics & Reporting System', icon:'monitoring', bg:'linear-gradient(135deg,#155E75,#0891B2)', challenge:'Leadership lacked a clear view of what marketing efforts actually worked.', solution:'Set up GA4, funnel tracking, and live Looker Studio dashboards tied to revenue.', outcome:'Clearer decisions backed by accurate, accessible data.'},
+];
+const field = (label, val, color) => `<div><div style="font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#6B6B7A; margin-bottom:4px;">${label}</div><div style="font-size:14px; line-height:1.55; color:${color};">${val}</div></div>`;
+document.getElementById('studies').innerHTML = studies.map(s => `
+  <div data-hover style="border-radius:18px; overflow:hidden; background:linear-gradient(160deg,rgba(24,19,42,0.75),rgba(12,11,22,0.75)); border:1px solid rgba(255,255,255,0.07);">
+    <div style="position:relative; height:160px; background:${s.bg}; overflow:hidden;">
+      <div style="position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.06) 1px,transparent 1px); background-size:28px 28px;"></div>
+      <span style="position:absolute; top:16px; left:16px; padding:5px 12px; border-radius:7px; background:rgba(5,5,10,0.6); border:1px solid rgba(255,255,255,0.16); font-size:11px; font-weight:600; color:#C4B5FD;">${s.label}</span>
+      <span style="position:absolute; bottom:14px; right:18px; ${ms} font-size:54px; color:rgba(255,255,255,0.85);">${s.icon}</span>
+    </div>
+    <div style="padding:28px;">
+      <div style="font-size:12.5px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:#A78BCF; margin-bottom:10px;">${s.type}</div>
+      <h3 style="font-size:21px; font-weight:700; color:#fff; margin:0 0 18px; letter-spacing:-0.01em;">${s.title}</h3>
+      <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:22px;">
+        ${field('Challenge', s.challenge, '#B8B8C6')}
+        ${field('Solution', s.solution, '#B8B8C6')}
+        ${field('Outcome Area', s.outcome, '#6EE7B7')}
+      </div>
+      <a href="Contact.html" style="display:inline-flex; align-items:center; gap:7px; font-size:13.5px; font-weight:600; color:#C4B5FD; text-decoration:none;">View Case Study <span style="${ms} font-size:16px;">arrow_forward</span></a>
+    </div>
+  </div>`).join('');
+</script>
+</body>
+</html>

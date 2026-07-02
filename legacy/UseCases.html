@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Use Cases — Catalyst Solutions Services</title>
+<script src="partials.js"></script>
+</head>
+<body>
+<div id="nav" data-active="usecases"></div>
+
+<section style="position:relative; padding:84px 32px 56px; overflow:hidden;">
+  <div style="position:absolute; inset:0; background:radial-gradient(ellipse 60% 50% at 50% 0%, rgba(124,58,237,0.24), transparent 65%); pointer-events:none;"></div>
+  <div style="position:relative; max-width:820px; margin:0 auto; text-align:center;">
+    <div style="display:inline-flex; align-items:center; gap:8px; padding:7px 15px; border-radius:100px; background:rgba(124,58,237,0.12); border:1px solid rgba(168,85,247,0.28); margin-bottom:24px;">
+      <span style="width:6px; height:6px; border-radius:50%; background:#A855F7; box-shadow:0 0 10px #A855F7;"></span>
+      <span style="font-size:12.5px; font-weight:500; color:#C4B5FD;">Use Cases</span>
+    </div>
+    <h1 style="font-size:52px; font-weight:800; line-height:1.08; letter-spacing:-0.03em; color:#fff; margin:0 0 20px;">What Do You Want to Solve First?</h1>
+    <p style="font-size:17.5px; line-height:1.62; color:#9CA3AF; margin:0;">Start with the outcome you need most. Each begins with a focused plan and the right specialists to make it real.</p>
+  </div>
+</section>
+
+<section style="padding:40px 32px 96px;">
+  <div id="cases" style="max-width:1240px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); gap:18px;"></div>
+</section>
+
+<div id="cta" data-eyebrow="Your goal, our plan" data-heading="Tell Us What You Want to Achieve" data-copy="Bring us the outcome you're chasing and we'll show you the fastest practical path to get there." data-button="Book a Growth Consultation"></div>
+<div id="footer"></div>
+
+<script>
+const ms = "font-family:'Material Symbols Outlined';";
+const cases = [
+  {icon:'web', title:'Launch a New Website', desc:'A fast, on-brand site built around conversion and ready to scale with your business.'},
+  {icon:'filter_alt', title:'Improve Lead Quality', desc:'Better targeting, qualification, and tracking so sales spends time on the right prospects.'},
+  {icon:'ad_units', title:'Build a High-Converting Landing Page', desc:'Focused pages engineered to turn campaign traffic into booked calls and leads.'},
+  {icon:'pin_drop', title:'Generate More Local Leads', desc:'Local SEO, reviews, and a strong Google presence that bring nearby customers in.'},
+  {icon:'travel_explore', title:'Improve Google Rankings', desc:'Technical fixes and content strategy that lift your visibility for terms that matter.'},
+  {icon:'ads_click', title:'Run Paid Campaigns Profitably', desc:'Well-tracked campaigns that scale spend only where it returns real revenue.'},
+  {icon:'sync_alt', title:'Automate Lead Follow-Up', desc:'Instant, consistent follow-up with CRM and AI workflows so no lead goes cold.'},
+  {icon:'smart_toy', title:'Build an AI Chatbot', desc:'A website or WhatsApp bot that answers, qualifies, and routes leads around the clock.'},
+  {icon:'rocket', title:'Create a SaaS MVP', desc:'A launch-ready product to validate your idea and start acquiring real users fast.'},
+  {icon:'shopping_cart', title:'Set Up Ecommerce Growth Systems', desc:'Store setup, optimization, and retention that lift revenue per visitor and order.'},
+  {icon:'dashboard', title:'Build Dashboards and Reporting', desc:'Clean tracking and live dashboards that turn your data into clear decisions.'},
+  {icon:'autorenew', title:'Maintain Systems Monthly', desc:'Ongoing care for website, marketing, and AI so performance keeps compounding.'},
+];
+document.getElementById('cases').innerHTML = cases.map(c => `
+  <a href="Contact.html" class="lift" data-hover style="display:block; padding:26px; border-radius:16px; background:linear-gradient(160deg,rgba(24,19,42,0.75),rgba(12,11,22,0.75)); border:1px solid rgba(255,255,255,0.07); text-decoration:none;">
+    <span style="display:flex; width:48px; height:48px; align-items:center; justify-content:center; border-radius:12px; background:linear-gradient(135deg,rgba(124,58,237,0.25),rgba(168,85,247,0.1)); border:1px solid rgba(168,85,247,0.25); color:#C4B5FD; ${ms} font-size:25px; margin-bottom:16px;">${c.icon}</span>
+    <h3 style="font-size:17px; font-weight:600; color:#fff; margin:0 0 9px;">${c.title}</h3>
+    <p style="font-size:13.5px; line-height:1.58; color:#8B8B9A; margin:0 0 16px;">${c.desc}</p>
+    <span style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:#C4B5FD;">Start here <span style="${ms} font-size:16px;">arrow_forward</span></span>
+  </a>`).join('');
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/* ponytail: explicit sources — auto-detection anchors on a git root, this repo has none */
+@source "../app";
+@source "../components";
+
+/* Brand design tokens (semantic) */
+@theme {
+  --color-bg: #05050a;
+  --color-bg-2: #070510;
+  --color-surface: #16122a;
+  --color-surface-2: #0c0b16;
+  --color-fg: #e5e7eb;
+  --color-muted: #9ca3af;
+  --color-faint: #8b8b9a;
+  --color-brand: #a855f7;
+  --color-brand-strong: #7c3aed;
+  --color-brand-soft: #c4b5fd;
+  --color-success: #6ee7b7;
+  --color-line: rgba(255, 255, 255, 0.07);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { background: var(--color-bg); color: var(--color-fg); font-family: var(--font-sans); }
+  ::selection { background: rgba(168, 85, 247, 0.35); color: #fff; }
+  /* Accessibility: visible focus ring */
+  :where(a, button, input, textarea, select):focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  .shell { @apply mx-auto w-full max-w-[1240px] px-5 sm:px-8; }
+  .eyebrow { @apply text-[13px] font-semibold uppercase tracking-[0.08em] text-[var(--color-brand)]; }
+  .h2 { @apply text-3xl sm:text-4xl md:text-[44px] font-extrabold leading-[1.1] tracking-[-0.025em] text-white; }
+
+  .badge {
+    @apply inline-flex items-center gap-2 rounded-full px-[15px] py-[7px] text-[12.5px] font-medium text-[var(--color-brand-soft)];
+    background: rgba(124, 58, 237, 0.12);
+    border: 1px solid rgba(168, 85, 247, 0.28);
+  }
+  .badge-dot { @apply h-1.5 w-1.5 rounded-full bg-[var(--color-brand)]; box-shadow: 0 0 10px var(--color-brand); }
+
+  .card {
+    @apply rounded-2xl border border-[var(--color-line)] p-6;
+    background: linear-gradient(160deg, rgba(24, 19, 42, 0.75), rgba(12, 11, 22, 0.75));
+  }
+  .card-i {
+    @apply rounded-2xl border border-[var(--color-line)] p-6 transition-[transform,border-color] duration-200;
+    background: linear-gradient(160deg, rgba(24, 19, 42, 0.75), rgba(12, 11, 22, 0.75));
+  }
+  .card-i:hover { @apply -translate-y-[3px]; border-color: rgba(168, 85, 247, 0.4); }
+
+  .icon-chip {
+    @apply flex shrink-0 items-center justify-center rounded-xl text-[var(--color-brand-soft)];
+    background: rgba(168, 85, 247, 0.12);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+  .icon-grad {
+    @apply flex shrink-0 items-center justify-center rounded-xl text-white;
+    background: linear-gradient(135deg, var(--color-brand-strong), var(--color-brand));
+    box-shadow: 0 0 24px rgba(124, 58, 237, 0.5);
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-7 py-[15px] text-[15px] font-semibold text-white transition-shadow;
+    background: linear-gradient(135deg, var(--color-brand-strong), var(--color-brand));
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 0 32px rgba(124, 58, 237, 0.55);
+  }
+  .btn-primary:hover { box-shadow: 0 0 46px rgba(168, 85, 247, 0.85); }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-[22px] py-[15px] text-[15px] font-medium text-[var(--color-fg)] transition-colors;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .btn-ghost:hover { border-color: rgba(168, 85, 247, 0.4); }
+
+  .field {
+    @apply w-full rounded-[10px] px-3.5 py-3 text-sm text-white outline-none;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .field::placeholder { color: #6b6b7a; }
+  .field:focus { border-color: rgba(168, 85, 247, 0.6); }
+  .label { @apply text-[12.5px] font-medium text-[#b8b8c6]; }
+
+  .ms { font-family: "Material Symbols Outlined"; font-weight: normal; font-style: normal; line-height: 1; }
+}
+
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@keyframes pulseGlow { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+.anim-floaty { animation: floaty 6s ease-in-out infinite; }
+.anim-pulse { animation: pulseGlow 2s infinite; }
+
+/* Accessibility: respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}

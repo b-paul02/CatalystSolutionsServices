@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About — Catalyst Solutions Services</title>
+<script src="partials.js"></script>
+</head>
+<body>
+<div id="nav" data-active="about"></div>
+
+<section style="position:relative; padding:84px 32px 64px; overflow:hidden;">
+  <div style="position:absolute; inset:0; background:radial-gradient(ellipse 60% 60% at 30% 0%, rgba(124,58,237,0.26), transparent 62%); pointer-events:none;"></div>
+  <div style="position:relative; max-width:1240px; margin:0 auto; display:grid; grid-template-columns:1.1fr 0.9fr; gap:48px; align-items:center;">
+    <div>
+      <div style="display:inline-flex; align-items:center; gap:8px; padding:7px 15px; border-radius:100px; background:rgba(124,58,237,0.12); border:1px solid rgba(168,85,247,0.28); margin-bottom:24px;">
+        <span style="width:6px; height:6px; border-radius:50%; background:#A855F7; box-shadow:0 0 10px #A855F7;"></span>
+        <span style="font-size:12.5px; font-weight:500; color:#C4B5FD;">About Catalyst Solutions Services</span>
+      </div>
+      <h1 style="font-size:52px; font-weight:800; line-height:1.06; letter-spacing:-0.03em; color:#fff; margin:0 0 20px;">We Are a Growth Enablement Agency</h1>
+      <p style="font-size:18px; line-height:1.62; color:#9CA3AF; margin:0 0 16px;">Catalyst Solutions Services helps businesses connect the dots between strategy, technology, marketing, automation, and measurable execution.</p>
+      <p style="font-size:16px; line-height:1.62; color:#8B8B9A; margin:0;">We're built for businesses that want clarity, not chaos — and a single partner who can plan, build, market, and scale alongside them.</p>
+    </div>
+    <div id="pillars" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;"></div>
+  </div>
+</section>
+
+<section style="padding:56px 32px; border-top:1px solid rgba(255,255,255,0.05); background:linear-gradient(180deg,#070510,#0a0716);">
+  <div style="max-width:1240px; margin:0 auto; display:grid; grid-template-columns:0.7fr 1.3fr; gap:48px;">
+    <div>
+      <div style="font-size:13px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#A855F7; margin-bottom:14px;">Our Mission</div>
+      <h2 style="font-size:34px; font-weight:800; line-height:1.14; letter-spacing:-0.025em; color:#fff; margin:0;">Make Growth Clear and Achievable</h2>
+    </div>
+    <p style="font-size:18px; line-height:1.68; color:#B8B8C6; margin:0; align-self:center;">We exist to remove the chaos from growth. Too many businesses juggle disconnected agencies, tools, and tactics that never add up. Our mission is to give you one strategic partner who brings the whole picture together — strategy first, execution that follows, and reporting that proves it worked.</p>
+  </div>
+</section>
+
+<section style="padding:64px 32px;">
+  <div style="max-width:1240px; margin:0 auto;">
+    <div style="font-size:13px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#A855F7; margin-bottom:14px;">How We Work</div>
+    <h2 style="font-size:34px; font-weight:800; letter-spacing:-0.025em; color:#fff; margin:0 0 36px;">Principles That Guide Every Engagement</h2>
+    <div id="how" style="display:grid; grid-template-columns:repeat(3,1fr); gap:18px;"></div>
+  </div>
+</section>
+
+<section style="padding:24px 32px 64px;">
+  <div style="max-width:1240px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center;">
+    <div>
+      <div style="font-size:13px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#A855F7; margin-bottom:14px;">Our Expert Network</div>
+      <h2 style="font-size:34px; font-weight:800; line-height:1.14; letter-spacing:-0.025em; color:#fff; margin:0 0 16px;">Vetted Specialists for Every Function</h2>
+      <p style="font-size:16px; line-height:1.64; color:#9CA3AF; margin:0 0 20px;">Instead of stretching generalists across everything, we assemble the right specialists for your project — strategists, designers, developers, marketers, automation engineers, and analysts who are senior in their craft.</p>
+      <p style="font-size:16px; line-height:1.64; color:#9CA3AF; margin:0;">It's AI-enabled but human-led: technology gives us leverage, while experienced people own the strategy, judgment, and outcomes.</p>
+    </div>
+    <div id="network" style="display:flex; flex-wrap:wrap; gap:11px;"></div>
+  </div>
+</section>
+
+<section style="padding:24px 32px 80px;">
+  <div style="max-width:1240px; margin:0 auto;">
+    <div style="font-size:13px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#A855F7; margin-bottom:14px;">Why Businesses Choose Us</div>
+    <h2 style="font-size:34px; font-weight:800; letter-spacing:-0.025em; color:#fff; margin:0 0 36px;">One Partner, Built Around Your Growth</h2>
+    <div id="why" style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px;"></div>
+  </div>
+</section>
+
+<div id="cta"></div>
+<div id="footer"></div>
+
+<script>
+const ms = "font-family:'Material Symbols Outlined';";
+const pillars = [
+  {icon:'person', label:'Human-led'},{icon:'smart_toy', label:'AI-enabled'},{icon:'strategy', label:'Strategy-first'},
+  {icon:'rocket_launch', label:'Execution-focused'},{icon:'trending_up', label:'Built for growth'},{icon:'visibility', label:'Designed for clarity'},
+];
+const how = [
+  {icon:'strategy', title:'Strategy Before Action', desc:'We never execute on guesswork. Every engagement starts with a clear plan rooted in your goals and data.'},
+  {icon:'hub', title:'Systems, Not Tactics', desc:'We connect website, marketing, content, automation, and reporting so they reinforce each other.'},
+  {icon:'psychology', title:'AI-Enabled, Human-Led', desc:'We use AI for leverage and speed, but experienced people own the judgment and the outcomes.'},
+  {icon:'groups', title:'The Right Experts', desc:'We staff each project with specialists matched to your goals — never stretched generalists.'},
+  {icon:'summarize', title:'Clear Communication', desc:"You always know what we're doing, why, and what the results mean — no jargon, no smoke."},
+  {icon:'trending_up', title:'Measurable Growth', desc:'We define success up front and report against it, so progress is always visible.'},
+];
+const network = [
+  {icon:'strategy',role:'Growth Strategists'},{icon:'design_services',role:'Designers'},{icon:'code',role:'Developers'},{icon:'campaign',role:'Marketers'},
+  {icon:'smart_toy',role:'Automation Engineers'},{icon:'monitoring',role:'Data Analysts'},{icon:'edit_note',role:'Copywriters'},{icon:'travel_explore',role:'SEO Specialists'},
+];
+const why = [
+  'A single partner across strategy, systems, and execution','Senior specialists, not stretched generalists','Plans built around measurable growth — not vanity metrics',
+  'Clear reporting and honest communication throughout','AI leverage without losing the human judgment','Flexible project and retainer support as you scale',
+];
+document.getElementById('pillars').innerHTML = pillars.map(p => `
+  <div style="display:flex; flex-direction:column; gap:9px; padding:20px; border-radius:14px; background:linear-gradient(160deg,rgba(24,19,42,0.7),rgba(12,11,22,0.7)); border:1px solid rgba(255,255,255,0.07);">
+    <span style="display:flex; width:36px; height:36px; align-items:center; justify-content:center; border-radius:9px; background:rgba(168,85,247,0.14); color:#C4B5FD; ${ms} font-size:20px;">${p.icon}</span>
+    <span style="font-size:14px; font-weight:600; color:#fff;">${p.label}</span>
+  </div>`).join('');
+document.getElementById('how').innerHTML = how.map(h => `
+  <div style="padding:26px; border-radius:16px; background:linear-gradient(160deg,rgba(24,19,42,0.7),rgba(12,11,22,0.7)); border:1px solid rgba(255,255,255,0.07);">
+    <span style="display:flex; width:46px; height:46px; align-items:center; justify-content:center; border-radius:12px; background:rgba(168,85,247,0.12); border:1px solid rgba(168,85,247,0.2); color:#C4B5FD; ${ms} font-size:24px; margin-bottom:16px;">${h.icon}</span>
+    <h3 style="font-size:17px; font-weight:600; color:#fff; margin:0 0 8px;">${h.title}</h3>
+    <p style="font-size:13.5px; line-height:1.58; color:#8B8B9A; margin:0;">${h.desc}</p>
+  </div>`).join('');
+document.getElementById('network').innerHTML = network.map(n => `
+  <div style="display:flex; align-items:center; gap:9px; padding:12px 16px; border-radius:11px; background:linear-gradient(160deg,rgba(24,19,42,0.7),rgba(12,11,22,0.7)); border:1px solid rgba(255,255,255,0.08);">
+    <span style="display:flex; width:30px; height:30px; align-items:center; justify-content:center; border-radius:8px; background:rgba(168,85,247,0.14); color:#C4B5FD; ${ms} font-size:17px;">${n.icon}</span>
+    <span style="font-size:13.5px; font-weight:500; color:#E5E7EB;">${n.role}</span>
+  </div>`).join('');
+document.getElementById('why').innerHTML = why.map(w => `
+  <div style="display:flex; align-items:flex-start; gap:13px; padding:22px; border-radius:14px; background:linear-gradient(160deg,rgba(22,18,38,0.7),rgba(12,11,22,0.7)); border:1px solid rgba(255,255,255,0.07);">
+    <span style="display:flex; flex:0 0 auto; width:30px; height:30px; align-items:center; justify-content:center; border-radius:8px; background:rgba(52,211,153,0.14); color:#6EE7B7; ${ms} font-size:18px;">check</span>
+    <span style="font-size:14.5px; font-weight:500; line-height:1.45; color:#E5E7EB;">${w}</span>
+  </div>`).join('');
+</script>
+</body>
+</html>

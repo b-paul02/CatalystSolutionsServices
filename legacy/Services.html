@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Services — Catalyst Solutions Services</title>
+<script src="partials.js"></script>
+</head>
+<body>
+<div id="nav" data-active="services"></div>
+
+<section style="position:relative; padding:84px 32px 56px; overflow:hidden;">
+  <div style="position:absolute; inset:0; background:radial-gradient(ellipse 60% 50% at 50% 0%, rgba(124,58,237,0.24), transparent 65%); pointer-events:none;"></div>
+  <div style="position:relative; max-width:880px; margin:0 auto; text-align:center;">
+    <div style="display:inline-flex; align-items:center; gap:8px; padding:7px 15px; border-radius:100px; background:rgba(124,58,237,0.12); border:1px solid rgba(168,85,247,0.28); margin-bottom:24px;">
+      <span style="width:6px; height:6px; border-radius:50%; background:#A855F7; box-shadow:0 0 10px #A855F7;"></span>
+      <span style="font-size:12.5px; font-weight:500; color:#C4B5FD;">Full-Stack Growth Services</span>
+    </div>
+    <h1 style="font-size:52px; font-weight:800; line-height:1.08; letter-spacing:-0.03em; color:#fff; margin:0 0 20px; text-wrap:balance;">Digital Growth Services Built for Modern Businesses</h1>
+    <p style="font-size:17.5px; line-height:1.62; color:#9CA3AF; max-width:680px; margin:0 auto;">From strategy and websites to SEO, paid ads, automation, content, branding, software, analytics, and retainers, Catalyst Solutions Services helps businesses build the systems they need to grow with clarity.</p>
+  </div>
+</section>
+
+<section style="padding:40px 32px 96px;">
+  <div id="groups" style="max-width:1240px; margin:0 auto; display:flex; flex-direction:column; gap:64px;"></div>
+</section>
+
+<div id="cta" data-eyebrow="Let's build your growth system" data-heading="Not Sure Where to Start?" data-copy="Tell us your goals and we'll recommend the right mix of services to move the needle." data-button="Talk to a Strategy Expert"></div>
+<div id="footer"></div>
+
+<script>
+const ms = "font-family:'Material Symbols Outlined';";
+const SD = s => 'ServiceDetail.html?s=' + s;
+const groups = [
+  { title:'Strategy & Growth', sub:'Direction and planning before execution', icon:'strategy', items:[
+    {label:'AI Strategy & Growth Consulting', icon:'insights', href:SD('ai-strategy')},
+    {label:'Go-To-Market Strategy', icon:'rocket_launch', href:SD('ai-strategy')},
+    {label:'Funnel Strategy', icon:'conversion_path', href:SD('ai-strategy')},
+    {label:'Competitor Research', icon:'query_stats', href:SD('ai-strategy')},
+    {label:'Customer Persona Research', icon:'groups', href:SD('ai-strategy')},
+    {label:'Tech Stack Consulting', icon:'lan', href:SD('ai-strategy')},
+  ]},
+  { title:'Website & Product', sub:'Sites, apps, and platforms that perform', icon:'devices', items:[
+    {label:'Website Design & Development', icon:'web', href:SD('website')},
+    {label:'WordPress Development', icon:'article', href:SD('website')},
+    {label:'Webflow Development', icon:'dashboard_customize', href:SD('website')},
+    {label:'Shopify Development', icon:'storefront', href:SD('ecommerce')},
+    {label:'WooCommerce Development', icon:'shopping_bag', href:SD('ecommerce')},
+    {label:'Custom Web Apps', icon:'code', href:SD('software')},
+    {label:'Mobile App Development', icon:'smartphone', href:SD('software')},
+    {label:'SaaS MVP Development', icon:'rocket', href:SD('software')},
+    {label:'Admin Dashboards', icon:'space_dashboard', href:SD('software')},
+    {label:'Customer Portals', icon:'account_circle', href:SD('software')},
+  ]},
+  { title:'Marketing & Visibility', sub:'Be found and chosen across every channel', icon:'campaign', items:[
+    {label:'SEO & AI Search Visibility', icon:'travel_explore', href:SD('seo')},
+    {label:'Local SEO', icon:'pin_drop', href:SD('seo')},
+    {label:'National SEO', icon:'public', href:SD('seo')},
+    {label:'Ecommerce SEO', icon:'sell', href:SD('seo')},
+    {label:'AEO', icon:'forum', href:SD('seo')},
+    {label:'GEO', icon:'travel_explore', href:SD('seo')},
+    {label:'AI Search Optimization', icon:'smart_toy', href:SD('seo')},
+    {label:'Google Ads', icon:'ads_click', href:SD('paid-ads')},
+    {label:'Meta Ads', icon:'thumb_up', href:SD('paid-ads')},
+    {label:'LinkedIn Ads', icon:'work', href:SD('paid-ads')},
+    {label:'YouTube Ads', icon:'play_circle', href:SD('paid-ads')},
+    {label:'Bing Ads', icon:'search', href:SD('paid-ads')},
+  ]},
+  { title:'Content & Brand', sub:'A voice and identity that builds trust', icon:'palette', items:[
+    {label:'Social Media Marketing', icon:'share', href:SD('social')},
+    {label:'Content Marketing', icon:'edit_note', href:SD('content')},
+    {label:'Copywriting', icon:'draw', href:SD('content')},
+    {label:'Thought Leadership', icon:'lightbulb', href:SD('content')},
+    {label:'Email Copywriting', icon:'mail', href:SD('content')},
+    {label:'Case Studies', icon:'description', href:SD('content')},
+    {label:'Whitepapers', icon:'menu_book', href:SD('content')},
+    {label:'Branding', icon:'auto_awesome', href:SD('branding')},
+    {label:'Logo Design', icon:'brush', href:SD('branding')},
+    {label:'Visual Identity', icon:'palette', href:SD('branding')},
+    {label:'Pitch Deck Design', icon:'slideshow', href:SD('branding')},
+    {label:'Social Media Brand Kits', icon:'collections', href:SD('branding')},
+  ]},
+  { title:'AI, Automation & Data', sub:'Systems that work while you sleep', icon:'smart_toy', items:[
+    {label:'AI Chatbot Development', icon:'chat', href:SD('automation')},
+    {label:'WhatsApp AI Bot', icon:'forum', href:SD('automation')},
+    {label:'AI CRM Automation', icon:'sync_alt', href:SD('automation')},
+    {label:'AI Lead Qualification', icon:'filter_alt', href:SD('automation')},
+    {label:'AI Email Automation', icon:'outgoing_mail', href:SD('automation')},
+    {label:'Workflow Automation', icon:'account_tree', href:SD('automation')},
+    {label:'AI Reporting Dashboard', icon:'monitoring', href:SD('analytics')},
+    {label:'GA4 Setup', icon:'analytics', href:SD('analytics')},
+    {label:'Google Tag Manager', icon:'sell', href:SD('analytics')},
+    {label:'Looker Studio Dashboards', icon:'dashboard', href:SD('analytics')},
+    {label:'Funnel Tracking', icon:'filter_list', href:SD('analytics')},
+    {label:'CRM Reporting', icon:'table_chart', href:SD('analytics')},
+  ]},
+  { title:'Ecommerce & Local Growth', sub:'Sell more online and win your local market', icon:'storefront', items:[
+    {label:'Ecommerce Store Setup', icon:'add_business', href:SD('ecommerce')},
+    {label:'Product Page Optimization', icon:'inventory_2', href:SD('ecommerce')},
+    {label:'Marketplace Consulting', icon:'store', href:SD('ecommerce')},
+    {label:'Review Generation System', icon:'reviews', href:SD('local')},
+    {label:'Google Business Profile', icon:'business', href:SD('local')},
+    {label:'Map Pack SEO', icon:'map', href:SD('local')},
+    {label:'Online Reputation Management', icon:'verified', href:SD('local')},
+    {label:'Local Lead Generation', icon:'pin_drop', href:SD('local')},
+  ]},
+  { title:'Retainers', sub:'Ongoing partnership and continuous improvement', icon:'autorenew', items:[
+    {label:'Website Care Plan', icon:'health_and_safety', href:SD('retainers')},
+    {label:'SEO Retainer', icon:'travel_explore', href:SD('retainers')},
+    {label:'Ads Retainer', icon:'ads_click', href:SD('retainers')},
+    {label:'Content Retainer', icon:'edit_note', href:SD('retainers')},
+    {label:'AI Automation Retainer', icon:'smart_toy', href:SD('retainers')},
+    {label:'Social Media Retainer', icon:'share', href:SD('retainers')},
+    {label:'Analytics Retainer', icon:'monitoring', href:SD('retainers')},
+    {label:'Growth Retainer', icon:'trending_up', href:SD('retainers')},
+  ]},
+];
+document.getElementById('groups').innerHTML = groups.map(g => `
+  <div>
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:26px; padding-bottom:18px; border-bottom:1px solid rgba(255,255,255,0.07);">
+      <span style="display:flex; width:46px; height:46px; align-items:center; justify-content:center; border-radius:12px; background:linear-gradient(135deg,rgba(124,58,237,0.28),rgba(168,85,247,0.12)); border:1px solid rgba(168,85,247,0.3); color:#C4B5FD; ${ms} font-size:24px;">${g.icon}</span>
+      <div><h2 style="font-size:25px; font-weight:700; color:#fff; margin:0; letter-spacing:-0.02em;">${g.title}</h2><p style="font-size:13.5px; color:#8B8B9A; margin:3px 0 0;">${g.sub}</p></div>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;">${g.items.map(it => `
+      <a href="${it.href}" class="lift" data-hover style="display:flex; align-items:center; gap:11px; padding:16px; border-radius:12px; background:linear-gradient(160deg,rgba(22,18,38,0.7),rgba(12,11,22,0.7)); border:1px solid rgba(255,255,255,0.06); text-decoration:none;">
+        <span style="display:flex; flex:0 0 auto; width:30px; height:30px; align-items:center; justify-content:center; border-radius:8px; background:rgba(168,85,247,0.12); color:#C4B5FD; ${ms} font-size:18px;">${it.icon}</span>
+        <span style="font-size:13.5px; font-weight:500; color:#E5E7EB; line-height:1.3;">${it.label}</span>
+      </a>`).join('')}</div>
+  </div>`).join('');
+</script>
+</body>
+</html>

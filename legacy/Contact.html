@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact — Catalyst Solutions Services</title>
+<script src="partials.js"></script>
+</head>
+<body>
+<div id="nav" data-active=""></div>
+
+<section style="position:relative; padding:72px 32px 96px; overflow:hidden;">
+  <div style="position:absolute; inset:0; background:radial-gradient(ellipse 50% 50% at 25% 10%, rgba(124,58,237,0.26), transparent 60%), radial-gradient(ellipse 40% 50% at 90% 30%, rgba(59,130,246,0.12), transparent 60%); pointer-events:none;"></div>
+  <div style="position:relative; max-width:1140px; margin:0 auto; display:grid; grid-template-columns:0.85fr 1.15fr; gap:48px; align-items:start;">
+    <div style="padding-top:8px;">
+      <div style="display:inline-flex; align-items:center; gap:8px; padding:7px 15px; border-radius:100px; background:rgba(124,58,237,0.12); border:1px solid rgba(168,85,247,0.28); margin-bottom:24px;">
+        <span style="width:6px; height:6px; border-radius:50%; background:#A855F7; box-shadow:0 0 10px #A855F7;"></span>
+        <span style="font-size:12.5px; font-weight:500; color:#C4B5FD;">Book a Call</span>
+      </div>
+      <h1 style="font-size:46px; font-weight:800; line-height:1.08; letter-spacing:-0.03em; color:#fff; margin:0 0 18px;">Let's Build Your Growth System</h1>
+      <p style="font-size:16.5px; line-height:1.62; color:#9CA3AF; margin:0 0 36px;">Tell us where you are and where you want to go. We'll come back with a clear, practical next step — no pressure.</p>
+      <div style="display:flex; flex-direction:column; gap:18px;">
+        <div style="display:flex; align-items:center; gap:14px;"><span style="display:flex; width:44px; height:44px; align-items:center; justify-content:center; border-radius:11px; background:rgba(168,85,247,0.12); border:1px solid rgba(168,85,247,0.2); color:#C4B5FD; font-family:'Material Symbols Outlined'; font-size:22px;">mail</span><div><div style="font-size:12px; color:#6B6B7A;">Email us</div><div style="font-size:15px; font-weight:600; color:#fff;">info@catalystsolutionservices.com</div></div></div>
+        <div style="display:flex; align-items:center; gap:14px;"><span style="display:flex; width:44px; height:44px; align-items:center; justify-content:center; border-radius:11px; background:rgba(168,85,247,0.12); border:1px solid rgba(168,85,247,0.2); color:#C4B5FD; font-family:'Material Symbols Outlined'; font-size:22px;">calendar_month</span><div><div style="font-size:12px; color:#6B6B7A;">Book a slot</div><div style="font-size:15px; font-weight:600; color:#fff;">calendly.com/catalyst-growth</div></div></div>
+        <div style="display:flex; align-items:center; gap:14px;"><span style="display:flex; width:44px; height:44px; align-items:center; justify-content:center; border-radius:11px; background:rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.2); color:#6EE7B7; font-family:'Material Symbols Outlined'; font-size:22px;">schedule</span><div><div style="font-size:12px; color:#6B6B7A;">Response time</div><div style="font-size:15px; font-weight:600; color:#fff;">We reply within 1 business day</div></div></div>
+      </div>
+      <div style="margin-top:32px; padding:20px; border-radius:14px; background:linear-gradient(160deg,rgba(24,19,42,0.7),rgba(12,11,22,0.7)); border:1px solid rgba(255,255,255,0.07);">
+        <div id="assurances" style="display:flex; flex-direction:column; gap:11px;"></div>
+      </div>
+    </div>
+    <div style="position:relative; padding:34px; border-radius:20px; background:linear-gradient(160deg,rgba(30,22,52,0.85),rgba(13,11,24,0.9)); border:1px solid rgba(168,85,247,0.25); box-shadow:0 28px 70px rgba(0,0,0,0.5), 0 0 50px rgba(124,58,237,0.15);">
+      <div id="thanks" style="display:none; flex-direction:column; align-items:center; text-align:center; padding:48px 12px;">
+        <span style="display:flex; width:68px; height:68px; align-items:center; justify-content:center; border-radius:18px; background:linear-gradient(135deg,#7C3AED,#A855F7); color:#fff; font-family:'Material Symbols Outlined'; font-size:36px; box-shadow:0 0 32px rgba(124,58,237,0.5); margin-bottom:22px;">check</span>
+        <h2 style="font-size:26px; font-weight:700; color:#fff; margin:0 0 10px;">Thank you — request received.</h2>
+        <p style="font-size:15px; line-height:1.6; color:#9CA3AF; margin:0; max-width:320px;">We'll review your details and get back to you within one business day with a clear next step.</p>
+      </div>
+      <form id="form" onsubmit="event.preventDefault(); document.getElementById('form').style.display='none'; document.getElementById('thanks').style.display='flex';">
+        <h2 style="font-size:21px; font-weight:700; color:#fff; margin:0 0 22px;">Request a Consultation</h2>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+          <div style="display:flex; flex-direction:column; gap:7px;"><label style="font-size:12.5px; font-weight:500; color:#B8B8C6;">Name</label><input type="text" required placeholder="Your name" style="padding:12px 14px; border-radius:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); color:#fff; font-size:14px; font-family:inherit; outline:none;"></div>
+          <div style="display:flex; flex-direction:column; gap:7px;"><label style="font-size:12.5px; font-weight:500; color:#B8B8C6;">Business Email</label><input type="email" required placeholder="you@company.com" style="padding:12px 14px; border-radius:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); color:#fff; font-size:14px; font-family:inherit; outline:none;"></div>
+          <div style="display:flex; flex-direction:column; gap:7px;"><label style="font-size:12.5px; font-weight:500; color:#B8B8C6;">Company Name</label><input type="text" placeholder="Company" style="padding:12px 14px; border-radius:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); color:#fff; font-size:14px; font-family:inherit; outline:none;"></div>
+          <div style="display:flex; flex-direction:column; gap:7px;"><label style="font-size:12.5px; font-weight:500; color:#B8B8C6;">Website URL</label><input type="text" placeholder="yoursite.com" style="padding:12px 14px; border-radius:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); color:#fff; font-size:14px; font-family:inherit; outline:none;"></div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:7px; margin-top:14px;"><label style="font-size:12.5px; font-weight:500; color:#B8B8C6;">Service Interested In</label><select id="services-sel" style="padding:12px 14px; border-radius:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); color:#E5E7EB; font-size:14px; font-family:inherit; outline:none;"></select></div>
+        <div style="display:flex; flex-direction:column; gap:7px; margin-top:14px;"><label style="font-size:12.5px; font-weight:500; color:#B8B8C6;">Timeline <span style="color:#6B6B7A; font-weight:400;">(optional)</span></label><select style="padding:12px 14px; border-radius:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); color:#E5E7EB; font-size:14px; font-family:inherit; outline:none;"><option style="background:#13101f;">As soon as possible</option><option style="background:#13101f;">Within 1–3 months</option><option style="background:#13101f;">3–6 months</option><option style="background:#13101f;">Just exploring</option></select></div>
+        <div style="display:flex; flex-direction:column; gap:7px; margin-top:14px;"><label style="font-size:12.5px; font-weight:500; color:#B8B8C6;">Message</label><textarea rows="4" placeholder="Tell us about your goals and what's slowing your growth..." style="padding:12px 14px; border-radius:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); color:#fff; font-size:14px; font-family:inherit; outline:none; resize:vertical;"></textarea></div>
+        <button type="submit" style="width:100%; margin-top:22px; padding:15px; border-radius:11px; background:linear-gradient(135deg,#7C3AED,#A855F7); color:#fff; font-size:15px; font-weight:600; font-family:inherit; border:1px solid rgba(255,255,255,0.14); cursor:pointer; box-shadow:0 0 32px rgba(124,58,237,0.45); display:flex; align-items:center; justify-content:center; gap:8px;">Request Consultation <span style="font-family:'Material Symbols Outlined'; font-size:19px;">arrow_forward</span></button>
+        <p style="font-size:12px; color:#6B6B7A; text-align:center; margin:14px 0 0;">By submitting, you agree to be contacted about your inquiry.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<div id="footer"></div>
+
+<script>
+const assurances = ['A clear, practical next step — not a sales pitch','Senior specialists matched to your goals','No pricing pressure; just an honest plan'];
+const serviceOptions = ['Select a service…','AI Strategy & Digital Growth Consulting','Website Design & Development','SEO & AI Search Visibility','Paid Advertising & Performance Marketing','Social Media Marketing & Content Creation','Content Marketing & Copywriting','Branding & Creative Services','AI Automation & AI Solutions','Mobile App & Software Development','Ecommerce & Marketplace Growth','Data, Analytics & Reporting','Online Reputation & Local Business Growth','Maintenance Retainers','Not sure yet — help me decide'];
+document.getElementById('assurances').innerHTML = assurances.map(a => `
+  <div style="display:flex; align-items:center; gap:10px;"><span style="font-family:'Material Symbols Outlined'; font-size:18px; color:#6EE7B7;">check_circle</span><span style="font-size:13.5px; color:#B8B8C6;">${a}</span></div>`).join('');
+document.getElementById('services-sel').innerHTML = serviceOptions.map(o => `<option style="background:#13101f; color:#E5E7EB;">${o}</option>`).join('');
+</script>
+</body>
+</html>
