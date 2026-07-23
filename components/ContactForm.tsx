@@ -16,14 +16,21 @@ export default function ContactForm() {
     setError("");
     const data = Object.fromEntries(new FormData(e.currentTarget));
     try {
-      const res = await fetch("/api/contact", {
+      // Web3Forms is called from the browser by design; the access key is public + spam-protected.
+      const res = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
+          subject: `New consultation request from ${data.name}`,
+          from_name: "Catalyst Website",
+          replyto: data.email,
+          ...data,
+        }),
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || "Something went wrong. Please try again.");
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || !body.success) {
+        throw new Error(body.message || "Something went wrong. Please try again.");
       }
       setStatus("sent");
     } catch (err) {
