@@ -1,11 +1,11 @@
-// ponytail: SQLite for zero-setup dev; switch to Postgres = provider "postgresql" + DATABASE_URL.
-// JSON payloads are stored as String (JSON.stringify) so both providers work unchanged.
+// Postgres (Neon in production). JSON payloads are stored as String (JSON.stringify)
+// so the schema stays provider-portable.
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

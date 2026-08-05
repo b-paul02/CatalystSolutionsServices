@@ -10,3 +10,4 @@ next-env.d.ts
 
 # Growth Snapshot
 prisma/dev.db*
+production-env.txt
