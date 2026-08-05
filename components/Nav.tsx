@@ -11,6 +11,7 @@ const links = [
   { label: "Industries", href: "/industries" },
   { label: "Use Cases", href: "/use-cases" },
   { label: "About", href: "/about" },
+  { label: "Free Growth Audit", href: "/growth-audit" },
 ];
 
 function Logo() {

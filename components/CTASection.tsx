@@ -29,6 +29,9 @@ export default function CTASection({
           <Link href="/contact" className="btn-primary">
             {button} <Icon name="arrow_forward" className="text-[19px]" />
           </Link>
+          <Link href="/growth-audit" className="btn-ghost">
+            Not ready to talk? Get a Free Growth Audit
+          </Link>
           <Link href="/services" className="text-[15px] font-medium text-[var(--color-brand-soft)] hover:text-white">
             Explore Services →
           </Link>

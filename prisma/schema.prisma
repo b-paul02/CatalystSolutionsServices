@@ -1,0 +1,75 @@
+// ponytail: SQLite for zero-setup dev; switch to Postgres = provider "postgresql" + DATABASE_URL.
+// JSON payloads are stored as String (JSON.stringify) so both providers work unchanged.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Lead {
+  id           String   @id @default(cuid())
+  email        String
+  url          String
+  // intake | generating | in_review | needs_attention | delivered | booked | nurture | closed
+  status       String   @default("intake")
+  // priority | standard | nurture (G1 tag)
+  tag          String?
+  // sales pipeline: cold | hot | in_pipeline | converted | rejected
+  salesStatus  String   @default("cold")
+  g1Score      Int?
+  g1Components String?
+  redFlags     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  evidencePack EvidencePack?
+  report       Report?
+  artifact     InternalArtifact?
+  events       Event[]
+}
+
+model EvidencePack {
+  id            String  @id @default(cuid())
+  leadId        String  @unique
+  lead          Lead    @relation(fields: [leadId], references: [id])
+  scraped       String // JSON: pages, signals, inferred profile
+  profile       String? // JSON: user-confirmed profile
+  intake        String? // JSON: core intake answers
+  moduleAnswers String? // JSON: per-module answers
+}
+
+model Report {
+  id           String    @id @default(cuid())
+  leadId       String    @unique
+  lead         Lead      @relation(fields: [leadId], references: [id])
+  json         String // user-facing report JSON
+  version      Int       @default(1)
+  // pending | needs_attention | approved | rejected
+  status       String    @default("pending")
+  criticLog    String?
+  reviewerName String?
+  reviewNote   String?
+  token        String    @unique @default(cuid())
+  deliveredAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model InternalArtifact {
+  id     String @id @default(cuid())
+  leadId String @unique
+  lead   Lead   @relation(fields: [leadId], references: [id])
+  json   String
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id])
+  type      String
+  data      String?
+  createdAt DateTime @default(now())
+}

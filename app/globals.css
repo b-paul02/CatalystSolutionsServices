@@ -98,6 +98,17 @@
 .anim-floaty { animation: floaty 6s ease-in-out infinite; }
 .anim-pulse { animation: pulseGlow 2s infinite; }
 
+/* Print (report "Save as PDF") — keep the brand's dark theme in the PDF */
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  header, footer, nav { display: none !important; }
+  html, body { background: var(--color-bg) !important; }
+  .card { break-inside: avoid; }
+  @page { margin: 0; }
+  /* with zero page margins, give the content its own breathing room */
+  main { padding: 24px; }
+}
+
 /* Accessibility: respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }

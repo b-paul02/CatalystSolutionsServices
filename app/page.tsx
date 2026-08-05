@@ -27,7 +27,8 @@ export default function Home() {
               <Link href="/contact" className="btn-primary">
                 Book a Growth Consultation <Icon name="arrow_forward" className="text-[19px]" />
               </Link>
-              <Link href="/services" className="btn-ghost">Explore Services</Link>
+              <Link href="/growth-audit" className="btn-ghost">Get Your Free Growth Audit</Link>
+              <Link href="/services" className="text-[15px] font-medium text-[var(--color-brand-soft)] hover:text-white">Explore Services →</Link>
             </div>
             <div className="flex flex-wrap gap-9">
               {heroStats.map((s) => (

@@ -5,4 +5,8 @@
 next-env.d.ts
 *.tsbuildinfo
 .env*
+!.env.example
 .DS_Store
+
+# Growth Snapshot
+prisma/dev.db*
