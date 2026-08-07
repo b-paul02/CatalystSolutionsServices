@@ -71,7 +71,7 @@ export default async function ReviewDetail({ params }: { params: Promise<{ id: s
       <div className="grid gap-8 xl:grid-cols-[1.2fr_1fr]">
         <div>
           <h2 className="mb-4 text-[17px] font-bold text-white">Report preview (as the user will see it)</h2>
-          <ReportView report={report} />
+          <ReportView report={report} meta={{ url: lead.url, date: lead.report.updatedAt.toISOString(), version: lead.report.version, reviewer: lead.report.reviewerName }} />
         </div>
         <div>
           <ReviewControls reportId={lead.report.id} reportJson={lead.report.json} status={lead.report.status} token={lead.report.token}

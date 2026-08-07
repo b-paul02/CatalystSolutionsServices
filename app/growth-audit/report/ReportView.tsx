@@ -1,6 +1,13 @@
 import Icon from "@/components/Icon";
 import type { ReportJSON, Route } from "@/lib/audit/report-types";
-import type { Scorecard } from "@/lib/audit/scorecard";
+import type { Scorecard, Check } from "@/lib/audit/scorecard";
+
+export type ReportMeta = {
+  url?: string;
+  date?: string; // audit/approval date, ISO
+  version?: number;
+  reviewer?: string | null;
+};
 
 const effortColor: Record<string, string> = {
   Low: "text-[#6EE7B7] border-[rgba(110,231,183,0.3)] bg-[rgba(110,231,183,0.08)]",
@@ -9,6 +16,12 @@ const effortColor: Record<string, string> = {
 };
 
 const scoreColor = (n: number) => (n >= 75 ? "#6EE7B7" : n >= 45 ? "#FCD34D" : "#FCA5A5");
+
+const verificationBadge: Record<string, { label: string; cls: string }> = {
+  verified: { label: "Verified", cls: "text-[#6EE7B7] bg-[rgba(110,231,183,0.1)]" },
+  detected: { label: "Detected", cls: "text-[#FCD34D] bg-[rgba(252,211,77,0.1)]" },
+  assumed: { label: "Assumed", cls: "text-[var(--color-faint)] bg-white/5" },
+};
 
 // Renders **bold** and *italic* from ICP bodies without a markdown dep.
 function Rich({ text }: { text: string }) {
@@ -34,6 +47,29 @@ function Gauge({ score }: { score: number }) {
   );
 }
 
+function CoverBlock({ report, meta }: { report: ReportJSON; meta: ReportMeta }) {
+  return (
+    <section className="card mb-6">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="mb-1 text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--color-brand-soft)]">Digital Growth Snapshot</div>
+          <h2 className="text-[24px] font-extrabold tracking-[-0.02em] text-white">{report.business_name}</h2>
+          {meta.url && <div className="mt-0.5 text-[13px] text-[var(--color-muted)]">{meta.url.replace(/^https?:\/\//, "")}</div>}
+        </div>
+        <div className="text-right text-[12.5px] leading-[1.7] text-[var(--color-faint)]">
+          {meta.date && <div>Audit date: <span className="text-[var(--color-fg)]">{meta.date.slice(0, 10)}</span></div>}
+          {meta.version !== undefined && <div>Report version: <span className="text-[var(--color-fg)]">v{meta.version}</span></div>}
+          <div>Prepared by <span className="text-[var(--color-fg)]">Catalyst Solutions Services</span></div>
+          {meta.reviewer && <div>Reviewed by <span className="text-[var(--color-fg)]">{meta.reviewer}</span></div>}
+        </div>
+      </div>
+      <p className="border-t border-white/5 pt-3 text-[11.5px] leading-[1.5] text-[var(--color-faint)]">
+        Prepared for the business named above. Findings reflect what was publicly observable and what you told us on the audit date — see the methodology section at the end for scope and limitations.
+      </p>
+    </section>
+  );
+}
+
 function ScorecardHero({ sc }: { sc: Scorecard }) {
   return (
     <section className="card mb-6">
@@ -47,20 +83,25 @@ function ScorecardHero({ sc }: { sc: Scorecard }) {
           <div className="grid gap-2.5">
             {sc.subscores.map((s) => (
               <div key={s.key} className="flex items-center gap-3">
-                <span className="w-[150px] shrink-0 text-[12.5px] text-[var(--color-muted)]">{s.label}</span>
+                <span className="w-[160px] shrink-0 text-[12.5px] text-[var(--color-muted)]">{s.label}</span>
                 <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/5">
                   <div className="h-full rounded-full" style={{ width: `${Math.max(4, s.score)}%`, background: scoreColor(s.score) }} />
                 </div>
                 <span className="w-8 text-right text-[12.5px] font-bold" style={{ color: scoreColor(s.score) }}>{s.score}</span>
+                <span className="w-[86px] text-right text-[10.5px] uppercase tracking-[0.04em] text-[var(--color-faint)]">{s.confidence} confidence</span>
               </div>
             ))}
           </div>
           {sc.pagespeed && (
             <p className="mt-3 text-[11.5px] text-[var(--color-faint)]">
-              Mobile speed measured by Google PageSpeed: {sc.pagespeed.performanceScore}/100
+              Mobile speed measured by Google PageSpeed on {sc.checkedAt}: {sc.pagespeed.performanceScore}/100
               {sc.pagespeed.lcpSeconds ? ` · largest content loads in ${sc.pagespeed.lcpSeconds}s` : ""}
+              {sc.pagespeed.inpMs ? ` · real-user responsiveness ${sc.pagespeed.inpMs}ms` : ""}
             </p>
           )}
+          <p className="mt-2 text-[11px] text-[var(--color-faint)]">
+            Scores are computed from {sc.checks.length} automated checks. A pillar only reaches 100 when every check is independently verified — &quot;detected&quot; signals earn partial credit.
+          </p>
         </div>
       </div>
     </section>
@@ -68,21 +109,55 @@ function ScorecardHero({ sc }: { sc: Scorecard }) {
 }
 
 function ChecksTable({ sc }: { sc: Scorecard }) {
+  const pillars = sc.subscores.map((s) => ({ key: s.key, label: s.label, checks: sc.checks.filter((c) => c.pillar === s.key) }));
   return (
     <section className="card mb-6">
-      <h2 className="mb-4 flex items-center gap-2.5 text-[21px] font-bold tracking-[-0.01em] text-white">
+      <h2 className="mb-1 flex items-center gap-2.5 text-[21px] font-bold tracking-[-0.01em] text-white">
         <Icon name="checklist" className="text-[22px] text-[var(--color-brand-soft)]" />What we checked
       </h2>
-      <div className="grid gap-0 divide-y divide-white/5">
-        {sc.checks.map((c) => (
-          <div key={c.label} className="flex items-start gap-3 py-2.5">
-            <Icon name={c.pass ? "check_circle" : "cancel"} className={`mt-0.5 text-[19px] ${c.pass ? "text-[#6EE7B7]" : "text-[#FCA5A5]"}`} />
-            <div>
-              <span className="text-[14px] font-medium text-[var(--color-fg)]">{c.label}</span>
-              {c.detail && <span className="ml-2 text-[12.5px] text-[var(--color-faint)]">{c.detail}</span>}
+      <p className="mb-4 text-[12.5px] text-[var(--color-faint)]">{sc.checks.length} automated checks, run {sc.checkedAt}. &quot;Detected&quot; means a signal was found but not proven to be working; &quot;Assumed&quot; means we could not verify it without account access.</p>
+      <div className="grid gap-5">
+        {pillars.map((p) => (
+          <div key={p.key}>
+            <h3 className="mb-1.5 text-[13px] font-bold uppercase tracking-[0.06em] text-[var(--color-brand-soft)]">{p.label}</h3>
+            <div className="grid divide-y divide-white/5">
+              {p.checks.map((c: Check) => (
+                <div key={c.label} className="flex items-start gap-3 py-2">
+                  <Icon name={c.pass ? "check_circle" : "cancel"} className={`mt-0.5 text-[18px] ${c.pass ? "text-[#6EE7B7]" : "text-[#FCA5A5]"}`} />
+                  <div className="flex-1">
+                    <span className="text-[13.5px] font-medium text-[var(--color-fg)]">{c.label}</span>
+                    {c.detail && <span className="ml-2 text-[12px] text-[var(--color-faint)]">{c.detail}</span>}
+                  </div>
+                  <span className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.05em] ${verificationBadge[c.verification].cls}`}>
+                    {verificationBadge[c.verification].label}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function Methodology({ sc, meta }: { sc: Scorecard | null; meta: ReportMeta }) {
+  return (
+    <section className="card mb-10 print:break-before-page">
+      <h2 className="mb-4 flex items-center gap-2.5 text-[21px] font-bold tracking-[-0.01em] text-white">
+        <Icon name="science" className="text-[22px] text-[var(--color-brand-soft)]" />Methodology &amp; limitations
+      </h2>
+      <div className="grid gap-3 text-[13px] leading-[1.65] text-[var(--color-muted)]">
+        {sc ? (
+          <>
+            <p><span className="font-semibold text-[var(--color-fg)]">What we reviewed.</span> {sc.pagesReviewed.length} publicly accessible page{sc.pagesReviewed.length === 1 ? "" : "s"} ({sc.pagesReviewed.join(", ")}) on {sc.checkedAt}, plus your intake answers{sc.pagespeed ? ", plus Google PageSpeed field and lab data" : ""}.</p>
+            <p><span className="font-semibold text-[var(--color-fg)]">How scores work.</span> {sc.checks.length} automated checks grouped into {sc.subscores.length} pillars. Independently verified checks earn full credit; signals we detected but could not prove working earn 70%; assumptions earn half. No pillar reaches 100 unless everything in it is verified. Each pillar shows a confidence level based on how much of it we could verify.</p>
+            <p><span className="font-semibold text-[var(--color-fg)]">What we could not verify.</span> Anything requiring account access: analytics configuration and conversion events, Search Console data, ad account performance, actual enquiry volumes. Where these matter, the report says so rather than guessing. Statistics cited come from named published studies; none are generated.</p>
+          </>
+        ) : (
+          <p><span className="font-semibold text-[var(--color-fg)]">What we reviewed.</span> This business has no website yet, so the analysis is built from the intake answers{meta.date ? ` provided on ${meta.date.slice(0, 10)}` : ""} and any online presence links shared. No automated site checks were possible; recommendations therefore focus on foundations.</p>
+        )}
+        <p><span className="font-semibold text-[var(--color-fg)]">Human review.</span> This report was drafted by an AI analysis pipeline and reviewed, edited where needed, and approved by a named Catalyst consultant before release{meta.reviewer ? ` (${meta.reviewer})` : ""}. Timelines shown are deliberately conservative ranges. Nothing in this report is a guarantee of a business outcome.</p>
       </div>
     </section>
   );
@@ -125,11 +200,12 @@ function RouteComparison({ routes }: { routes: Route[] }) {
   );
 }
 
-export default function ReportView({ report, bookingHref = "/contact" }: { report: ReportJSON; bookingHref?: string }) {
+export default function ReportView({ report, bookingHref = "/contact", meta = {} }: { report: ReportJSON; bookingHref?: string; meta?: ReportMeta }) {
   const h2 = "mb-5 flex items-center gap-2.5 text-[21px] font-bold tracking-[-0.01em] text-white";
   const sc = report.scorecard ?? null;
   return (
     <div className="mx-auto max-w-[780px]">
+      <CoverBlock report={report} meta={meta} />
       {sc && <ScorecardHero sc={sc} />}
 
       {report.key_points?.length > 0 && (
@@ -181,7 +257,7 @@ export default function ReportView({ report, bookingHref = "/contact" }: { repor
             <details key={s.name} open={i === 0} className="group rounded-xl border border-[var(--color-line)] bg-white/[0.02] p-4">
               <summary className="flex cursor-pointer items-center justify-between text-[15px] font-semibold text-white">
                 {s.name}
-                <Icon name="expand_more" className="text-[20px] text-[var(--color-faint)] transition-transform group-open:rotate-180" />
+                <Icon name="expand_more" className="text-[20px] text-[var(--color-faint)] transition-transform group-open:rotate-180 print:hidden" />
               </summary>
               <p className="mt-3 text-[14px] leading-[1.7] text-[var(--color-muted)]"><Rich text={s.body} /></p>
             </details>
@@ -226,7 +302,7 @@ export default function ReportView({ report, bookingHref = "/contact" }: { repor
       </section>
 
       {report.assumptions?.length > 0 && (
-        <section className="card mb-10">
+        <section className="card mb-6">
           <h2 className={h2}><Icon name="fact_check" className="text-[22px] text-[var(--color-brand-soft)]" />Assumptions we made</h2>
           <ul className="grid gap-2 text-[13.5px] leading-[1.6] text-[var(--color-muted)]">
             {report.assumptions.map((a, i) => <li key={i} className="flex gap-2"><span className="text-[var(--color-brand-soft)]">·</span>{a}</li>)}
@@ -234,10 +310,17 @@ export default function ReportView({ report, bookingHref = "/contact" }: { repor
         </section>
       )}
 
+      <Methodology sc={sc} meta={meta} />
+
       <section className="mb-4 text-center print:hidden">
         <p className="mb-5 text-[15.5px] leading-[1.6] text-[var(--color-fg)]">{report.cta}</p>
         <a href={bookingHref} className="btn-primary">Book a free 30-minute session <Icon name="arrow_forward" className="text-[19px]" /></a>
       </section>
+
+      {/* print-only running footer (repeats on every printed page) */}
+      <div className="hidden print:fixed print:bottom-2 print:left-0 print:right-0 print:block print:text-center print:text-[10px] print:text-[#8b8b9a]">
+        {report.business_name} · Growth Snapshot · Catalyst Solutions Services{meta.date ? ` · ${meta.date.slice(0, 10)}` : ""}
+      </div>
     </div>
   );
 }

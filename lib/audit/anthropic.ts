@@ -11,7 +11,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // Free-tier providers return 429/503 under load — retry with backoff rather than
 // fail the whole (multi-minute) pipeline over one transient blip.
-async function fetchWithRetry(system: string, user: string, maxTokens: number, attempts = 4): Promise<string> {
+async function fetchWithRetry(system: string, user: string, maxTokens: number, attempts = 4, jsonMode = false): Promise<string> {
   for (let i = 0; ; i++) {
     let res: Response;
     try {
@@ -28,6 +28,8 @@ async function fetchWithRetry(system: string, user: string, maxTokens: number, a
             { role: "system", content: system },
             { role: "user", content: user },
           ],
+          // enforced JSON output — supported by Gemini's OpenAI-compat layer and most routers
+          ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
         }),
         // reasoning models on free routers can take minutes; also catches hung connections
         signal: AbortSignal.timeout(240_000),
@@ -58,7 +60,7 @@ export async function callClaude(system: string, user: string, maxTokens = 4096)
 /** Call expecting strict JSON. Retries once with the parse error injected. */
 export async function callClaudeJSON<T>(system: string, user: string, maxTokens = 4096): Promise<T> {
   const sys = system + "\n\nReturn ONLY valid JSON. No markdown fences, no prose before or after.";
-  let text = await callClaude(sys, user, maxTokens);
+  let text = await fetchWithRetry(sys, user, maxTokens, 4, true);
   for (let attempt = 0; ; attempt++) {
     try {
       // tolerate accidental ```json fences

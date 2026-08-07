@@ -11,11 +11,9 @@ Format: `id · stat text · source · use when`
 
 ## Tracking & analytics
 - TRK-1 · Businesses that adopt data-driven marketing are roughly 6x more likely to be profitable year-over-year · Forbes/BCG data-driven marketing research · no analytics installed
-- TRK-2 · Fewer than 30% of small business websites have conversion tracking configured — most cannot attribute a single lead to a channel · industry CRO surveys (directional) · no conversion/form tracking found
 
 ## Forms & conversion
 - FRM-1 · Reducing form fields from 11 to 4 has been shown to lift conversions by up to 120% · unbounce/HubSpot form studies · long forms found (5+ fields)
-- FRM-2 · Sites with a single clear call to action convert measurably better than pages with competing CTAs · CRO literature (directional) · multiple/unclear CTAs
 - FRM-3 · 78% of buyers purchase from the company that responds to their enquiry first · Lead Connect / speed-to-lead research · slow or manual enquiry follow-up
 
 ## Search & content
@@ -25,15 +23,11 @@ Format: `id · stat text · source · use when`
 - SEO-4 · Organic search results take 3–6+ months to move meaningfully for most sites — month one is foundation, not rankings · consensus of SEO industry studies · any SEO route (also mandated by the estimate rubric)
 
 ## AI search
-- AIS-1 · Google AI Overviews now appear on a large and growing share of informational queries, and cited pages typically use clear structure and schema markup · Google Search documentation + AI-visibility studies (directional) · missing schema / AEO gaps
 - AIS-2 · Pages with structured data are eligible for rich results, which earn measurably higher click-through rates than plain listings · Google Search Central case studies · no structured data found
 
 ## Local & reputation
 - LOC-1 · 76% of people who search for something nearby on their smartphone visit a related business within a day · Google consumer insights · local business with weak local presence
 - LOC-2 · 88% of consumers trust online reviews as much as personal recommendations · BrightLocal consumer review survey · few or no reviews
 
-## Email & follow-up
-- EML-1 · Automated follow-up emails to new enquiries typically see open rates 2–3x higher than newsletters · email platform benchmarks (directional) · no auto-response to enquiries
-
 ## Usage note
-"(directional)" sources are honest industry patterns, not precise measurements — when citing one, the report must phrase it as "industry studies suggest" rather than as an exact fact about the reader's business.
+Every stat above has a named study behind it. If none fits the finding, the finding stands on the business's own evidence alone — never invent, soften, or approximate a statistic to fill the gap.

@@ -70,7 +70,8 @@ const CRITIC_CHECKLIST = `1. Every finding cites evidence traceable to the evide
 6. No sentence sells Catalyst, no superlatives, no prices, exactly one CTA at the end (the cta field only).
 7. No generic filler — every finding is specific to THIS business.
 8. Every finding's "text" contains at least one number OR a direct quote/named element from the evidence pack (a page, a phrase from the site, a measured value).
-9. Every "stat" attached to a finding appears verbatim (or near-verbatim) in the BENCHMARK LIBRARY provided — any statistic not in that library or the evidence pack is a violation. Stats from sources marked "(directional)" must be phrased as "industry studies suggest", not as fact.`;
+9. Every "stat" attached to a finding appears verbatim (or near-verbatim) in the BENCHMARK LIBRARY provided — any statistic not in that library or the evidence pack is a violation. Stats from sources marked "(directional)" must be phrased as "industry studies suggest", not as fact.
+10. No internal system language anywhere user-facing: field names (hasBlog, formCount), question codes (LG-1, SEO-2), or words like "scraped signals", "module answers", "evidence pack". Evidence must read as plain consultant citations (where seen, what was observed, when).`;
 
 export async function runPipeline(leadId: string, rejectionReason?: string): Promise<void> {
   const lead = await db.lead.findUniqueOrThrow({ where: { id: leadId }, include: { evidencePack: true } });
@@ -112,13 +113,16 @@ ${REPORT_SYSTEM}`,
   ).then(async (r) => { await logEvent(leadId, "node_done", { node: "icp" }); return r; });
 
   const [icp, pagespeed, ...analystResults] = await Promise.all([icpCall, pageSpeedPromise, ...analystCalls]);
-  const scorecard = buildScorecard(scraped, pagespeed);
+  const scorecard = buildScorecard(scraped, pagespeed, intake, moduleAnswers);
   if (pagespeed) await logEvent(leadId, "node_done", { node: "pagespeed", score: pagespeed.performanceScore });
 
   // ---- Layer 2: Synthesis (+ Layer 3 Critic loop, max 2 retries) ----
   const synthSystem = `You are the Synthesis node. You write the single user-facing audit report from the analysts' findings and ICP segments. Dedupe findings, sequence route elements into 2–3 coherent routes (chain dependent elements sequentially), and write prose at the quality bar of the sample report. At least one route must be partially DIY-able.
 SPECIFICITY RULES (hard requirements):
 - Every finding's "text" must contain at least one concrete number OR a direct quote/named element from the evidence pack (a page path, a phrase from the site, a measured value). If neither exists, the finding is too generic — cut it.
+EVIDENCE LANGUAGE (hard requirements):
+- Evidence citations are written for the business owner, never in system language. BANNED in any user-facing field: internal field names (hasBlog, hasAnalytics, formCount, scraped signals, module_answers), question codes (LG-1, SEO-2, WEB-3), and the words "intake", "module", "evidence pack", "scrape/scraped".
+- Write evidence as a plain citation a consultant would give: WHERE it was seen (page or answer), WHAT was observed, WHEN. Example: "Your homepage and course pages, checked ${new Date().toISOString().slice(0, 10)} — no blog or article section exists." or "Your answer during intake: cost per lead is not tracked today."
 - You may attach a supporting "stat" to a finding ONLY from the BENCHMARK LIBRARY below, quoted with its source. If no benchmark fits, omit the stat. Stats marked "(directional)" must be phrased as "industry studies suggest". Never invent, round, or extrapolate a statistic.
 - The SCORECARD numbers provided (computed by code, shown to the user above your prose) are trusted evidence — reference them in findings where relevant.
 ${noWebsite ? "- This business has NO WEBSITE yet. Do not invent site findings. Findings come from their answers and any online-presence links. Routes must lean foundation-first: online foundation (site + tracking) before traffic or visibility spend." : ""}
@@ -133,15 +137,26 @@ ${REPORT_SYSTEM}\n\nBENCHMARK LIBRARY:\n${benchmarks}\n\nBRAND VOICE RULES:\n${c
   let verdict: CriticVerdict = { pass: false, violations: rejectionReason ? [`Human reviewer rejected the previous version: ${rejectionReason}`] : [] };
   const criticLog: CriticVerdict[] = [];
 
+  // Deterministic lint: internal system language must never reach the user. The LLM critic
+  // is told the same rule, but code doesn't miss.
+  const JARGON = /\bhas[A-Z]\w+\b|\bformCount\b|\bhomepageH1Count\b|\bimagesMissingAlt\b|module_answers|evidence pack|scraped signals?|\b(LG|SEO|WEB|STR|ADS|SOC|CON|BRD|AIA|APP|ECOM|DATA|LOC|RET)-\d\b/;
+  const lintJargon = (r: ReportJSON): string[] =>
+    JSON.stringify([r.snapshot, r.key_points, r.findings, r.routes, r.quick_wins, r.assumptions, r.icps, r.cta])
+      .match(new RegExp(JARGON, "g"))
+      ?.map((m) => `Internal system language "${m}" appears in user-facing text — rewrite as a plain consultant citation (where seen, what was observed, when).`) ?? [];
+
   for (let attempt = 0; attempt <= 2; attempt++) {
     report = await callClaudeJSON<ReportJSON>(synthSystem, synthUser(verdict.violations), 8192);
     await logEvent(leadId, "node_done", { node: "synthesis", attempt });
+
+    const jargonViolations = [...new Set(lintJargon(report))];
 
     // Critic: fresh context — sees ONLY the draft + checklist + evidence pack for traceability.
     verdict = await callClaudeJSON<CriticVerdict>(
       `You are a strict compliance critic for business audit reports. You validate a draft report against a checklist. You have no stake in the report passing. Be adversarial: if a milestone promises an outcome, a timeline is a single number instead of a range, a quick win cannot realistically be done in 30 days, or a finding is generic filler, fail it. Return JSON {"pass": boolean, "violations": [specific strings naming the offending section and sentence]}.`,
       `CHECKLIST:\n${CRITIC_CHECKLIST}\n\nBENCHMARK LIBRARY (the only permitted stats):\n${benchmarks}\n\nEVIDENCE PACK (for traceability checks):\n${evidencePack}\n\nDRAFT REPORT:\n${JSON.stringify(report, null, 1)}`
     );
+    verdict = { pass: verdict.pass && jargonViolations.length === 0, violations: [...verdict.violations, ...jargonViolations] };
     criticLog.push(verdict);
     await logEvent(leadId, "critic_verdict", verdict);
     if (verdict.pass) break;

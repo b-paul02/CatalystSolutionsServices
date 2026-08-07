@@ -41,7 +41,8 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
             <PrintButton />
           </div>
         </div>
-        <ReportView report={report} />
+        <ReportView report={report}
+          meta={{ url: record.lead.url, date: (record.deliveredAt ?? record.updatedAt).toISOString(), version: record.version, reviewer: record.reviewerName }} />
       </div>
     </section>
   );

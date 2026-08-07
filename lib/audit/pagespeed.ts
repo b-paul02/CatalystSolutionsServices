@@ -5,6 +5,7 @@ export type PageSpeedResult = {
   performanceScore: number; // 0–100
   lcpSeconds: number | null;
   cls: number | null;
+  inpMs: number | null; // real-user field data (CrUX), when Google has it
   strategy: "mobile";
 };
 
@@ -23,10 +24,12 @@ export async function fetchPageSpeed(url: string): Promise<PageSpeedResult | nul
     if (typeof score !== "number") return null;
     const lcpMs = lh?.audits?.["largest-contentful-paint"]?.numericValue;
     const cls = lh?.audits?.["cumulative-layout-shift"]?.numericValue;
+    const inp = data.loadingExperience?.metrics?.INTERACTION_TO_NEXT_PAINT?.percentile;
     return {
       performanceScore: Math.round(score * 100),
       lcpSeconds: typeof lcpMs === "number" ? Math.round(lcpMs / 100) / 10 : null,
       cls: typeof cls === "number" ? Math.round(cls * 100) / 100 : null,
+      inpMs: typeof inp === "number" ? inp : null,
       strategy: "mobile",
     };
   } catch {
