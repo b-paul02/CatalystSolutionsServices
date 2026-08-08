@@ -59,6 +59,7 @@ export default function Wizard() {
   const [budget, setBudget] = useState("");
   const [timeline, setTimeline] = useState("");
   const [decision, setDecision] = useState("");
+  const [competitors, setCompetitors] = useState("");
 
   // modules
   const [moduleAnswers, setModuleAnswers] = useState<Record<string, string>>({});
@@ -101,7 +102,7 @@ export default function Wizard() {
         method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({
           leadId, profile,
-          intake: { goal, businessModel, services, budget, timeline, decision, teamSize: profile.teamSize, stage: profile.stage, presenceLinks: profile.presenceLinks },
+          intake: { goal, businessModel, services, budget, timeline, decision, competitors, teamSize: profile.teamSize, stage: profile.stage, presenceLinks: profile.presenceLinks },
           moduleAnswers,
         }),
       });
@@ -235,7 +236,14 @@ export default function Wizard() {
 
       {step === 5 && (<><h2 className={h}>Rough monthly marketing budget?</h2><p className={sub}>A range is enough — this shapes what we recommend, nothing else.</p><Choice options={BUDGETS} value={budget} onPick={setBudget} /></>)}
       {step === 6 && (<><h2 className={h}>When do you want to start?</h2><Choice options={TIMELINES} value={timeline} onPick={setTimeline} /></>)}
-      {step === 7 && (<><h2 className={h}>Who decides on engagements like this?</h2><Choice options={DECISIONS} value={decision} onPick={setDecision} /></>)}
+      {step === 7 && (
+        <>
+          <h2 className={h}>Who decides on engagements like this?</h2>
+          <Choice options={DECISIONS} value={decision} onPick={setDecision} />
+          <label className="label mb-1.5 mt-5 block">Which competitors do you watch, if any? (optional — we&apos;ll research them either way)</label>
+          <textarea className="field min-h-[56px]" value={competitors} onChange={(e) => setCompetitors(e.target.value)} placeholder="Names or websites" />
+        </>
+      )}
 
       {currentModule && (
         <>

@@ -6,6 +6,7 @@ import { db, logEvent } from "./db";
 import { pickModules } from "./modules";
 import { fetchPageSpeed } from "./pagespeed";
 import { buildScorecard } from "./scorecard";
+import { discoverAndMeasureCompetitors, type CompetitorsResult } from "./competitors";
 import type { ReportJSON } from "./report-types";
 
 // Report-generation system prompt (embedded verbatim per spec).
@@ -71,7 +72,9 @@ const CRITIC_CHECKLIST = `1. Every finding cites evidence traceable to the evide
 7. No generic filler — every finding is specific to THIS business.
 8. Every finding's "text" contains at least one number OR a direct quote/named element from the evidence pack (a page, a phrase from the site, a measured value).
 9. Every "stat" attached to a finding appears verbatim (or near-verbatim) in the BENCHMARK LIBRARY provided — any statistic not in that library or the evidence pack is a violation. Stats from sources marked "(directional)" must be phrased as "industry studies suggest", not as fact.
-10. No internal system language anywhere user-facing: field names (hasBlog, formCount), question codes (LG-1, SEO-2), or words like "scraped signals", "module answers", "evidence pack". Evidence must read as plain consultant citations (where seen, what was observed, when).`;
+10. No internal system language anywhere user-facing: field names (hasBlog, formCount), question codes (LG-1, SEO-2), or words like "scraped signals", "module answers", "evidence pack". Evidence must read as plain consultant citations (where seen, what was observed, when).
+11. If a "comparison" section exists: every lag/lead claim must trace to the VERIFIED COMPETITOR MEASUREMENTS provided; competitors may only be characterised by what was measured on their sites.
+12. Zero claims about competitor traffic, search rankings, revenue, student/customer numbers, or popularity — none of these were measured. If no competitor measurements were provided, any mention of a named competitor is a violation.`;
 
 export async function runPipeline(leadId: string, rejectionReason?: string): Promise<void> {
   const lead = await db.lead.findUniqueOrThrow({ where: { id: leadId }, include: { evidencePack: true } });
@@ -91,6 +94,14 @@ export async function runPipeline(leadId: string, rejectionReason?: string): Pro
 
   // PageSpeed runs concurrently with the fan-out (PSI takes 15–45s); null on failure/no site.
   const pageSpeedPromise = scraped.ok && lead.url ? fetchPageSpeed(lead.url) : Promise.resolve(null);
+
+  // Competitor discovery + verification + measurement, in parallel with the analysts.
+  // Website-having leads only — there is nothing symmetric to compare otherwise.
+  const profileText = `${profile.business_name ?? ""} — ${profile.sells ?? ""} Serves: ${profile.serves ?? ""} Industry: ${profile.industry ?? ""}`;
+  const competitorsPromise: Promise<CompetitorsResult | null> = scraped.ok && lead.url
+    ? discoverAndMeasureCompetitors({ profileText, clientUrl: lead.url, clientProvided: intake.competitors })
+        .catch((e) => { console.error("competitor discovery failed", e); return null; })
+    : Promise.resolve(null);
 
   const evidencePack = JSON.stringify({ scraped, confirmed_profile: profile, intake, module_answers: moduleAnswers }, null, 1);
 
@@ -112,9 +123,22 @@ ${REPORT_SYSTEM}`,
     `EVIDENCE PACK:\n${evidencePack}\n\nICP QUALITY BAR:\n${contextFile("icp-examples.md")}\n\nBusiness model: ${intake.businessModel ?? "unknown"}. If "Both", lead with the higher-revenue-potential side.\n\nReturn JSON: {"icps":[{"name","body"}]}`
   ).then(async (r) => { await logEvent(leadId, "node_done", { node: "icp" }); return r; });
 
-  const [icp, pagespeed, ...analystResults] = await Promise.all([icpCall, pageSpeedPromise, ...analystCalls]);
+  const [icp, pagespeed, competitors, ...analystResults] = await Promise.all([icpCall, pageSpeedPromise, competitorsPromise, ...analystCalls]);
   const scorecard = buildScorecard(scraped, pagespeed, intake, moduleAnswers);
   if (pagespeed) await logEvent(leadId, "node_done", { node: "pagespeed", score: pagespeed.performanceScore });
+  const comparableCompetitors = competitors && competitors.competitors.length >= 2 ? competitors : null;
+  await logEvent(leadId, "node_done", { node: "competitors", source: competitors?.source ?? "none", found: competitors?.competitors.length ?? 0 });
+  await db.evidencePack.update({ where: { leadId }, data: { competitors: JSON.stringify(competitors) } }).catch(() => {});
+  // compact view for the LLM nodes: subscores + failed checks only, keeps context small
+  const competitorSummary = comparableCompetitors
+    ? comparableCompetitors.competitors.map((c) => ({
+        name: c.name, url: c.url, type: c.type, why: c.why,
+        overall: c.scorecard?.overall,
+        subscores: c.scorecard?.subscores.map((s) => `${s.label}: ${s.score}`),
+        notable_passes: c.scorecard?.checks.filter((x) => x.pass).slice(0, 8).map((x) => x.label),
+        failed_checks: c.scorecard?.checks.filter((x) => !x.pass).map((x) => x.label),
+      }))
+    : null;
 
   // ---- Layer 2: Synthesis (+ Layer 3 Critic loop, max 2 retries) ----
   const synthSystem = `You are the Synthesis node. You write the single user-facing audit report from the analysts' findings and ICP segments. Dedupe findings, sequence route elements into 2–3 coherent routes (chain dependent elements sequentially), and write prose at the quality bar of the sample report. At least one route must be partially DIY-able.
@@ -126,12 +150,17 @@ EVIDENCE LANGUAGE (hard requirements):
 - You may attach a supporting "stat" to a finding ONLY from the BENCHMARK LIBRARY below, quoted with its source. If no benchmark fits, omit the stat. Stats marked "(directional)" must be phrased as "industry studies suggest". Never invent, round, or extrapolate a statistic.
 - The SCORECARD numbers provided (computed by code, shown to the user above your prose) are trusted evidence — reference them in findings where relevant.
 ${noWebsite ? "- This business has NO WEBSITE yet. Do not invent site findings. Findings come from their answers and any online-presence links. Routes must lean foundation-first: online foundation (site + tracking) before traffic or visibility spend." : ""}
+${competitorSummary ? `COMPETITOR COMPARISON RULES:
+- Verified competitor measurements are provided. Write the "comparison" object: "where_you_lag" and "where_you_lead" (2-4 items each, when supported by the data).
+- Every comparison claim must trace to a listed check or score — e.g. "Two of three competitors publish a blog; you don't." Never claim anything about competitor traffic, rankings, revenue, or student numbers — those were not measured.
+- Include where the client LEADS as honestly as where they lag. This is a comparison, not a fear pitch.
+- You may reference competitors by name in findings or routes where the measurements support it.` : `- No verified competitor data is available for this business. Do not name or characterise any competitor. Omit the "comparison" field entirely.`}
 ${REPORT_SYSTEM}\n\nBENCHMARK LIBRARY:\n${benchmarks}\n\nBRAND VOICE RULES:\n${contextFile("brand-voice.md")}\n\nSAMPLE REPORT (quality bar):\n${contextFile("sample-report.md")}`;
 
   const synthUser = (violations?: string[]) =>
-    `EVIDENCE PACK:\n${evidencePack}\n\nSCORECARD (deterministic, already shown to user):\n${JSON.stringify(scorecard, null, 1)}\n\nANALYST OUTPUTS:\n${JSON.stringify(analystResults, null, 1)}\n\nICP SEGMENTS:\n${JSON.stringify(icp.icps, null, 1)}\n` +
+    `EVIDENCE PACK:\n${evidencePack}\n\nSCORECARD (deterministic, already shown to user):\n${JSON.stringify(scorecard, null, 1)}\n${competitorSummary ? `\nVERIFIED COMPETITOR MEASUREMENTS (same check battery as the client):\n${JSON.stringify(competitorSummary, null, 1)}\n` : ""}\nANALYST OUTPUTS:\n${JSON.stringify(analystResults, null, 1)}\n\nICP SEGMENTS:\n${JSON.stringify(icp.icps, null, 1)}\n` +
     (violations?.length ? `\nA reviewer rejected your previous draft for these violations. Fix every one:\n- ${violations.join("\n- ")}\n` : "") +
-    `\nReturn JSON: {"business_name","snapshot" (2-3 sentences),"key_points" (exactly 3 short bullets — the "if you only read one thing" summary),"findings":[{"text","evidence","severity":"high|medium","stat":{"text","source"} (optional, benchmark library only)}] (4-7),"icps":[{"name","body"}],"routes":[{"name","involves","effort":"Low|Medium|High","milestones","if_nothing","tradeoffs","diyable":bool,"best_if" (one sentence: when this route is the right pick),"timeline_weeks":{"min":int,"max":int} (padded public range to first full delivery)}] (2-3),"quick_wins":[strings] (3-5),"assumptions":[strings],"cta" (one sentence offering a free 30-minute session)}`;
+    `\nReturn JSON: {"business_name","snapshot" (2-3 sentences),"key_points" (exactly 3 short bullets — the "if you only read one thing" summary),"findings":[{"text","evidence","severity":"high|medium","stat":{"text","source"} (optional, benchmark library only)}] (4-7),"icps":[{"name","body"}],"routes":[{"name","involves","effort":"Low|Medium|High","milestones","if_nothing","tradeoffs","diyable":bool,"best_if" (one sentence: when this route is the right pick),"timeline_weeks":{"min":int,"max":int} (padded public range to first full delivery)}] (2-3),"quick_wins":[strings] (3-5),"assumptions":[strings],${competitorSummary ? `"comparison":{"where_you_lag":[strings],"where_you_lead":[strings]},` : ""}"cta" (one sentence offering a free 30-minute session)}`;
 
   let report: ReportJSON | null = null;
   let verdict: CriticVerdict = { pass: false, violations: rejectionReason ? [`Human reviewer rejected the previous version: ${rejectionReason}`] : [] };
@@ -141,7 +170,7 @@ ${REPORT_SYSTEM}\n\nBENCHMARK LIBRARY:\n${benchmarks}\n\nBRAND VOICE RULES:\n${c
   // is told the same rule, but code doesn't miss.
   const JARGON = /\bhas[A-Z]\w+\b|\bformCount\b|\bhomepageH1Count\b|\bimagesMissingAlt\b|module_answers|evidence pack|scraped signals?|\b(LG|SEO|WEB|STR|ADS|SOC|CON|BRD|AIA|APP|ECOM|DATA|LOC|RET)-\d\b/;
   const lintJargon = (r: ReportJSON): string[] =>
-    JSON.stringify([r.snapshot, r.key_points, r.findings, r.routes, r.quick_wins, r.assumptions, r.icps, r.cta])
+    JSON.stringify([r.snapshot, r.key_points, r.findings, r.routes, r.quick_wins, r.assumptions, r.icps, r.cta, r.comparison])
       .match(new RegExp(JARGON, "g"))
       ?.map((m) => `Internal system language "${m}" appears in user-facing text — rewrite as a plain consultant citation (where seen, what was observed, when).`) ?? [];
 
@@ -154,7 +183,7 @@ ${REPORT_SYSTEM}\n\nBENCHMARK LIBRARY:\n${benchmarks}\n\nBRAND VOICE RULES:\n${c
     // Critic: fresh context — sees ONLY the draft + checklist + evidence pack for traceability.
     verdict = await callClaudeJSON<CriticVerdict>(
       `You are a strict compliance critic for business audit reports. You validate a draft report against a checklist. You have no stake in the report passing. Be adversarial: if a milestone promises an outcome, a timeline is a single number instead of a range, a quick win cannot realistically be done in 30 days, or a finding is generic filler, fail it. Return JSON {"pass": boolean, "violations": [specific strings naming the offending section and sentence]}.`,
-      `CHECKLIST:\n${CRITIC_CHECKLIST}\n\nBENCHMARK LIBRARY (the only permitted stats):\n${benchmarks}\n\nEVIDENCE PACK (for traceability checks):\n${evidencePack}\n\nDRAFT REPORT:\n${JSON.stringify(report, null, 1)}`
+      `CHECKLIST:\n${CRITIC_CHECKLIST}\n\nBENCHMARK LIBRARY (the only permitted stats):\n${benchmarks}\n${competitorSummary ? `\nVERIFIED COMPETITOR MEASUREMENTS:\n${JSON.stringify(competitorSummary, null, 1)}\n` : "\nNO COMPETITOR MEASUREMENTS WERE PROVIDED.\n"}\nEVIDENCE PACK (for traceability checks):\n${evidencePack}\n\nDRAFT REPORT:\n${JSON.stringify(report, null, 1)}`
     );
     verdict = { pass: verdict.pass && jargonViolations.length === 0, violations: [...verdict.violations, ...jargonViolations] };
     criticLog.push(verdict);
@@ -173,8 +202,12 @@ PART 4 SCHEMA + QUESTIONNAIRE CONTEXT:\n${contextFile("questionnaire.md").slice(
   );
   await logEvent(leadId, "node_done", { node: "artifact" });
 
-  // ---- persist (scorecard injected by code — the model never writes it) ----
-  if (report) report.scorecard = scorecard;
+  // ---- persist (scorecard + competitor data injected by code — the model never writes them) ----
+  if (report) {
+    report.scorecard = scorecard;
+    report.competitor_data = comparableCompetitors;
+    if (!comparableCompetitors) report.comparison = null; // never keep narrative without its data
+  }
   await db.report.upsert({
     where: { leadId },
     create: { leadId, json: JSON.stringify(report), status: reportStatus, criticLog: JSON.stringify(criticLog) },

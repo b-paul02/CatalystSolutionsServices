@@ -9,6 +9,7 @@ export type Intake = {
   timeline: string;
   decision: string;
   teamSize?: string;
+  competitors?: string; // optional free-text competitor names (Phase 2 discovery seed)
   stage?: string; // no-website flow: Idea | Trading offline | Recently launched
   presenceLinks?: string; // no-website flow: GBP / social links, free text
 };

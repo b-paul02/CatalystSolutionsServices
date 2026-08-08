@@ -39,6 +39,7 @@ model EvidencePack {
   profile       String? // JSON: user-confirmed profile
   intake        String? // JSON: core intake answers
   moduleAnswers String? // JSON: per-module answers
+  competitors   String? // JSON: CompetitorsResult (discovery source, verification, scorecards)
 }
 
 model Report {

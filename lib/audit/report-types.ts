@@ -1,4 +1,5 @@
 import type { Scorecard } from "./scorecard";
+import type { CompetitorsResult } from "./competitors";
 
 export type Finding = {
   text: string;
@@ -28,6 +29,12 @@ export type ReportJSON = {
   quick_wins: string[];
   assumptions: string[];
   cta: string;
+  // written by Synthesis only when competitor data exists; claims must trace to the scorecards
+  comparison?: {
+    where_you_lag: string[];
+    where_you_lead: string[];
+  } | null;
   // injected by code after synthesis (deterministic), never by the model
   scorecard?: Scorecard | null;
+  competitor_data?: CompetitorsResult | null;
 };

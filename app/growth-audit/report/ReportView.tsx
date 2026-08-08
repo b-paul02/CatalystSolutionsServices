@@ -1,6 +1,7 @@
 import Icon from "@/components/Icon";
 import type { ReportJSON, Route } from "@/lib/audit/report-types";
 import type { Scorecard, Check } from "@/lib/audit/scorecard";
+import type { CompetitorsResult } from "@/lib/audit/competitors";
 
 export type ReportMeta = {
   url?: string;
@@ -141,7 +142,7 @@ function ChecksTable({ sc }: { sc: Scorecard }) {
   );
 }
 
-function Methodology({ sc, meta }: { sc: Scorecard | null; meta: ReportMeta }) {
+function Methodology({ sc, meta, report }: { sc: Scorecard | null; meta: ReportMeta; report: ReportJSON }) {
   return (
     <section className="card mb-10 print:break-before-page">
       <h2 className="mb-4 flex items-center gap-2.5 text-[21px] font-bold tracking-[-0.01em] text-white">
@@ -157,8 +158,105 @@ function Methodology({ sc, meta }: { sc: Scorecard | null; meta: ReportMeta }) {
         ) : (
           <p><span className="font-semibold text-[var(--color-fg)]">What we reviewed.</span> This business has no website yet, so the analysis is built from the intake answers{meta.date ? ` provided on ${meta.date.slice(0, 10)}` : ""} and any online presence links shared. No automated site checks were possible; recommendations therefore focus on foundations.</p>
         )}
-        <p><span className="font-semibold text-[var(--color-fg)]">Human review.</span> This report was drafted by an AI analysis pipeline and reviewed, edited where needed, and approved by a named Catalyst consultant before release{meta.reviewer ? ` (${meta.reviewer})` : ""}. Timelines shown are deliberately conservative ranges. Nothing in this report is a guarantee of a business outcome.</p>
+        {report.competitor_data && report.competitor_data.competitors.length >= 2 && (
+          <p><span className="font-semibold text-[var(--color-fg)]">Competitor comparison.</span> Competitors were {report.competitor_data.source === "client" ? "named by you and supplemented by web research" : report.competitor_data.source === "grounded" ? "identified through live web search for your category" : "identified from industry knowledge"}, then each candidate&apos;s website was visited, its relevance confirmed from its actual content, and the same automated check battery run on it. Of {report.competitor_data.candidatesConsidered} candidates considered, {report.competitor_data.competitors.length} passed verification. Competitor traffic, search rankings, and revenue were not measured — comparisons are limited to what is publicly checkable.</p>
+        )}
       </div>
+    </section>
+  );
+}
+
+const HEADLINE_CHECKS = [
+  "Blog or content section",
+  "Structured data (JSON-LD) present",
+  "Analytics script installed",
+  "Online booking / scheduling link",
+  "Meta description on homepage",
+  "Exactly one H1 on homepage",
+  "Images have alt text",
+  "XML sitemap found",
+];
+
+function CompetitorComparison({ report, clientName }: { report: ReportJSON; clientName: string }) {
+  const data = report.competitor_data as CompetitorsResult | null | undefined;
+  if (!data || data.competitors.length < 2) return null;
+  const cols = [{ name: clientName, sc: report.scorecard ?? null, isClient: true }, ...data.competitors.map((c) => ({ name: c.name, sc: c.scorecard, isClient: false }))];
+  const has = (sc: Scorecard | null, label: string) => sc?.checks.find((c) => c.label === label);
+  return (
+    <section className="mb-6">
+      <h2 className="mb-5 flex items-center gap-2.5 px-1 text-[21px] font-bold tracking-[-0.01em] text-white">
+        <Icon name="compare_arrows" className="text-[22px] text-[var(--color-brand-soft)]" />How you compare
+      </h2>
+
+      <div className="mb-4 grid gap-3 sm:grid-cols-3">
+        {data.competitors.map((c) => (
+          <div key={c.url} className="card p-4">
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <span className="text-[14px] font-semibold text-white">{c.name}</span>
+              <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.05em] ${
+                c.type === "direct" ? "border-[rgba(252,165,165,0.3)] bg-[rgba(252,165,165,0.08)] text-[#FCA5A5]" : "border-[rgba(252,211,77,0.3)] bg-[rgba(252,211,77,0.08)] text-[#FCD34D]"}`}>
+                {c.type}
+              </span>
+            </div>
+            <p className="text-[12px] leading-[1.5] text-[var(--color-faint)]">{c.why}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="card mb-4 overflow-x-auto">
+        <table className="w-full min-w-[560px] text-left text-[12.5px]">
+          <thead>
+            <tr className="text-[11px] uppercase tracking-[0.06em] text-[var(--color-faint)]">
+              <th className="pb-3 pr-3 font-semibold">Check</th>
+              {cols.map((c) => (
+                <th key={c.name} className={`pb-3 pr-3 font-semibold ${c.isClient ? "text-[var(--color-brand-soft)]" : ""}`}>{c.isClient ? `${c.name} (you)` : c.name}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/5">
+            <tr>
+              <td className="py-2.5 pr-3 font-semibold text-white">Growth readiness score</td>
+              {cols.map((c) => (
+                <td key={c.name} className="py-2.5 pr-3 text-[13px] font-bold" style={{ color: c.sc ? scoreColor(c.sc.overall) : undefined }}>
+                  {c.sc ? `${c.sc.overall}/100` : "—"}
+                </td>
+              ))}
+            </tr>
+            {HEADLINE_CHECKS.map((label) => {
+              const row = cols.map((c) => has(c.sc, label));
+              if (row.every((r) => !r)) return null;
+              return (
+                <tr key={label}>
+                  <td className="py-2.5 pr-3 text-[var(--color-fg)]">{label}</td>
+                  {row.map((r, i) => (
+                    <td key={i} className="py-2.5 pr-3">
+                      {r ? <Icon name={r.pass ? "check_circle" : "cancel"} className={`text-[17px] ${r.pass ? "text-[#6EE7B7]" : "text-[#FCA5A5]"}`} /> : <span className="text-[var(--color-faint)]">—</span>}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <p className="mt-3 text-[11px] text-[var(--color-faint)]">Same automated check battery run on every site. Traffic, rankings, and revenue were not measured — see methodology.</p>
+      </div>
+
+      {report.comparison && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="card">
+            <h3 className="mb-3 text-[14px] font-bold text-[#FCA5A5]">Where you lag</h3>
+            <ul className="grid gap-2 text-[13.5px] leading-[1.6] text-[var(--color-fg)]">
+              {report.comparison.where_you_lag.map((x, i) => <li key={i} className="flex gap-2"><Icon name="trending_down" className="mt-0.5 shrink-0 text-[16px] text-[#FCA5A5]" />{x}</li>)}
+            </ul>
+          </div>
+          <div className="card">
+            <h3 className="mb-3 text-[14px] font-bold text-[#6EE7B7]">Where you lead</h3>
+            <ul className="grid gap-2 text-[13.5px] leading-[1.6] text-[var(--color-fg)]">
+              {report.comparison.where_you_lead.map((x, i) => <li key={i} className="flex gap-2"><Icon name="trending_up" className="mt-0.5 shrink-0 text-[16px] text-[#6EE7B7]" />{x}</li>)}
+            </ul>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -250,6 +348,8 @@ export default function ReportView({ report, bookingHref = "/contact", meta = {}
         </div>
       </section>
 
+      <CompetitorComparison report={report} clientName={report.business_name} />
+
       <section className="card mb-6">
         <h2 className={h2}><Icon name="groups" className="text-[22px] text-[var(--color-brand-soft)]" />Who you should be targeting</h2>
         <div className="grid gap-3">
@@ -310,7 +410,7 @@ export default function ReportView({ report, bookingHref = "/contact", meta = {}
         </section>
       )}
 
-      <Methodology sc={sc} meta={meta} />
+      <Methodology sc={sc} meta={meta} report={report} />
 
       <section className="mb-4 text-center print:hidden">
         <p className="mb-5 text-[15.5px] leading-[1.6] text-[var(--color-fg)]">{report.cta}</p>
