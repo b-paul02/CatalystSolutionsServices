@@ -31,11 +31,16 @@ function parseLenientJSON<T>(text: string): T | null {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/** Retry wrapper: grounding quotas are per-minute AND per-day; short backoff clears the former. */
+// Set when the last scan attempt hit a daily-quota 429 — retrying won't help, so callers stop early.
+let quotaExhausted = false;
+
+/** Retry wrapper: retries transient failures; a daily-quota 429 aborts immediately (it won't clear in seconds, and each retry burns more quota). */
 export async function scanDoctorPresenceWithRetry(opts: Parameters<typeof scanDoctorPresence>[0], attempts = 3): Promise<PresenceScan | null> {
   for (let i = 0; i < attempts; i++) {
+    quotaExhausted = false;
     const scan = await scanDoctorPresence(opts);
     if (scan) return scan;
+    if (quotaExhausted) return null; // daily quota — stop burning calls
     if (i < attempts - 1) await sleep(15_000 * (i + 1)); // 15s, 30s
   }
   return null;
@@ -82,7 +87,8 @@ Return ONLY JSON: {"found":[{"where","url","what","type":"directory|hospital_pag
         signal: AbortSignal.timeout(90_000),
       }
     );
-    if (!res.ok) continue; // quota/availability — try the next model
+    if (res.status === 429) { quotaExhausted = true; return null; } // daily grounding quota — abort, don't burn more
+    if (!res.ok) continue; // other availability issues — try the next model
     const data = await res.json();
     const text = (data.candidates?.[0]?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? "").join("");
     const parsed = parseLenientJSON<{ found?: PresenceFinding[]; not_found?: string[] }>(text);
