@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { db, logEvent } from "@/lib/audit/db";
 import { regenerateWithReason } from "@/lib/audit/pipeline";
+import { regenerateDoctorWithReason } from "@/lib/audit/doctor-pipeline";
 
 export async function saveEdits(reportId: string, json: string) {
   JSON.parse(json); // validate before saving
@@ -31,9 +32,11 @@ export async function reject(reportId: string, reviewerName: string, reason: str
   const r = await db.report.update({
     where: { id: reportId },
     data: { status: "rejected", reviewerName: reviewerName.trim() || null, reviewNote: reason.trim() },
+    include: { lead: true },
   });
   await logEvent(r.leadId, "report_rejected", { reviewer: reviewerName, reason });
   // regeneration takes minutes (multiple model calls) — run after the response
-  after(() => regenerateWithReason(r.leadId, reason.trim()).catch((e) => console.error("regen failed", e)));
+  const regen = r.lead.type === "doctor" ? regenerateDoctorWithReason : regenerateWithReason;
+  after(() => regen(r.leadId, reason.trim()).catch((e) => console.error("regen failed", e)));
   revalidatePath("/admin/reviews");
 }

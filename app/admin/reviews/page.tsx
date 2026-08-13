@@ -32,7 +32,10 @@ export default async function ReviewsPage() {
           const body = (
             <>
               <div className="min-w-[200px] flex-1">
-                <div className="text-[15px] font-semibold text-white">{l.url.replace(/^https?:\/\//, "")}</div>
+                <div className="text-[15px] font-semibold text-white">
+                  {l.type === "doctor" && <span className="mr-2 rounded-full bg-[rgba(96,165,250,0.15)] px-2 py-0.5 text-[10.5px] font-bold text-[#93C5FD]">DOCTOR</span>}
+                  {l.url ? l.url.replace(/^https?:\/\//, "") : l.email}
+                </div>
                 <div className="text-[12.5px] text-[var(--color-faint)]">{l.email} · {l.createdAt.toISOString().slice(0, 16).replace("T", " ")}</div>
               </div>
               <span className={`rounded-full px-2.5 py-1 text-[11.5px] font-semibold ${tagStyle[l.tag ?? "standard"] ?? ""}`}>{l.tag ?? "—"} · G1 {l.g1Score ?? "—"}</span>

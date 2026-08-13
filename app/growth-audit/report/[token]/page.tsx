@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/audit/db";
 import ReportView from "../ReportView";
+import DoctorReportView from "../DoctorReportView";
 import PrintButton from "./PrintButton";
 
 export const metadata: Metadata = { title: "Growth Snapshot", robots: { index: false } };
@@ -28,6 +29,8 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
   }
 
   const report = JSON.parse(record.json);
+  const isDoctor = record.lead.type === "doctor";
+  const meta = { url: record.lead.url, date: (record.deliveredAt ?? record.updatedAt).toISOString(), version: record.version, reviewer: record.reviewerName };
   return (
     <section className="relative px-5 py-16 sm:px-8 print:py-0">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_0%,rgba(124,58,237,0.18),transparent_60%)] print:hidden" />
@@ -35,14 +38,13 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
         <div className="mx-auto mb-10 max-w-[780px]">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <span className="badge mb-4"><span className="badge-dot" />Growth Snapshot</span>
-              <h1 className="text-[clamp(1.8rem,4vw,38px)] font-extrabold leading-[1.1] tracking-[-0.02em] text-white">{report.business_name}</h1>
+              <span className="badge mb-4"><span className="badge-dot" />{isDoctor ? "Doctor Digital Audit" : "Growth Snapshot"}</span>
+              <h1 className="text-[clamp(1.8rem,4vw,38px)] font-extrabold leading-[1.1] tracking-[-0.02em] text-white">{isDoctor ? report.doctor_name : report.business_name}</h1>
             </div>
             <PrintButton />
           </div>
         </div>
-        <ReportView report={report}
-          meta={{ url: record.lead.url, date: (record.deliveredAt ?? record.updatedAt).toISOString(), version: record.version, reviewer: record.reviewerName }} />
+        {isDoctor ? <DoctorReportView report={report} meta={meta} /> : <ReportView report={report} meta={meta} />}
       </div>
     </section>
   );

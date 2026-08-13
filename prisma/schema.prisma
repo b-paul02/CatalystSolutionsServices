@@ -11,6 +11,8 @@ datasource db {
 
 model Lead {
   id           String   @id @default(cuid())
+  // business (Growth Snapshot) | doctor (Doctor Digital Audit)
+  type         String   @default("business")
   email        String
   url          String
   // intake | generating | in_review | needs_attention | delivered | booked | nurture | closed

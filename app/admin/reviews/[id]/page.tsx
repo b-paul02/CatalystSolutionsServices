@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { db } from "@/lib/audit/db";
 import { verifySession, SESSION_COOKIE } from "@/lib/audit/adminAuth";
 import ReportView from "@/app/growth-audit/report/ReportView";
+import DoctorReportView from "@/app/growth-audit/report/DoctorReportView";
 import ReviewControls from "./ReviewControls";
 
 export const metadata = { title: "Review Report", robots: { index: false } };
@@ -52,8 +53,11 @@ export default async function ReviewDetail({ params }: { params: Promise<{ id: s
     <section className="shell py-14">
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-[24px] font-extrabold text-white">{report.business_name ?? lead.url}</h1>
-          <p className="text-[13px] text-[var(--color-faint)]">{lead.email} · {lead.url} · lead status: {lead.status} · report v{lead.report.version} ({lead.report.status})</p>
+          <h1 className="text-[24px] font-extrabold text-white">
+            {lead.type === "doctor" && <span className="mr-2 rounded-full bg-[rgba(96,165,250,0.15)] px-2.5 py-1 align-middle text-[12px] font-bold text-[#93C5FD]">DOCTOR</span>}
+            {report.business_name ?? report.doctor_name ?? lead.url ?? lead.email}
+          </h1>
+          <p className="text-[13px] text-[var(--color-faint)]">{lead.email} · {lead.url || "no website"} · lead status: {lead.status} · report v{lead.report.version} ({lead.report.status})</p>
         </div>
         <div className="flex items-center gap-3">
           <span className="rounded-full bg-[rgba(168,85,247,0.12)] px-3 py-1.5 text-[12.5px] font-semibold text-[var(--color-brand-soft)]">
@@ -71,7 +75,9 @@ export default async function ReviewDetail({ params }: { params: Promise<{ id: s
       <div className="grid gap-8 xl:grid-cols-[1.2fr_1fr]">
         <div>
           <h2 className="mb-4 text-[17px] font-bold text-white">Report preview (as the user will see it)</h2>
-          <ReportView report={report} meta={{ url: lead.url, date: lead.report.updatedAt.toISOString(), version: lead.report.version, reviewer: lead.report.reviewerName }} />
+          {lead.type === "doctor"
+            ? <DoctorReportView report={report} meta={{ url: lead.url, date: lead.report.updatedAt.toISOString(), version: lead.report.version, reviewer: lead.report.reviewerName }} />
+            : <ReportView report={report} meta={{ url: lead.url, date: lead.report.updatedAt.toISOString(), version: lead.report.version, reviewer: lead.report.reviewerName }} />}
         </div>
         <div>
           <ReviewControls reportId={lead.report.id} reportJson={lead.report.json} status={lead.report.status} token={lead.report.token}

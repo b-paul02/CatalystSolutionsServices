@@ -71,7 +71,7 @@ function CoverBlock({ report, meta }: { report: ReportJSON; meta: ReportMeta }) 
   );
 }
 
-function ScorecardHero({ sc }: { sc: Scorecard }) {
+export function ScorecardHero({ sc }: { sc: Scorecard }) {
   return (
     <section className="card mb-6">
       <div className="flex flex-col items-center gap-6 sm:flex-row sm:gap-10">
@@ -109,7 +109,7 @@ function ScorecardHero({ sc }: { sc: Scorecard }) {
   );
 }
 
-function ChecksTable({ sc }: { sc: Scorecard }) {
+export function ChecksTable({ sc }: { sc: Scorecard }) {
   const pillars = sc.subscores.map((s) => ({ key: s.key, label: s.label, checks: sc.checks.filter((c) => c.pillar === s.key) }));
   return (
     <section className="card mb-6">
