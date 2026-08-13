@@ -5,6 +5,7 @@ import { verifySession, SESSION_COOKIE } from "@/lib/audit/adminAuth";
 import ReportView from "@/app/growth-audit/report/ReportView";
 import DoctorReportView from "@/app/growth-audit/report/DoctorReportView";
 import ReviewControls from "./ReviewControls";
+import GenerationProgress from "./GenerationProgress";
 
 export const metadata = { title: "Review Report", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -28,14 +29,16 @@ export default async function ReviewDetail({ params }: { params: Promise<{ id: s
 
   const report = JSON.parse(lead.report.json);
   // Placeholder row exists from submission; nothing to review until the pipeline finishes.
-  if (lead.report.status === "generating" && !report.findings) {
+  if (lead.report.status === "generating" && !report.findings && !report.doctor_name) {
     return (
       <section className="shell py-14">
-        <h1 className="mb-3 text-[24px] font-extrabold text-white">{lead.url || lead.email}</h1>
-        <p className="text-[14px] text-[var(--color-muted)]">
-          Report is still generating (lead status: {lead.status}). Refresh in a few minutes.
-          If the lead is stuck in needs_attention with no report, check the event log below or rerun the pipeline.
-        </p>
+        <h1 className="mb-4 text-[24px] font-extrabold text-white">{lead.url || lead.email}</h1>
+        <div className="max-w-[560px]">
+          <GenerationProgress leadId={lead.id} />
+          <p className="text-[13px] text-[var(--color-faint)]">
+            The page updates itself when the report is ready. If generation fails, the event log on this page will show why.
+          </p>
+        </div>
       </section>
     );
   }
@@ -80,6 +83,7 @@ export default async function ReviewDetail({ params }: { params: Promise<{ id: s
             : <ReportView report={report} meta={{ url: lead.url, date: lead.report.updatedAt.toISOString(), version: lead.report.version, reviewer: lead.report.reviewerName }} />}
         </div>
         <div>
+          {(lead.status === "generating" || lead.report.status === "rejected") && <GenerationProgress leadId={lead.id} />}
           <ReviewControls reportId={lead.report.id} reportJson={lead.report.json} status={lead.report.status} token={lead.report.token}
             defaultReviewer={(await verifySession((await cookies()).get(SESSION_COOKIE)?.value)) ?? ""} />
           {pack && <Pre title="Evidence pack" obj={pack} />}
