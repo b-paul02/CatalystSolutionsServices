@@ -60,9 +60,15 @@ export async function runDoctorPipeline(leadId: string, rejectionReason?: string
   await db.lead.update({ where: { id: leadId }, data: { status: "generating" } });
   await logEvent(leadId, "pipeline_started", { kind: "doctor" });
 
+  // A manually-performed presence scan (stored by an admin in the evidence pack) takes
+  // precedence over the automated one — e.g. research done by hand when quota is exhausted.
+  const manualPresence: import("./doctor-presence").PresenceScan | null = (() => {
+    try { return JSON.parse(pack.competitors ?? "null")?.presenceScan ?? null; } catch { return null; }
+  })();
+
   // Individual presence scan (core evidence, retried) + optional scan of a site the doctor shared, in parallel.
   let [presence, scorecard] = await Promise.all([
-    scanDoctorPresenceWithRetry({
+    manualPresence ? Promise.resolve(manualPresence) : scanDoctorPresenceWithRetry({
       name: String(answers.name ?? ""),
       specialty: String(answers.specialty ?? ""),
       city: String(answers.location ?? ""),
