@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { db, logEvent } from "@/lib/audit/db";
-import { regenerateWithReason } from "@/lib/audit/pipeline";
-import { regenerateDoctorWithReason } from "@/lib/audit/doctor-pipeline";
+import { regenerateWithReason, runPipeline } from "@/lib/audit/pipeline";
+import { regenerateDoctorWithReason, runDoctorPipeline } from "@/lib/audit/doctor-pipeline";
 
 export async function saveEdits(reportId: string, json: string) {
   JSON.parse(json); // validate before saving
@@ -24,6 +24,16 @@ export async function approve(reportId: string, reviewerName: string) {
   await db.lead.update({ where: { id: r.leadId }, data: { status: r.lead.tag === "nurture" ? "nurture" : "delivered" } });
   await logEvent(r.leadId, "report_approved", { reviewer: r.reviewerName });
   // No delivery email for now — users watch their report link; nurture cron still handles follow-ups.
+  revalidatePath("/admin/reviews");
+}
+
+/** One-click recovery for failed/crashed generations — reruns the pipeline from the stored submission. */
+export async function regenerate(reportId: string) {
+  const r = await db.report.findUniqueOrThrow({ where: { id: reportId }, include: { lead: true } });
+  await logEvent(r.leadId, "report_regenerate_requested");
+  const run = r.lead.type === "doctor" ? runDoctorPipeline : runPipeline;
+  // takes minutes (multiple model calls) — run after the response; the progress bar tracks it
+  after(() => run(r.leadId).catch((e) => console.error("regenerate failed", e)));
   revalidatePath("/admin/reviews");
 }
 

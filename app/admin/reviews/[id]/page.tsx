@@ -6,6 +6,7 @@ import ReportView from "@/app/growth-audit/report/ReportView";
 import DoctorReportView from "@/app/growth-audit/report/DoctorReportView";
 import ReviewControls from "./ReviewControls";
 import GenerationProgress from "./GenerationProgress";
+import RegenerateButton from "./RegenerateButton";
 
 export const metadata = { title: "Review Report", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -35,6 +36,14 @@ export default async function ReviewDetail({ params }: { params: Promise<{ id: s
         <h1 className="mb-4 text-[24px] font-extrabold text-white">{lead.url || lead.email}</h1>
         <div className="max-w-[560px]">
           <GenerationProgress leadId={lead.id} />
+          {lead.status === "needs_attention" && (
+            <div className="card mb-4">
+              <p className="mb-3 text-[13.5px] leading-[1.6] text-[#FCA5A5]">
+                Generation failed before a report was produced. The submission is fully stored — regenerate to retry from the saved answers.
+              </p>
+              <RegenerateButton reportId={lead.report.id} />
+            </div>
+          )}
           <p className="text-[13px] text-[var(--color-faint)]">
             The page updates itself when the report is ready. If generation fails, the event log on this page will show why.
           </p>

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { saveEdits, approve, reject } from "../actions";
+import { saveEdits, approve, reject, regenerate } from "../actions";
 
 export default function ReviewControls({ reportId, reportJson, status, token, defaultReviewer = "" }: { reportId: string; reportJson: string; status: string; token: string; defaultReviewer?: string }) {
   const router = useRouter();
@@ -39,6 +39,13 @@ export default function ReviewControls({ reportId, reportJson, status, token, de
       )}
       {status === "approved" && (
         <p className="mb-5 text-[13px] text-[#6EE7B7]">Approved. Shareable link: <a className="underline" href={`/growth-audit/report/${token}`} target="_blank">/growth-audit/report/{token}</a></p>
+      )}
+
+      {status === "needs_attention" && (
+        <button className="btn-ghost mb-5 w-full" disabled={pending}
+          onClick={() => run(() => regenerate(reportId), "Regeneration started — the progress bar will track it.")}>
+          Regenerate report (retry after failure)
+        </button>
       )}
 
       <label className="label mb-1.5 block">Reject with reason (regenerates with the reason injected)</label>
