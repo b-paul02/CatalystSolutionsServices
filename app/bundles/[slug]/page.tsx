@@ -3,68 +3,225 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Icon from "@/components/Icon";
 import CTASection from "@/components/CTASection";
-import { bundleBySlug, bundleBaseline, services, steps } from "@/lib/content";
+import Market, { MarketOnly } from "@/components/Market";
+import { bundleBaseline } from "@/lib/content";
+import { programBySlug, termsStrip, isBookable, type Tier } from "@/lib/programs";
 
 export function generateStaticParams() {
-  return Object.keys(bundleBySlug).map((slug) => ({ slug }));
+  return Object.keys(programBySlug).map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const b = bundleBySlug[slug];
-  return b ? { title: `${b.name} — ${b.industry} Growth Bundle`, description: b.seoDesc } : { title: "Bundle" };
+  const p = programBySlug[slug];
+  return p ? { title: `${p.name} — ${p.industry} Program`, description: p.tagline } : { title: "Program" };
 }
 
-const serviceIcon = (slug: string) => services.find((s) => s.slug === slug)?.icon ?? "star";
-const serviceDesc = (slug: string) => services.find((s) => s.slug === slug)?.desc ?? "";
+function TierCard({ tier, featured, slug, index }: { tier: Tier; featured: boolean; slug: string; index: number }) {
+  return (
+    <div
+      className={`flex flex-col rounded-2xl border p-[26px] ${
+        featured
+          ? "border-[rgba(168,85,247,0.5)] bg-[linear-gradient(160deg,rgba(40,25,75,0.85),rgba(14,11,26,0.85))] shadow-[0_0_40px_rgba(124,58,237,0.2)]"
+          : "border-[var(--color-line)] bg-[linear-gradient(160deg,rgba(24,19,42,0.6),rgba(12,11,22,0.6))]"
+      }`}
+    >
+      <div className="mb-1 text-[11.5px] font-semibold uppercase tracking-[0.09em] text-[var(--color-brand-soft)]">{tier.label}</div>
+      <h3 className="mb-1.5 text-[19px] font-bold text-white">{tier.name}</h3>
+      <p className="mb-5 text-[13.5px] leading-[1.55] text-[var(--color-muted)]">{tier.positioning}</p>
 
-export default async function BundleDetail({ params }: { params: Promise<{ slug: string }> }) {
+      {/* Pricing — onboarding only; monthly managed service is mentioned, never priced */}
+      <div className="mb-5 rounded-xl border border-[rgba(168,85,247,0.2)] bg-[rgba(124,58,237,0.08)] p-4">
+        {tier.setup ? (
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="text-[12.5px] text-[var(--color-faint)]">{tier.setupLabel ?? "Onboarding"}</span>
+            <span className="text-[17px] font-bold text-white"><Market in={tier.setup.in} us={tier.setup.us} /></span>
+          </div>
+        ) : (
+          <div className="text-[13px] font-semibold text-white">Monthly plan — priced on your call</div>
+        )}
+        {tier.setup && tier.monthly && (
+          <div className="mt-2 flex items-start gap-2 border-t border-white/5 pt-2 text-[12px] leading-[1.5] text-[var(--color-faint)]">
+            <Icon name="autorenew" className="mt-[1px] text-[14px] text-[var(--color-brand-soft)]" />
+            Also includes an ongoing monthly managed service — scoped on your call.
+          </div>
+        )}
+        {tier.qualifier && (
+          <div className="mt-2 border-t border-white/5 pt-2 text-right text-[12.5px] font-medium text-[#FBBF24]">
+            Qualifier: <Market in={tier.qualifier.in} us={tier.qualifier.us} />
+          </div>
+        )}
+        {tier.priceNote && <div className="mt-2 border-t border-white/5 pt-2 text-[12px] leading-[1.5] text-[var(--color-faint)]">{tier.priceNote}</div>}
+      </div>
+
+      {isBookable(tier) ? (
+        <Link href={`/book?slug=${slug}&tier=${index}`} className="btn-primary mb-5 w-full justify-center text-[14px]">
+          Book Now — pay 50% to start <Icon name="arrow_forward" className="text-[17px]" />
+        </Link>
+      ) : (
+        <Link href="/contact" className="btn-ghost mb-5 w-full justify-center text-[14px]">Book a Call</Link>
+      )}
+
+      <p className="mb-4 text-[13px] leading-[1.55] text-[var(--color-faint)]"><span className="font-semibold text-[var(--color-fg)]">Who it's for: </span>{tier.whoFor}</p>
+
+      {tier.deliverables && (
+        <div className="mb-4">
+          <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.07em] text-[var(--color-fg)]">
+            {tier.includesPrior ? "Everything in the previous tier, plus:" : "What's included"}
+          </div>
+          <ul className="flex flex-col gap-[7px]">
+            {tier.deliverables.map((d) => (
+              <li key={d} className="flex items-start gap-2 text-[13px] leading-[1.5] text-[var(--color-muted)]">
+                <span className="mt-[3px] flex h-[16px] w-[16px] shrink-0 items-center justify-center rounded-[5px] bg-[rgba(52,211,153,0.14)] text-[#6EE7B7]"><Icon name="check" className="text-[12px]" /></span>
+                {d}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {!tier.deliverables && tier.includesPrior && (
+        <div className="mb-4 text-[12px] font-semibold uppercase tracking-[0.07em] text-[var(--color-fg)]">Everything in the previous tier, plus expanded scope:</div>
+      )}
+
+      <div className="mt-auto border-t border-white/5 pt-4">
+        <div className="mb-2 text-[11.5px] font-semibold uppercase tracking-[0.08em] text-[var(--color-faint)]">Scope</div>
+        <div className="flex flex-wrap gap-1.5">
+          {tier.guardrails.map((g) => (
+            <span key={g} className="rounded-full border border-[var(--color-line)] bg-white/[0.03] px-2.5 py-1 text-[11.5px] font-medium text-[var(--color-muted)]">{g}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default async function ProgramDetail({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const bundle = bundleBySlug[slug];
-  if (!bundle) notFound();
+  const program = programBySlug[slug];
+  if (!program) notFound();
 
-  const related = Object.values(bundleBySlug).filter((b) => b.slug !== slug).slice(0, 3);
+  const related = Object.values(programBySlug).filter((p) => p.slug !== slug).slice(0, 3);
+  const grid =
+    program.tiers.length >= 3 ? "lg:grid-cols-3" : program.tiers.length === 2 ? "mx-auto max-w-[880px] sm:grid-cols-2" : "mx-auto max-w-[560px]";
+  const featured = program.tiers.length >= 3 ? 1 : -1; // highlight the middle tier
 
   return (
     <>
       {/* HERO */}
-      <section className="relative overflow-hidden px-5 pb-16 pt-16 sm:px-8">
+      <section className="relative overflow-hidden px-5 pb-14 pt-16 sm:px-8">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_75%_10%,rgba(124,58,237,0.26),transparent_62%)]" />
         <div className="relative mx-auto max-w-[1240px]">
           <nav className="mb-[26px] flex items-center gap-2 text-[13px] text-[var(--color-faint)]" aria-label="Breadcrumb">
             <Link href="/industries" className="hover:text-[var(--color-brand-soft)]">Industries</Link>
             <Icon name="chevron_right" className="text-[16px]" />
-            <span className="text-[var(--color-brand-soft)]">{bundle.name}</span>
+            <span className="text-[var(--color-brand-soft)]">{program.name}</span>
           </nav>
-          <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
-            <div>
-              <span className="badge mb-6"><span className="badge-dot anim-pulse" />{bundle.industry} Growth Bundle</span>
-              <h1 className="mb-5 text-[clamp(2.2rem,6vw,50px)] font-extrabold leading-[1.06] tracking-[-0.03em] text-white">{bundle.name}</h1>
-              <p className="mb-8 max-w-[540px] text-lg leading-[1.6] text-[var(--color-muted)]">{bundle.seoDesc}</p>
-              <div className="flex flex-wrap items-center gap-[18px]">
-                <Link href="/contact" className="btn-primary">Request This Bundle <Icon name="arrow_forward" className="text-[19px]" /></Link>
-                <Link href="/growth-audit" className="btn-ghost">Start with a Free Growth Audit</Link>
-              </div>
-            </div>
-            <div className="rounded-2xl border border-[rgba(168,85,247,0.28)] bg-[linear-gradient(155deg,rgba(30,20,55,0.85),rgba(12,10,24,0.85))] p-[26px] shadow-[0_24px_60px_rgba(0,0,0,0.5),0_0_40px_rgba(124,58,237,0.18)]">
-              <div className="mb-[18px] text-xs font-semibold uppercase tracking-[0.08em] text-[var(--color-brand-soft)]">What's Included</div>
-              <div className="flex flex-col gap-[13px]">
-                {[...bundleBaseline.items.map((b) => b.label), ...bundle.items.map((i) => i.label)].map((inc) => (
-                  <div key={inc} className="flex items-center gap-[11px]">
-                    <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[7px] bg-[rgba(52,211,153,0.14)] text-[#6EE7B7]"><Icon name="check" className="text-[16px]" /></span>
-                    <span className="text-sm text-[var(--color-fg)]">{inc}</span>
-                  </div>
-                ))}
-              </div>
+          <div className="max-w-[720px]">
+            <span className="badge mb-6"><span className="badge-dot anim-pulse" />{program.industry} Program</span>
+            <h1 className="mb-5 text-[clamp(2.2rem,6vw,50px)] font-extrabold leading-[1.06] tracking-[-0.03em] text-white">{program.name}</h1>
+            <p className="mb-4 text-lg leading-[1.6] text-[var(--color-muted)]">{program.tagline}</p>
+            {program.subIcps && <p className="mb-8 text-[13.5px] leading-[1.6] text-[var(--color-faint)]">Built for: {program.subIcps}</p>}
+            <div className="flex flex-wrap items-center gap-[18px]">
+              <Link href="/contact" className="btn-primary">Book a Call <Icon name="arrow_forward" className="text-[19px]" /></Link>
+              <Link href="/growth-audit" className="btn-ghost">Start with a Free Growth Audit</Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* TRANSPARENCY */}
-      <section className="border-t border-white/5 px-5 py-16 sm:px-8">
+      {/* TIERS */}
+      <section className="px-5 pb-6 sm:px-8">
         <div className="mx-auto max-w-[1240px]">
-          <div className="mx-auto mb-10 max-w-[680px] text-center">
+          <div className="mb-8">
+            <div className="eyebrow mb-3">Choose Your Tier</div>
+            <h2 className="h2 mb-3">One Program, Sized to Where You Are</h2>
+            <p className="max-w-[620px] text-[15px] leading-[1.6] text-[var(--color-muted)]">{program.tierIntro ?? "Every tier includes everything in the tier below it. Book with 50% of onboarding — each tier also runs with an ongoing monthly managed service, scoped on your call."}</p>
+          </div>
+          <div className={`grid gap-[18px] ${grid}`}>
+            {program.tiers.map((t, i) => <TierCard key={t.name} tier={t} featured={i === featured} slug={program.slug} index={i} />)}
+          </div>
+          {program.notes && (
+            <div className="mt-5 flex flex-col gap-2">
+              {program.notes.map((n, i) => {
+                const body = (
+                  <p className="text-[13px] leading-[1.6] text-[var(--color-faint)]">
+                    <Icon name="info" className="mr-1.5 align-[-3px] text-[15px] text-[var(--color-brand-soft)]" />
+                    {n.text ?? <Market in={n.in!} us={n.us!} />}
+                  </p>
+                );
+                return n.market ? <MarketOnly key={i} market={n.market}>{body}</MarketOnly> : <span key={i}>{body}</span>;
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ADD-ON MODULES (healthcare) */}
+      {program.addOnModules && (
+        <section className="px-5 py-10 sm:px-8">
+          <div className="mx-auto max-w-[1240px]">
+            <div className="eyebrow mb-3">Add-On Modules</div>
+            <h2 className="mb-6 text-2xl font-bold tracking-[-0.02em] text-white">Extend Any Tier</h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {program.addOnModules.map((m) => (
+                <div key={m.name} className="card-i flex items-start gap-4 p-6">
+                  <span className="icon-chip h-[44px] w-[44px] text-[23px]"><Icon name={m.icon} /></span>
+                  <div>
+                    <h3 className="mb-1 text-[16px] font-semibold text-white">{m.name}</h3>
+                    <p className="mb-2.5 text-[13.5px] leading-[1.55] text-[var(--color-faint)]">{m.desc}</p>
+                    <Link href="/contact" className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[var(--color-brand-soft)] hover:text-white">
+                      Ask about this module <Icon name="arrow_forward" className="text-[15px]" />
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* UPGRADE PATH */}
+      {program.upgradePath.length > 0 && (
+        <section className="px-5 py-10 sm:px-8">
+          <div className="mx-auto max-w-[1240px] rounded-2xl border border-[rgba(168,85,247,0.25)] bg-[linear-gradient(160deg,rgba(30,20,55,0.7),rgba(12,10,24,0.7))] p-6 sm:p-8">
+            <div className="eyebrow mb-2.5">When to Move Up</div>
+            <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+              {program.upgradePath.map((u) => (
+                <div key={u.trigger} className="flex items-start gap-3">
+                  <Icon name="trending_up" className="mt-0.5 text-[19px] text-[var(--color-brand-soft)]" />
+                  <p className="text-[13.5px] leading-[1.55] text-[var(--color-muted)]">
+                    {u.trigger} <Icon name="arrow_forward" className="mx-0.5 align-[-3px] text-[14px] text-[var(--color-faint)]" />{" "}
+                    <span className="font-semibold text-white">{u.to}</span>
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-5 border-t border-white/5 pt-4 text-[13px] text-[var(--color-faint)]">
+              Need something a tier doesn't cover? <Link href="/add-ons" className="font-semibold text-[var(--color-brand-soft)] hover:text-white">Browse add-ons</Link> — beyond-guardrail requests go add-on → change request → tier upgrade.
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* COMMERCIAL TERMS */}
+      <section className="px-5 py-10 sm:px-8">
+        <div className="mx-auto max-w-[1240px]">
+          <div className="eyebrow mb-3">Commercial Terms</div>
+          <ul className="flex max-w-[820px] flex-col gap-2.5">
+            {[{ text: program.termLine }, ...termsStrip, ...(program.scopeNote ? [{ text: program.scopeNote }] : [])].map((t) => (
+              <li key={t.text} className="flex items-start gap-2.5 text-[13.5px] leading-[1.55] text-[var(--color-muted)]">
+                <Icon name="gavel" className="mt-0.5 text-[16px] text-[var(--color-brand-soft)]" />
+                {t.text}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* TRANSPARENCY */}
+      <section className="border-t border-white/5 px-5 py-14 sm:px-8">
+        <div className="mx-auto max-w-[1240px]">
+          <div className="mx-auto mb-9 max-w-[680px] text-center">
             <div className="eyebrow mb-3.5">Built-In Transparency</div>
             <h2 className="h2 mb-4">You Always See What We're Doing — and What It's Returning</h2>
             <p className="text-[16px] leading-[1.62] text-[var(--color-muted)]">{bundleBaseline.note}</p>
@@ -83,47 +240,10 @@ export default async function BundleDetail({ params }: { params: Promise<{ slug:
         </div>
       </section>
 
-      {/* SERVICES IN THIS BUNDLE */}
-      <section className="px-5 pb-16 sm:px-8">
+      {/* RELATED PROGRAMS */}
+      <section className="px-5 py-14 sm:px-8">
         <div className="mx-auto max-w-[1240px]">
-          <h2 className="mb-3 text-3xl font-bold tracking-[-0.02em] text-white">Services in This Bundle</h2>
-          <p className="mb-7 max-w-[620px] text-[15px] leading-[1.6] text-[var(--color-muted)]">{bundle.pitch}</p>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {bundle.items.map((it) => (
-              <Link key={it.label} href={`/services/${it.slug}`} className="card-i block">
-                <span className="icon-chip mb-[15px] h-[42px] w-[42px] text-[22px]"><Icon name={serviceIcon(it.slug)} /></span>
-                <h3 className="mb-[7px] text-base font-semibold text-white">{it.label}</h3>
-                <p className="mb-3 text-[13px] leading-[1.55] text-[var(--color-faint)]">{serviceDesc(it.slug)}</p>
-                <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[var(--color-brand-soft)]">Learn More <Icon name="arrow_forward" className="text-[16px]" /></span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PROCESS */}
-      <section className="bg-[linear-gradient(180deg,#070510,#0a0716)] px-5 py-16 sm:px-8">
-        <div className="mx-auto max-w-[1240px]">
-          <div className="mx-auto mb-12 max-w-[600px] text-center">
-            <div className="eyebrow mb-3.5">How It Works</div>
-            <h2 className="text-3xl font-extrabold tracking-[-0.025em] text-white">From Audit to Measurable Growth</h2>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {steps.map((st) => (
-              <div key={st.num} className="rounded-2xl border border-[var(--color-line)] bg-[linear-gradient(160deg,rgba(24,19,42,0.6),rgba(12,11,22,0.6))] p-6">
-                <div className="mb-3 text-[28px] font-extrabold text-[rgba(168,85,247,0.4)]">{st.num}</div>
-                <h3 className="mb-[7px] text-[15.5px] font-semibold text-white">{st.title}</h3>
-                <p className="text-[13px] leading-[1.5] text-[var(--color-faint)]">{st.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* RELATED BUNDLES */}
-      <section className="px-5 py-16 sm:px-8">
-        <div className="mx-auto max-w-[1240px]">
-          <h2 className="mb-7 text-3xl font-bold tracking-[-0.02em] text-white">Other Industry Bundles</h2>
+          <h2 className="mb-7 text-3xl font-bold tracking-[-0.02em] text-white">Other Industry Programs</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((r) => (
               <Link key={r.slug} href={`/bundles/${r.slug}`} className="card-i flex items-center justify-between gap-3.5">
@@ -140,9 +260,9 @@ export default async function BundleDetail({ params }: { params: Promise<{ slug:
 
       <CTASection
         eyebrow="Built for your market"
-        heading={`Ready to Launch the ${bundle.name}?`}
-        copy="Tell us where you are today and we'll tailor this bundle to your goals — starting with a growth audit, no pressure, no guesswork."
-        button="Request This Bundle"
+        heading={`Ready to Start the ${program.name} Program?`}
+        copy="Tell us where you are today and we'll recommend the right tier — starting with a growth audit, no pressure, no guesswork."
+        button="Book a Call"
       />
     </>
   );

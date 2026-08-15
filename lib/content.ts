@@ -148,91 +148,15 @@ export const serviceGroups = [
   ] },
 ];
 
-// ponytail: bundles reference existing service slugs — no new service pages.
-// Every bundle also includes the Growth Audit (/growth-audit) and a Custom
+// Every program includes the Growth Audit (/growth-audit) and a Custom
 // Tracking Dashboard (/services/analytics), rendered once as a shared strip.
 export const bundleBaseline = {
-  note: "Every bundle starts with a Growth Audit and includes a live tracking dashboard — you always see what we're doing and what it's returning.",
+  note: "Every program starts with a Growth Audit and includes a live tracking dashboard — you always see what we're doing and what it's returning.",
   items: [
     { label: "Growth Audit", icon: "fact_check", href: "/growth-audit", desc: "We start by showing you exactly where you stand." },
     { label: "Custom Tracking Dashboard", icon: "monitoring", href: "/services/analytics", desc: "A live dashboard so you see progress and ROI at all times." },
   ],
 };
-
-export type Bundle = {
-  name: string;
-  slug: string;
-  pitch: string;
-  seoDesc: string;
-  items: { label: string; slug: string }[];
-};
-
-export const bundles: Record<string, Bundle> = {
-  "SaaS & Technology": { name: "SaaS Growth Engine", slug: "saas-growth-engine", pitch: "Turn trials into paying, retained customers with one connected system.", seoDesc: "A complete growth bundle for SaaS and technology companies: AI strategy, high-converting website, SEO and AI search visibility, and content marketing — with a growth audit and live tracking dashboard included.", items: [
-    { label: "AI Strategy & Growth Consulting", slug: "ai-strategy" },
-    { label: "Website Design & Development", slug: "website" },
-    { label: "SEO & AI Search Visibility", slug: "seo" },
-    { label: "Content Marketing & Copywriting", slug: "content" },
-  ] },
-  "Ecommerce": { name: "Ecommerce Revenue Stack", slug: "ecommerce-revenue-stack", pitch: "Grow revenue per visitor with acquisition, conversion, and retention working together.", seoDesc: "An ecommerce growth bundle that combines store optimization, paid advertising, SEO, and AI automation — with a growth audit and live tracking dashboard so you always see revenue impact.", items: [
-    { label: "Ecommerce & Marketplace Growth", slug: "ecommerce" },
-    { label: "Paid Advertising & Performance", slug: "paid-ads" },
-    { label: "SEO & AI Search Visibility", slug: "seo" },
-    { label: "AI Automation & AI Solutions", slug: "automation" },
-  ] },
-  "Local Businesses": { name: "Local Domination Pack", slug: "local-domination-pack", pitch: "Own your local market with a strong Google presence and steady reviews.", seoDesc: "A local business growth bundle: local SEO, reviews and reputation, a high-converting website, and targeted ads — with a growth audit and live tracking dashboard included.", items: [
-    { label: "Reputation & Local Growth", slug: "local" },
-    { label: "Website Design & Development", slug: "website" },
-    { label: "SEO & AI Search Visibility", slug: "seo" },
-    { label: "Paid Advertising & Performance", slug: "paid-ads" },
-  ] },
-  "Healthcare & Clinics": { name: "Patient Pipeline Bundle", slug: "patient-pipeline-bundle", pitch: "Fill your appointment book with trust-building visibility and compliant follow-up.", seoDesc: "A healthcare marketing bundle for clinics and practices: trust-building website, local SEO, reputation management, and compliant AI follow-up — with a growth audit and live tracking dashboard.", items: [
-    { label: "Website Design & Development", slug: "website" },
-    { label: "SEO & AI Search Visibility", slug: "seo" },
-    { label: "Reputation & Local Growth", slug: "local" },
-    { label: "AI Automation & AI Solutions", slug: "automation" },
-  ] },
-  "Professional Services": { name: "Authority & Inquiry Engine", slug: "authority-inquiry-engine", pitch: "Generate qualified, high-value inquiries with authority content and clear funnels.", seoDesc: "A growth bundle for professional services firms: authority content, a credible website, SEO, and targeted advertising — with a growth audit and live tracking dashboard included.", items: [
-    { label: "Content Marketing & Copywriting", slug: "content" },
-    { label: "Website Design & Development", slug: "website" },
-    { label: "SEO & AI Search Visibility", slug: "seo" },
-    { label: "Paid Advertising & Performance", slug: "paid-ads" },
-  ] },
-  "Coaches & Consultants": { name: "Calendar-Filling System", slug: "calendar-filling-system", pitch: "Build your personal brand and keep your calendar full of ideal clients.", seoDesc: "A growth bundle for coaches and consultants: personal branding, social content, a conversion-focused website, and nurture automation — with a growth audit and live tracking dashboard.", items: [
-    { label: "Branding & Creative Services", slug: "branding" },
-    { label: "Social Media & Content Creation", slug: "social" },
-    { label: "Website Design & Development", slug: "website" },
-    { label: "AI Automation & AI Solutions", slug: "automation" },
-  ] },
-  "Real Estate": { name: "Listing-to-Lead Bundle", slug: "listing-to-lead-bundle", pitch: "Capture leads and respond instantly so your pipeline never goes cold.", seoDesc: "A real estate growth bundle: lead-capture website, targeted ads, instant AI follow-up, and local reputation — with a growth audit and live tracking dashboard included.", items: [
-    { label: "Website Design & Development", slug: "website" },
-    { label: "Paid Advertising & Performance", slug: "paid-ads" },
-    { label: "AI Automation & AI Solutions", slug: "automation" },
-    { label: "Reputation & Local Growth", slug: "local" },
-  ] },
-  "Education & Training": { name: "Enrollment Growth Bundle", slug: "enrollment-growth-bundle", pitch: "Grow student demand with enrollment funnels and content that converts.", seoDesc: "An education marketing bundle: enrollment-focused website, content marketing, paid campaigns, and social media — with a growth audit and live tracking dashboard included.", items: [
-    { label: "Website Design & Development", slug: "website" },
-    { label: "Content Marketing & Copywriting", slug: "content" },
-    { label: "Paid Advertising & Performance", slug: "paid-ads" },
-    { label: "Social Media & Content Creation", slug: "social" },
-  ] },
-  "Startups": { name: "Launch Kit", slug: "launch-kit", pitch: "Validate, launch, and scale with brand, product, and go-to-market in one package.", seoDesc: "A startup launch bundle: go-to-market strategy, branding, MVP development, and a launch-ready website — with a growth audit and live tracking dashboard included.", items: [
-    { label: "AI Strategy & Growth Consulting", slug: "ai-strategy" },
-    { label: "Branding & Creative Services", slug: "branding" },
-    { label: "Mobile App & Software Development", slug: "software" },
-    { label: "Website Design & Development", slug: "website" },
-  ] },
-  "B2B Service Companies": { name: "B2B Pipeline Bundle", slug: "b2b-pipeline-bundle", pitch: "Build a predictable pipeline designed for longer, multi-stakeholder sales cycles.", seoDesc: "A B2B growth bundle: account-based strategy, authority content, targeted advertising, and pipeline automation — with a growth audit and live tracking dashboard included.", items: [
-    { label: "AI Strategy & Growth Consulting", slug: "ai-strategy" },
-    { label: "Content Marketing & Copywriting", slug: "content" },
-    { label: "Paid Advertising & Performance", slug: "paid-ads" },
-    { label: "AI Automation & AI Solutions", slug: "automation" },
-  ] },
-};
-
-export const bundleBySlug: Record<string, Bundle & { industry: string }> = Object.fromEntries(
-  Object.entries(bundles).map(([industry, b]) => [b.slug, { industry, ...b }])
-);
 
 export const industries = [
   { icon: "cloud", title: "SaaS & Technology", desc: "Demand generation, product-led funnels, and content that turns trials into paying, retained customers." },
@@ -358,15 +282,16 @@ export const contactServiceOptions = [
   "Data, Analytics & Reporting",
   "Online Reputation & Local Business Growth",
   "Maintenance Retainers",
-  "Bundle: SaaS Growth Engine",
-  "Bundle: Ecommerce Revenue Stack",
-  "Bundle: Local Domination Pack",
-  "Bundle: Patient Pipeline Bundle",
-  "Bundle: Authority & Inquiry Engine",
-  "Bundle: Calendar-Filling System",
-  "Bundle: Listing-to-Lead Bundle",
-  "Bundle: Enrollment Growth Bundle",
-  "Bundle: Launch Kit",
-  "Bundle: B2B Pipeline Bundle",
+  "Program: Patient Pipeline (Healthcare & Clinics)",
+  "Program: Authority & Inquiry Engine (Professional Services)",
+  "Program: Local Domination (Local Businesses)",
+  "Program: B2B Pipeline (B2B Services)",
+  "Program: SaaS Growth Engine (SaaS & Technology)",
+  "Program: Listing-to-Lead (Real Estate)",
+  "Program: Enrollment Growth (Education & Training)",
+  "Program: Revenue Stack (Ecommerce)",
+  "Program: Calendar-Filling System (Coaches & Consultants)",
+  "Program: Launch Kit & Build Studio (Startups)",
+  "Strategic Partnership (Tier 4)",
   "Not sure yet — help me decide",
 ];

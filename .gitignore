@@ -11,3 +11,6 @@ next-env.d.ts
 # Growth Snapshot
 prisma/dev.db*
 production-env.txt
+
+# Internal commercial reference — never publish (public repo)
+CATALYST_COMMERCIAL_SYSTEM.md

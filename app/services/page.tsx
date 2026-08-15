@@ -17,8 +17,8 @@ export default function ServicesPage() {
       />
       <section className="px-5 pt-8 sm:px-8">
         <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-4 rounded-2xl border border-[rgba(168,85,247,0.25)] bg-[linear-gradient(160deg,rgba(30,20,55,0.7),rgba(12,10,24,0.7))] px-6 py-5">
-          <p className="text-[14.5px] text-[var(--color-muted)]">Not sure what to pick? We've bundled services by industry — each includes a Growth Audit and a live tracking dashboard.</p>
-          <Link href="/industries" className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[var(--color-brand-soft)] hover:text-white">See Bundles by Industry <Icon name="arrow_forward" className="text-[17px]" /></Link>
+          <p className="text-[14.5px] text-[var(--color-muted)]">Not sure what to pick? We've built tiered programs by industry — each includes a Growth Audit and a live tracking dashboard.</p>
+          <Link href="/industries" className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[var(--color-brand-soft)] hover:text-white">See Programs by Industry <Icon name="arrow_forward" className="text-[17px]" /></Link>
         </div>
       </section>
       <section className="px-5 pb-24 pt-10 sm:px-8">
