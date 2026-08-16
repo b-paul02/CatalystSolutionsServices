@@ -26,7 +26,7 @@ export default function AddOnsPage() {
           <div className="mb-7">
             <div className="eyebrow mb-3">Add-On Catalogue</div>
             <h2 className="h2 mb-3">Available on Every Program</h2>
-            <p className="max-w-[620px] text-[15px] leading-[1.6] text-[var(--color-muted)]">Need one more location, article, dashboard, or bot than your tier covers? Add it — no tier jump required.</p>
+            <p className="max-w-[620px] text-[15px] leading-[1.6] text-[var(--color-muted)]">Need one more location, article, dashboard, or bot than your tier covers? Add it — no tier jump required. Booking a program online? You can attach add-ons right at checkout; quote-based items and anything else can be added on your call.</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {addOns.map((a) => (

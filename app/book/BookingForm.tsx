@@ -1,25 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import Icon from "@/components/Icon";
 import { useMarket } from "@/components/Market";
-import { programBySlug, isBookable, setupAmount } from "@/lib/programs";
+import { programBySlug, isBookable, setupAmount, processingFeeRate, bookableAddOns } from "@/lib/programs";
 
-const fmt = (n: number, market: "in" | "us") =>
-  market === "in" ? `₹${n.toLocaleString("en-IN")}` : `$${n.toLocaleString("en-US")}`;
+const fmt = (n: number, market: "in" | "us") => {
+  const opts = n % 1 ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : undefined;
+  return market === "in" ? `₹${n.toLocaleString("en-IN", opts)}` : `$${n.toLocaleString("en-US", opts)}`;
+};
 
-export default function BookingForm() {
-  const params = useSearchParams();
+export default function BookingForm({ slug, tierIndex, canceled }: { slug: string; tierIndex: number; canceled: boolean }) {
   const market = useMarket();
   const [form, setForm] = useState({ name: "", email: "", phone: "", company: "" });
+  const [selected, setSelected] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const slug = params.get("slug") ?? "";
-  const tierIndex = Number(params.get("tier") ?? "-1");
-  const canceled = params.get("canceled") === "1";
   const program = programBySlug[slug];
   const tier = program?.tiers[tierIndex];
 
@@ -36,8 +34,18 @@ export default function BookingForm() {
     );
   }
 
+  const chosen = bookableAddOns.filter((a) => selected.includes(a.name));
   const total = market ? setupAmount(tier.setup![market]) : null;
   const due = total !== null ? total / 2 : null;
+  const addOnOneTime = market ? chosen.reduce((s, a) => s + (a.setup?.[market] ?? 0), 0) : 0;
+  const addOnMonthly = market ? chosen.reduce((s, a) => s + (a.monthly?.[market] ?? 0), 0) : 0;
+  const feeRate = market ? processingFeeRate[market] : 0;
+  const chargedBase = due !== null ? due + addOnOneTime : null;
+  const fee = chargedBase !== null ? Math.round(chargedBase * feeRate * 100) / 100 : null;
+  const payNow = chargedBase !== null && fee !== null ? chargedBase + fee : null;
+
+  const toggle = (name: string) =>
+    setSelected((s) => (s.includes(name) ? s.filter((n) => n !== name) : [...s, name]));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +56,7 @@ export default function BookingForm() {
       const res = await fetch("/api/book", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, tier: tierIndex, market, ...form }),
+        body: JSON.stringify({ slug, tier: tierIndex, market, addOns: selected, ...form }),
       });
       const data = await res.json();
       if (!res.ok || !data.url) throw new Error(data.error ?? "Something went wrong. Please try again.");
@@ -92,13 +100,42 @@ export default function BookingForm() {
             <input className={input} required type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             <input className={input} required type="tel" placeholder="Phone / WhatsApp" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             <input className={input} placeholder="Business / clinic / firm name (optional)" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
+
+            {/* ADD-ONS */}
+            <div className="rounded-xl border border-[var(--color-line)] bg-white/[0.02]">
+              <div className="border-b border-white/5 px-4 py-3">
+                <div className="text-[13px] font-semibold text-white">Add-ons <span className="font-normal text-[var(--color-faint)]">(optional)</span></div>
+                <div className="mt-0.5 text-[12px] leading-[1.5] text-[var(--color-faint)]">One-time add-ons are charged in full at booking. Monthly add-ons are billed with your managed service from kickoff.</div>
+              </div>
+              <div className="max-h-[300px] overflow-y-auto p-2">
+                {bookableAddOns.map((a) => {
+                  const checked = selected.includes(a.name);
+                  return (
+                    <label key={a.name} className={`flex cursor-pointer items-start justify-between gap-3 rounded-lg px-2.5 py-2 hover:bg-white/[0.04] ${checked ? "bg-[rgba(124,58,237,0.12)]" : ""}`}>
+                      <span className="flex items-start gap-2.5">
+                        <input type="checkbox" checked={checked} onChange={() => toggle(a.name)} className="mt-[3px] h-4 w-4 accent-[#7C3AED]" />
+                        <span className="text-[13px] leading-[1.45] text-[var(--color-fg)]">{a.name}</span>
+                      </span>
+                      <span className="shrink-0 text-right text-[12.5px] font-semibold text-[var(--color-brand-soft)]">
+                        {market
+                          ? a.setup
+                            ? `${fmt(a.setup[market], market)}${a.monthly ? ` + ${fmt(a.monthly[market], market)}/mo` : ""}`
+                            : `${fmt(a.monthly![market], market)}/mo`
+                          : "…"}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
             {error && <p className="text-[13.5px] text-[#FCA5A5]">{error}</p>}
             <button type="submit" disabled={submitting || !market} className="btn-primary justify-center disabled:cursor-not-allowed disabled:opacity-60">
-              {submitting ? "Redirecting to secure payment…" : due !== null ? `Pay ${fmt(due, market!)} securely` : "Loading…"}
+              {submitting ? "Redirecting to secure payment…" : payNow !== null ? `Pay ${fmt(payNow, market!)} securely` : "Loading…"}
               <Icon name="lock" className="text-[17px]" />
             </button>
             <p className="text-[12.5px] leading-[1.55] text-[var(--color-faint)]">
-              Pay securely by card or Google Pay — processed by Stripe. By booking you agree to the program's standard term — {program.termLine}
+              Pay securely by card or Google Pay — processed by Stripe. Prices are exclusive of applicable taxes. By booking you agree to the program's standard term — {program.termLine}
             </p>
           </form>
 
@@ -110,15 +147,35 @@ export default function BookingForm() {
               <div className="flex justify-between gap-3"><span className="text-[var(--color-faint)]">Package</span><span className="text-right font-semibold">{tier.label}: {tier.name}</span></div>
               <div className="flex justify-between gap-3"><span className="text-[var(--color-faint)]">{tier.setupLabel ?? "Onboarding"}</span><span className="font-semibold">{total !== null ? fmt(total, market!) : "—"}</span></div>
             </div>
-            <div className="mb-1 flex items-baseline justify-between">
-              <span className="text-[13.5px] text-[var(--color-muted)]">Due now (50%)</span>
-              <span className="text-[24px] font-extrabold text-white">{due !== null ? fmt(due, market!) : "—"}</span>
+            <div className="mb-1 flex items-baseline justify-between text-[13.5px] text-[var(--color-muted)]">
+              <span>Deposit (50%)</span>
+              <span>{due !== null ? fmt(due, market!) : "—"}</span>
             </div>
-            <div className="mb-4 flex items-baseline justify-between text-[13px] text-[var(--color-faint)]">
+            {chosen.filter((a) => a.setup).map((a) => (
+              <div key={a.name} className="mb-1 flex items-baseline justify-between gap-3 text-[13px] text-[var(--color-muted)]">
+                <span className="truncate">{a.name}</span>
+                <span className="shrink-0">{market ? fmt(a.setup![market], market) : "—"}</span>
+              </div>
+            ))}
+            <div className="mb-2 flex items-baseline justify-between text-[13.5px] text-[var(--color-muted)]">
+              <span>Payment processing fee ({(feeRate * 100).toFixed(0)}%)</span>
+              <span>{fee !== null ? fmt(fee, market!) : "—"}</span>
+            </div>
+            <div className="mb-1 flex items-baseline justify-between border-t border-white/5 pt-2">
+              <span className="text-[13.5px] text-[var(--color-muted)]">Total due now</span>
+              <span className="text-[24px] font-extrabold text-white">{payNow !== null ? fmt(payNow, market!) : "—"}</span>
+            </div>
+            <div className="mb-1 flex items-baseline justify-between text-[13px] text-[var(--color-faint)]">
               <span>Balance at launch</span>
               <span>{due !== null ? fmt(due, market!) : "—"}</span>
             </div>
-            <ul className="flex flex-col gap-2 border-t border-white/5 pt-4 text-[12.5px] leading-[1.5] text-[var(--color-faint)]">
+            {addOnMonthly > 0 && market && (
+              <div className="mb-1 flex items-baseline justify-between text-[13px] text-[var(--color-brand-soft)]">
+                <span>Monthly add-ons from kickoff</span>
+                <span>{fmt(addOnMonthly, market)}/mo</span>
+              </div>
+            )}
+            <ul className="mt-3 flex flex-col gap-2 border-t border-white/5 pt-4 text-[12.5px] leading-[1.5] text-[var(--color-faint)]">
               <li className="flex gap-2"><Icon name="autorenew" className="mt-[1px] text-[14px] text-[var(--color-brand-soft)]" />Ongoing monthly managed service scoped on your kickoff call.</li>
               <li className="flex gap-2"><Icon name="fact_check" className="mt-[1px] text-[14px] text-[var(--color-brand-soft)]" />Starts with your Growth Audit and a live tracking dashboard.</li>
               <li className="flex gap-2"><Icon name="campaign" className="mt-[1px] text-[14px] text-[var(--color-brand-soft)]" />Ad/media budgets are always paid directly by you, never marked up.</li>

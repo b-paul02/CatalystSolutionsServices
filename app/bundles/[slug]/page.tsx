@@ -52,6 +52,11 @@ function TierCard({ tier, featured, slug, index }: { tier: Tier; featured: boole
           </div>
         )}
         {tier.priceNote && <div className="mt-2 border-t border-white/5 pt-2 text-[12px] leading-[1.5] text-[var(--color-faint)]">{tier.priceNote}</div>}
+        {tier.setup && (
+          <div className="mt-2 border-t border-white/5 pt-2 text-[11.5px] leading-[1.45] text-[var(--color-faint)]">
+            Prices are exclusive of taxes and payment processing charges.
+          </div>
+        )}
       </div>
 
       {isBookable(tier) ? (

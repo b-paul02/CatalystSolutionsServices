@@ -1,20 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { programBySlug, isBookable, setupAmount } from "@/lib/programs";
+import { programBySlug, isBookable, setupAmount, processingFeeRate, addOnByName } from "@/lib/programs";
 
-// Creates a Stripe Checkout session for a 50% onboarding deposit (INR for Indian
-// visitors, USD otherwise). Google Pay / Apple Pay buttons appear automatically in
-// Checkout on supported devices — no configuration here.
-// Amount is always recomputed server-side from lib/programs — never trusted from the client.
-// ponytail: plain REST call, no stripe SDK dependency for one endpoint.
+// Creates a Stripe Checkout session for a 50% onboarding deposit plus any
+// selected add-ons (INR for Indian visitors, USD otherwise). One-time add-on
+// components are charged in full at booking; monthly components are recorded in
+// metadata and billed with the managed service from kickoff. Google Pay / Apple
+// Pay buttons appear automatically in Checkout on supported devices.
+// Amounts are always recomputed server-side from lib/programs — never trusted
+// from the client. ponytail: plain REST call, no stripe SDK dependency.
 export async function POST(req: NextRequest) {
-  let body: { slug?: string; tier?: number; market?: string; name?: string; email?: string; phone?: string; company?: string };
+  let body: { slug?: string; tier?: number; market?: string; name?: string; email?: string; phone?: string; company?: string; addOns?: string[] };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  const { slug = "", tier: tierIndex = -1, market, name = "", email = "", phone = "", company = "" } = body;
+  const { slug = "", tier: tierIndex = -1, market, name = "", email = "", phone = "", company = "", addOns: selected = [] } = body;
   const program = programBySlug[slug];
   const tier = program?.tiers[Number(tierIndex)];
   if (!program || !tier || !isBookable(tier)) return NextResponse.json({ error: "This package can't be booked online." }, { status: 400 });
@@ -22,14 +24,21 @@ export async function POST(req: NextRequest) {
   if (!name.trim() || !phone.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: "Please fill in your name, a valid email, and phone." }, { status: 400 });
   }
+  if (!Array.isArray(selected) || selected.length > 30 || selected.some((n) => typeof n !== "string")) {
+    return NextResponse.json({ error: "Invalid add-on selection." }, { status: 400 });
+  }
+  const chosen = [...new Set(selected)].map((n) => addOnByName[n]);
+  if (chosen.some((a) => !a || (!a.setup && !a.monthly))) {
+    return NextResponse.json({ error: "Invalid add-on selection." }, { status: 400 });
+  }
 
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) {
     return NextResponse.json({ error: "Online payment isn't configured yet — please book a call instead." }, { status: 503 });
   }
 
-  // 50% of onboarding, in minor units (paise/cents): amount × 100 / 2 = amount × 50.
-  const unitAmount = setupAmount(tier.setup![market]) * 50;
+  // All amounts in minor units (paise/cents). Deposit = 50% of onboarding = amount × 50.
+  const deposit = setupAmount(tier.setup![market]) * 50;
   const currency = market === "in" ? "inr" : "usd";
   const origin = req.nextUrl.origin;
 
@@ -38,7 +47,7 @@ export async function POST(req: NextRequest) {
     customer_email: email,
     "line_items[0][quantity]": "1",
     "line_items[0][price_data][currency]": currency,
-    "line_items[0][price_data][unit_amount]": String(unitAmount),
+    "line_items[0][price_data][unit_amount]": String(deposit),
     "line_items[0][price_data][product_data][name]": `${program.name} — ${tier.label}: ${tier.name}`,
     "line_items[0][price_data][product_data][description]": "50% onboarding deposit — balance due at launch.",
     "metadata[program]": program.name,
@@ -50,6 +59,35 @@ export async function POST(req: NextRequest) {
     success_url: `${origin}/book/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/book?slug=${slug}&tier=${tierIndex}&canceled=1`,
   });
+
+  // One-time add-on components: charged in full now, each as its own line item.
+  let li = 1;
+  let addOnTotal = 0;
+  for (const a of chosen) {
+    if (!a.setup) continue;
+    const amt = a.setup[market] * 100;
+    addOnTotal += amt;
+    params.set(`line_items[${li}][quantity]`, "1");
+    params.set(`line_items[${li}][price_data][currency]`, currency);
+    params.set(`line_items[${li}][price_data][unit_amount]`, String(amt));
+    params.set(`line_items[${li}][price_data][product_data][name]`, `Add-on: ${a.name}`);
+    if (a.monthly) params.set(`line_items[${li}][price_data][product_data][description]`, "One-time setup — monthly component billed with your managed service.");
+    li++;
+  }
+
+  // Monthly components (incl. monthly-only add-ons): not charged here; recorded for the kickoff invoice.
+  const monthly = chosen.filter((a) => a.monthly);
+  if (monthly.length) {
+    params.set("metadata[monthly_addons]", monthly.map((a) => `${a.name} @ ${a.monthly![market]}/mo`).join("; ").slice(0, 490));
+  }
+
+  // Processing fee on everything charged today.
+  const feeRate = processingFeeRate[market];
+  const fee = Math.round((deposit + addOnTotal) * feeRate);
+  params.set(`line_items[${li}][quantity]`, "1");
+  params.set(`line_items[${li}][price_data][currency]`, currency);
+  params.set(`line_items[${li}][price_data][unit_amount]`, String(fee));
+  params.set(`line_items[${li}][price_data][product_data][name]`, `Payment processing fee (${feeRate * 100}%)`);
 
   const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",

@@ -588,35 +588,57 @@ export const programs: Program[] = [
 
 export const programBySlug: Record<string, Program> = Object.fromEntries(programs.map((p) => [p.slug, p]));
 
+// Payment processing fee charged on top of online payments (§5: payment processing is a client-paid pass-through).
+// Cost-based: approximates Stripe's real cost per market (INR on a US account runs ~5%; US domestic ~3%).
+export const processingFeeRate = { in: 0.05, us: 0.03 } as const;
+
 // Bookable online = fixed onboarding price (no "from" quotes, no monthly-only retainers, no T4).
 export const isBookable = (t: Tier): boolean => !!t.setup && !t.setup.in.startsWith("from");
 // "₹1,75,000" / "$9,500" → 175000 / 9500. Only valid for isBookable tiers.
 export const setupAmount = (s: string): number => Number(s.replace(/\D/g, ""));
 export const programByIndustry: Record<string, Program> = Object.fromEntries(programs.map((p) => [p.industry, p]));
 
-// §3 — Add-on catalogue (all families)
-export const addOns: { name: string; in: string; us: string }[] = [
-  { name: "Additional landing page", in: "₹15,000", us: "$750" },
-  { name: "Additional location / service area / branch", in: "₹20,000 + ₹5,000/mo", us: "$1,000 + $250/mo" },
-  { name: "Website page pack (5)", in: "₹25,000", us: "$1,250" },
-  { name: "Microsite (practice area / program / service line)", in: "₹50,000", us: "$2,500" },
-  { name: "Additional SEO article", in: "₹6,000", us: "$300" },
-  { name: "Additional social channel", in: "₹8,000/mo", us: "$400/mo" },
-  { name: "Additional ad platform (management)", in: "₹15,000/mo", us: "$750/mo" },
-  { name: "Additional campaign (setup + flight)", in: "₹30,000", us: "$1,500" },
-  { name: "Automation workflow", in: "₹20,000", us: "$1,000" },
-  { name: "CRM seat pack (5)", in: "₹5,000/mo", us: "$150/mo" },
-  { name: "Additional dashboard", in: "₹25,000", us: "$1,200" },
+// §3 — Add-on catalogue (all families).
+// `in`/`us` are the catalogue display strings. `setup` (one-time) and `monthly`
+// are numeric major units used by online booking: setup is charged in full at
+// checkout; monthly is billed with the managed service from kickoff. Entries
+// with neither (quote-based "from" items) can't be added online.
+export type AddOn = {
+  name: string;
+  in: string;
+  us: string;
+  setup?: { in: number; us: number };
+  monthly?: { in: number; us: number };
+};
+
+export const addOns: AddOn[] = [
+  { name: "Additional landing page", in: "₹15,000", us: "$750", setup: { in: 15000, us: 750 } },
+  { name: "Additional location / service area / branch", in: "₹20,000 + ₹5,000/mo", us: "$1,000 + $250/mo", setup: { in: 20000, us: 1000 }, monthly: { in: 5000, us: 250 } },
+  { name: "Website page pack (5)", in: "₹25,000", us: "$1,250", setup: { in: 25000, us: 1250 } },
+  { name: "Microsite (practice area / program / service line)", in: "₹50,000", us: "$2,500", setup: { in: 50000, us: 2500 } },
+  { name: "Additional SEO article", in: "₹6,000", us: "$300", setup: { in: 6000, us: 300 } },
+  { name: "Additional social channel", in: "₹8,000/mo", us: "$400/mo", monthly: { in: 8000, us: 400 } },
+  { name: "Additional ad platform (management)", in: "₹15,000/mo", us: "$750/mo", monthly: { in: 15000, us: 750 } },
+  { name: "Additional campaign (setup + flight)", in: "₹30,000", us: "$1,500", setup: { in: 30000, us: 1500 } },
+  { name: "Automation workflow", in: "₹20,000", us: "$1,000", setup: { in: 20000, us: 1000 } },
+  { name: "CRM seat pack (5)", in: "₹5,000/mo", us: "$150/mo", monthly: { in: 5000, us: 150 } },
+  { name: "Additional dashboard", in: "₹25,000", us: "$1,200", setup: { in: 25000, us: 1200 } },
   { name: "API integration (from)", in: "₹40,000", us: "$2,000" },
-  { name: "Development hours 10 / 25 / 50", in: "₹15,000 / ₹35,000 / ₹65,000", us: "$1,200 / $2,750 / $5,000" },
-  { name: "AI chatbot (website)", in: "₹60,000 + ₹8,000/mo", us: "$3,000 + $400/mo" },
-  { name: "WhatsApp AI bot", in: "₹50,000 + ₹6,000/mo", us: "$2,500 + $300/mo" },
+  { name: "Development hours pack (10 hrs)", in: "₹15,000", us: "$1,200", setup: { in: 15000, us: 1200 } },
+  { name: "Development hours pack (25 hrs)", in: "₹35,000", us: "$2,750", setup: { in: 35000, us: 2750 } },
+  { name: "Development hours pack (50 hrs)", in: "₹65,000", us: "$5,000", setup: { in: 65000, us: 5000 } },
+  { name: "AI chatbot (website)", in: "₹60,000 + ₹8,000/mo", us: "$3,000 + $400/mo", setup: { in: 60000, us: 3000 }, monthly: { in: 8000, us: 400 } },
+  { name: "WhatsApp AI bot", in: "₹50,000 + ₹6,000/mo", us: "$2,500 + $300/mo", setup: { in: 50000, us: 2500 }, monthly: { in: 6000, us: 300 } },
   { name: "AI agent workflow (from)", in: "₹1,00,000 + ₹10,000/mo", us: "$5,000 + $500/mo" },
-  { name: "Gated asset / whitepaper", in: "₹35,000", us: "$2,500" },
-  { name: "Priority-support SLA uplift", in: "₹10,000/mo", us: "$500/mo" },
-  { name: "Marketplace channel management", in: "₹25,000/mo", us: "$1,250/mo" },
-  { name: "Additional brand", in: "₹75,000 + ₹10,000/mo", us: "$4,000 + $500/mo" },
+  { name: "Gated asset / whitepaper", in: "₹35,000", us: "$2,500", setup: { in: 35000, us: 2500 } },
+  { name: "Priority-support SLA uplift", in: "₹10,000/mo", us: "$500/mo", monthly: { in: 10000, us: 500 } },
+  { name: "Marketplace channel management", in: "₹25,000/mo", us: "$1,250/mo", monthly: { in: 25000, us: 1250 } },
+  { name: "Additional brand", in: "₹75,000 + ₹10,000/mo", us: "$4,000 + $500/mo", setup: { in: 75000, us: 4000 }, monthly: { in: 10000, us: 500 } },
 ];
+
+export const addOnByName: Record<string, AddOn> = Object.fromEntries(addOns.map((a) => [a.name, a]));
+// Add-ons that can be attached to an online booking (have a priced component).
+export const bookableAddOns = addOns.filter((a) => a.setup || a.monthly);
 
 // §4 — Strategic Partnerships (Tier 4). Bands shown as "starting from" — no self-serve checkout.
 export const strategic = {
