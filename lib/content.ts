@@ -1,21 +1,14 @@
 // Central content for the marketing site. ponytail: one data module, pages stay presentational.
 
-export const heroStats = [
-  { value: "13+", label: "Growth services" },
-  { value: "AI-Enabled", label: "Human-led delivery" },
-  { value: "End-to-End", label: "Strategy to reporting" },
+export const heroTrust = [
+  { icon: "person_check", text: "Human-reviewed reports" },
+  { icon: "schedule", text: "Delivered in 1 business day" },
+  { icon: "handshake", text: "No pitch, no obligation" },
 ];
 
-export const bars = ["40%", "55%", "48%", "70%", "62%", "85%", "78%", "96%"];
+export const heroChips = ["High-performing websites", "Google visibility", "Lead generation & marketing", "Automation & AI"];
 
-export const logos = [
-  { name: "Northpeak", icon: "terrain" },
-  { name: "Vertex", icon: "change_history" },
-  { name: "Lumina", icon: "flare" },
-  { name: "Cobalt", icon: "hexagon" },
-  { name: "Aperture", icon: "lens_blur" },
-  { name: "Orbit", icon: "orbit" },
-];
+export const clients = ["Simplilead", "NextGen Sales", "ROASx", "Rochester Power Wash", "BonDébut", "Volta", "Career Champ", "Wonder Math", "Homechow"];
 
 export const problems = [
   { icon: "trending_down", title: "Low Website Conversions", desc: "Traffic arrives but never turns into qualified leads or revenue." },

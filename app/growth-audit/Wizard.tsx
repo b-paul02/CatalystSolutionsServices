@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Icon from "@/components/Icon";
 import { MODULES, FAMILIES, pickModules, type Module } from "@/lib/audit/modules";
 
@@ -46,6 +46,17 @@ export default function Wizard() {
   const [url, setUrl] = useState("");
   const [email, setEmail] = useState("");
   const [noWebsite, setNoWebsite] = useState(false);
+
+  // prefill from the homepage hero form (?url= / ?name= / ?email= / ?noWebsite=1)
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const no = q.get("noWebsite") === "1";
+    if (no) setNoWebsite(true);
+    const u = q.get(no ? "name" : "url");
+    if (u) setUrl(u);
+    const e = q.get("email");
+    if (e) setEmail(e);
+  }, []);
   const [inferred, setInferred] = useState<Inferred>(null);
   const [scrapeOk, setScrapeOk] = useState(true);
 
@@ -129,12 +140,12 @@ export default function Wizard() {
   if (step === 0) {
     return (
       <form onSubmit={startScrape} className={card} id="start">
-        <h2 className={h}>Start your free Growth Snapshot</h2>
+        <h2 className={h}>Start your free Growth Audit</h2>
         <p className={sub}>{noWebsite ? "No website is fine — we'll build the audit from your answers instead." : "Enter your website and email. We read your site first so you answer fewer questions."}</p>
         <label className="label mb-1.5 block">{noWebsite ? "Business name" : "Website URL"}</label>
         <input className="field mb-3" required placeholder={noWebsite ? "Your business name" : "yourbusiness.com"} value={url} onChange={(e) => setUrl(e.target.value)} />
         <label className="mb-4 flex cursor-pointer items-center gap-2.5 text-[13px] text-[var(--color-muted)]">
-          <input type="checkbox" checked={noWebsite} onChange={(e) => { setNoWebsite(e.target.checked); setUrl(""); }} className="h-4 w-4 accent-[#A855F7]" />
+          <input type="checkbox" checked={noWebsite} onChange={(e) => setNoWebsite(e.target.checked)} className="h-4 w-4 accent-[#A855F7]" />
           I don&apos;t have a website yet
         </label>
         <label className="label mb-1.5 block">Email (your report is delivered here)</label>

@@ -5,7 +5,7 @@ import ReportView from "../ReportView";
 import DoctorReportView from "../DoctorReportView";
 import PrintButton from "./PrintButton";
 
-export const metadata: Metadata = { title: "Growth Snapshot", robots: { index: false } };
+export const metadata: Metadata = { title: "Growth Audit", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
 export default async function ReportPage({ params }: { params: Promise<{ token: string }> }) {
@@ -38,7 +38,7 @@ export default async function ReportPage({ params }: { params: Promise<{ token: 
         <div className="mx-auto mb-10 max-w-[780px]">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <span className="badge mb-4"><span className="badge-dot" />{isDoctor ? "Doctor Digital Audit" : "Growth Snapshot"}</span>
+              <span className="badge mb-4"><span className="badge-dot" />{isDoctor ? "Doctor Digital Audit" : "Growth Audit"}</span>
               <h1 className="text-[clamp(1.8rem,4vw,38px)] font-extrabold leading-[1.1] tracking-[-0.02em] text-white">{isDoctor ? report.doctor_name : report.business_name}</h1>
             </div>
             <PrintButton />

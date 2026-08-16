@@ -53,7 +53,7 @@ function CoverBlock({ report, meta }: { report: ReportJSON; meta: ReportMeta }) 
     <section className="card mb-6">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="mb-1 text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--color-brand-soft)]">Digital Growth Snapshot</div>
+          <div className="mb-1 text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--color-brand-soft)]">Digital Growth Audit</div>
           <h2 className="text-[24px] font-extrabold tracking-[-0.02em] text-white">{report.business_name}</h2>
           {meta.url && <div className="mt-0.5 text-[13px] text-[var(--color-muted)]">{meta.url.replace(/^https?:\/\//, "")}</div>}
         </div>
@@ -419,7 +419,7 @@ export default function ReportView({ report, bookingHref = "/contact", meta = {}
 
       {/* print-only running footer (repeats on every printed page) */}
       <div className="hidden print:fixed print:bottom-2 print:left-0 print:right-0 print:block print:text-center print:text-[10px] print:text-[#8b8b9a]">
-        {report.business_name} · Growth Snapshot · Catalyst Solutions Services{meta.date ? ` · ${meta.date.slice(0, 10)}` : ""}
+        {report.business_name} · Growth Audit · Catalyst Solutions Services{meta.date ? ` · ${meta.date.slice(0, 10)}` : ""}
       </div>
     </div>
   );

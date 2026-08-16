@@ -30,7 +30,7 @@ export default function GrowthAuditPage() {
           <span className="badge mb-6"><span className="badge-dot anim-pulse" />Free · Human-reviewed · No pitch</span>
           <h1 className="mb-5 text-[clamp(2.2rem,6vw,52px)] font-extrabold leading-[1.06] tracking-[-0.03em] text-white">
             Get Your Free{" "}
-            <span className="bg-gradient-to-r from-[#A855F7] via-[#C4B5FD] to-[#60A5FA] bg-clip-text text-transparent">Growth Snapshot</span>
+            <span className="bg-gradient-to-r from-[#A855F7] via-[#C4B5FD] to-[#60A5FA] bg-clip-text text-transparent">Growth Audit</span>
           </h1>
           <p className="mx-auto mb-10 max-w-[560px] text-[17px] leading-[1.62] text-[var(--color-muted)]">
             A short audit of your business&apos;s digital growth: what&apos;s working, what&apos;s leaking, who your best
