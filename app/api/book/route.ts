@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { programBySlug, isBookable, setupAmount } from "@/lib/programs";
 
-// Creates a Stripe Checkout session for a 50% onboarding deposit.
+// Creates a Stripe Checkout session for a 50% onboarding deposit (INR for Indian
+// visitors, USD otherwise). Google Pay / Apple Pay buttons appear automatically in
+// Checkout on supported devices — no configuration here.
 // Amount is always recomputed server-side from lib/programs — never trusted from the client.
 // ponytail: plain REST call, no stripe SDK dependency for one endpoint.
 export async function POST(req: NextRequest) {

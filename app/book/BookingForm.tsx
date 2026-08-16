@@ -98,7 +98,7 @@ export default function BookingForm() {
               <Icon name="lock" className="text-[17px]" />
             </button>
             <p className="text-[12.5px] leading-[1.55] text-[var(--color-faint)]">
-              Payments are processed securely by Stripe. By booking you agree to the program's standard term — {program.termLine}
+              Pay securely by card or Google Pay — processed by Stripe. By booking you agree to the program's standard term — {program.termLine}
             </p>
           </form>
 
