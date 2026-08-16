@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <>
       {/* HERO */}
-      <section className="relative overflow-hidden px-5 pb-24 pt-20 sm:px-8 lg:pt-24">
+      <section className="relative overflow-hidden px-5 pb-24 pt-10 sm:px-8 lg:pt-14">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_25%_20%,rgba(124,58,237,0.28),transparent_60%),radial-gradient(ellipse_50%_60%_at_90%_30%,rgba(59,130,246,0.14),transparent_60%)]" />
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(168,85,247,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(168,85,247,0.05)_1px,transparent_1px)] [background-size:54px_54px] [mask-image:radial-gradient(ellipse_80%_70%_at_50%_30%,#000,transparent_75%)]" />
         <div className="relative mx-auto grid max-w-[1240px] items-center gap-12 lg:grid-cols-[1.05fr_1fr]">
