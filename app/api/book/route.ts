@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { programBySlug, isBookable, setupAmount, processingFeeRate, addOnByName } from "@/lib/programs";
+import { programBySlug, isBookable, setupAmount, processingFeeRate, addOnByName, maintenanceLaterUplift } from "@/lib/programs";
 
 // Creates a Stripe Checkout session for a 50% onboarding deposit plus any
 // selected add-ons (INR for Indian visitors, USD otherwise). One-time add-on
@@ -9,14 +9,14 @@ import { programBySlug, isBookable, setupAmount, processingFeeRate, addOnByName 
 // Amounts are always recomputed server-side from lib/programs — never trusted
 // from the client. ponytail: plain REST call, no stripe SDK dependency.
 export async function POST(req: NextRequest) {
-  let body: { slug?: string; tier?: number; market?: string; name?: string; email?: string; phone?: string; company?: string; addOns?: string[] };
+  let body: { slug?: string; tier?: number; market?: string; name?: string; email?: string; phone?: string; company?: string; addOns?: string[]; maintenance?: boolean };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  const { slug = "", tier: tierIndex = -1, market, name = "", email = "", phone = "", company = "", addOns: selected = [] } = body;
+  const { slug = "", tier: tierIndex = -1, market, name = "", email = "", phone = "", company = "", addOns: selected = [], maintenance = false } = body;
   const program = programBySlug[slug];
   const tier = program?.tiers[Number(tierIndex)];
   if (!program || !tier || !isBookable(tier)) return NextResponse.json({ error: "This package can't be booked online." }, { status: 400 });
@@ -74,6 +74,14 @@ export async function POST(req: NextRequest) {
     if (a.monthly) params.set(`line_items[${li}][price_data][product_data][description]`, "One-time setup — monthly component billed with your managed service.");
     li++;
   }
+
+  // Optional maintenance plan: opt-in, never charged at checkout — recorded for the kickoff invoice.
+  params.set(
+    "metadata[maintenance]",
+    maintenance === true && tier.monthly
+      ? `${tier.monthly[market]} (rate locked at booking)`
+      : `declined (+${maintenanceLaterUplift * 100}% if added later)`
+  );
 
   // Monthly components (incl. monthly-only add-ons): not charged here; recorded for the kickoff invoice.
   const monthly = chosen.filter((a) => a.monthly);

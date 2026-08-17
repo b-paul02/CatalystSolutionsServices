@@ -23,6 +23,8 @@ export default async function BookingSuccess({ searchParams }: { searchParams: P
   const session = await getSession(session_id ?? "");
   const paid = session?.payment_status === "paid";
   const label = session?.metadata?.program ? `${session.metadata.program} — ${session.metadata.tier}` : null;
+  const maintenance = session?.metadata?.maintenance;
+  const tookMaintenance = !!maintenance && maintenance !== "declined";
 
   return (
     <section className="relative overflow-hidden px-5 py-24 sm:px-8">
@@ -37,7 +39,7 @@ export default async function BookingSuccess({ searchParams }: { searchParams: P
         {label && <p className="mb-3 text-[15.5px] font-semibold text-[var(--color-brand-soft)]">{label}</p>}
         <p className="mb-8 text-[15.5px] leading-[1.65] text-[var(--color-muted)]">
           {paid
-            ? "Your 50% onboarding deposit is received. We'll reach out within 1 business day to schedule your kickoff call, where we'll also scope your monthly managed service. The onboarding balance is due at launch."
+            ? `Your 50% onboarding deposit is received. We'll reach out within 1 business day to schedule your kickoff call. The onboarding balance is due at launch. ${tookMaintenance ? `Your monthly maintenance plan (${maintenance!.replace(" (rate locked at booking)", "")}) starts at kickoff, billed monthly in advance at the rate locked today.` : "You didn't add monthly maintenance — you can add it any time, at 15% above the rate quoted with your package."}`
             : "If your payment went through, you'll receive a Stripe receipt by email and we'll reach out within 1 business day. If it didn't, you can try again from the program page."}
         </p>
         <div className="flex justify-center gap-4">

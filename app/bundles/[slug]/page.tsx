@@ -5,7 +5,7 @@ import Icon from "@/components/Icon";
 import CTASection from "@/components/CTASection";
 import Market, { MarketOnly } from "@/components/Market";
 import { bundleBaseline } from "@/lib/content";
-import { programBySlug, termsStrip, isBookable, type Tier } from "@/lib/programs";
+import { programBySlug, isBookable, maintenanceNote, type Tier } from "@/lib/programs";
 
 export function generateStaticParams() {
   return Object.keys(programBySlug).map((slug) => ({ slug }));
@@ -30,7 +30,7 @@ function TierCard({ tier, featured, slug, index }: { tier: Tier; featured: boole
       <h3 className="mb-1.5 text-[19px] font-bold text-white">{tier.name}</h3>
       <p className="mb-5 text-[13.5px] leading-[1.55] text-[var(--color-muted)]">{tier.positioning}</p>
 
-      {/* Pricing — onboarding only; monthly managed service is mentioned, never priced */}
+      {/* Pricing — onboarding is the tier price; monthly maintenance is priced but optional */}
       <div className="mb-5 rounded-xl border border-[rgba(168,85,247,0.2)] bg-[rgba(124,58,237,0.08)] p-4">
         {tier.setup ? (
           <div className="flex items-baseline justify-between gap-3">
@@ -41,9 +41,15 @@ function TierCard({ tier, featured, slug, index }: { tier: Tier; featured: boole
           <div className="text-[13px] font-semibold text-white">Monthly plan — priced on your call</div>
         )}
         {tier.setup && tier.monthly && (
-          <div className="mt-2 flex items-start gap-2 border-t border-white/5 pt-2 text-[12px] leading-[1.5] text-[var(--color-faint)]">
-            <Icon name="autorenew" className="mt-[1px] text-[14px] text-[var(--color-brand-soft)]" />
-            Also includes an ongoing monthly managed service — scoped on your call.
+          <div className="mt-2 border-t border-white/5 pt-2">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="flex items-center gap-1.5 text-[12.5px] text-[var(--color-faint)]">
+                <Icon name="autorenew" className="text-[14px] text-[var(--color-brand-soft)]" />
+                Monthly maintenance <span className="text-[11.5px]">(optional)</span>
+              </span>
+              <span className="text-[13.5px] font-semibold text-[var(--color-brand-soft)]"><Market in={tier.monthly.in} us={tier.monthly.us} /></span>
+            </div>
+            <div className="mt-1 text-[11.5px] leading-[1.45] text-[var(--color-faint)]">{maintenanceNote}</div>
           </div>
         )}
         {tier.qualifier && (
@@ -140,7 +146,7 @@ export default async function ProgramDetail({ params }: { params: Promise<{ slug
           <div className="mb-8">
             <div className="eyebrow mb-3">Choose Your Tier</div>
             <h2 className="h2 mb-3">One Program, Sized to Where You Are</h2>
-            <p className="max-w-[620px] text-[15px] leading-[1.6] text-[var(--color-muted)]">{program.tierIntro ?? "Every tier includes everything in the tier below it. Book with 50% of onboarding — each tier also runs with an ongoing monthly managed service, scoped on your call."}</p>
+            <p className="max-w-[620px] text-[15px] leading-[1.6] text-[var(--color-muted)]">{program.tierIntro ?? "Every tier includes everything in the tier below it. Tier prices are one-time onboarding — book with 50% of it. Monthly maintenance is optional and can be added at checkout."}</p>
           </div>
           <div className={`grid gap-[18px] ${grid}`}>
             {program.tiers.map((t, i) => <TierCard key={t.name} tier={t} featured={i === featured} slug={program.slug} index={i} />)}
@@ -207,21 +213,6 @@ export default async function ProgramDetail({ params }: { params: Promise<{ slug
           </div>
         </section>
       )}
-
-      {/* COMMERCIAL TERMS */}
-      <section className="px-5 py-10 sm:px-8">
-        <div className="mx-auto max-w-[1240px]">
-          <div className="eyebrow mb-3">Commercial Terms</div>
-          <ul className="flex max-w-[820px] flex-col gap-2.5">
-            {[{ text: program.termLine }, ...termsStrip, ...(program.scopeNote ? [{ text: program.scopeNote }] : [])].map((t) => (
-              <li key={t.text} className="flex items-start gap-2.5 text-[13.5px] leading-[1.55] text-[var(--color-muted)]">
-                <Icon name="gavel" className="mt-0.5 text-[16px] text-[var(--color-brand-soft)]" />
-                {t.text}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
 
       {/* TRANSPARENCY */}
       <section className="border-t border-white/5 px-5 py-14 sm:px-8">

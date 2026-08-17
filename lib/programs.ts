@@ -13,9 +13,9 @@ export type Tier = {
   includesPrior?: boolean; // render "Everything in the previous tier, plus:"
   deliverables?: string[];
   guardrails: string[];
-  setup?: Money; // onboarding — always shown separate from monthly
+  setup?: Money; // onboarding — the tier price, always shown separate from monthly
   setupLabel?: string; // defaults to "Onboarding"
-  monthly?: Money;
+  monthly?: Money; // optional monthly maintenance plan — opt-in add-on, never bundled into the tier price
   surgeIn?: string; // Education India seasonal surge line
   qualifier?: Money; // Ecommerce T2 GMV qualifier
   priceNote?: string;
@@ -510,7 +510,7 @@ export const programs: Program[] = [
     name: "Calendar-Filling System",
     slug: "calendar-filling-system",
     tagline: "Build your personal brand and keep your calendar full of ideal clients.",
-    tierIntro: "One package, deliberately — no tiers to compare. Pay 50% of onboarding to book; the monthly managed service is scoped on your call.",
+    tierIntro: "One package, deliberately — no tiers to compare. Pay 50% of onboarding to book; monthly maintenance is optional and can be added at checkout.",
     termLine: "3-month initial term.",
     tiers: [
       {
@@ -598,6 +598,12 @@ export const isBookable = (t: Tier): boolean => !!t.setup && !t.setup.in.startsW
 export const setupAmount = (s: string): number => Number(s.replace(/\D/g, ""));
 export const programByIndustry: Record<string, Program> = Object.fromEntries(programs.map((p) => [p.industry, p]));
 
+// Monthly maintenance is opt-in, never part of the tier price. Added at booking, the
+// tier's listed rate is locked for the term; added later it costs 15% more.
+// ponytail: one rate + one shared string, no per-tier override until one exists.
+export const maintenanceLaterUplift = 0.15;
+export const maintenanceNote = `Add maintenance at booking to lock this rate for your term — added later, it costs ${maintenanceLaterUplift * 100}% more.`;
+
 // §3 — Add-on catalogue (all families).
 // `in`/`us` are the catalogue display strings. `setup` (one-time) and `monthly`
 // are numeric major units used by online booking: setup is charged in full at
@@ -662,7 +668,8 @@ export const strategic = {
 // §5 — Commercial rules (client-facing safe). Entries with in/us are market-gated.
 export const commercialRules: { text?: string; in?: string; us?: string }[] = [
   { text: "Contract terms: Tier 1–2 run 12 months (Coaches: 3 months); Tier 3 runs 12–24 months; Strategic Partnerships run on a 24–60 month MSA with SOWs." },
-  { text: "Billing: onboarding is billed 50/50 (start / launch) on Tier 1–2; Tier 3 builds and all Build Studio work are milestone-billed 40/40/20; retainers are billed monthly in advance." },
+  { text: "Billing: onboarding is billed 50/50 (start / launch) on Tier 1–2; Tier 3 builds and all Build Studio work are milestone-billed 40/40/20; optional maintenance plans are billed monthly in advance from kickoff." },
+  { text: "Monthly maintenance is optional on every tier. Added with your booking, the listed rate is locked for the term; added later, it costs 15% more." },
   { text: "The only discount: annual prepay = 1 month free." },
   { text: "Always client-paid, never inside Catalyst fees: ad/media budgets, SMS/WhatsApp usage, payment processing, premium domains, stock media, photo/video production, enterprise licences, large API usage, legal/regulatory/security audits, and large data migration." },
   {

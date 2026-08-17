@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import Icon from "@/components/Icon";
 import { useMarket } from "@/components/Market";
-import { programBySlug, isBookable, setupAmount, processingFeeRate, bookableAddOns } from "@/lib/programs";
+import { programBySlug, isBookable, setupAmount, processingFeeRate, bookableAddOns, maintenanceNote } from "@/lib/programs";
 
 const fmt = (n: number, market: "in" | "us") => {
   const opts = n % 1 ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : undefined;
@@ -15,6 +15,7 @@ export default function BookingForm({ slug, tierIndex, canceled }: { slug: strin
   const market = useMarket();
   const [form, setForm] = useState({ name: "", email: "", phone: "", company: "" });
   const [selected, setSelected] = useState<string[]>([]);
+  const [maintenance, setMaintenance] = useState(false); // opt-in, never billed at checkout
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,7 +57,7 @@ export default function BookingForm({ slug, tierIndex, canceled }: { slug: strin
       const res = await fetch("/api/book", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, tier: tierIndex, market, addOns: selected, ...form }),
+        body: JSON.stringify({ slug, tier: tierIndex, market, addOns: selected, maintenance, ...form }),
       });
       const data = await res.json();
       if (!res.ok || !data.url) throw new Error(data.error ?? "Something went wrong. Please try again.");
@@ -84,7 +85,7 @@ export default function BookingForm({ slug, tierIndex, canceled }: { slug: strin
 
         <h1 className="mb-3 text-[clamp(1.9rem,5vw,40px)] font-extrabold tracking-[-0.025em] text-white">Book {program.name} — {tier.label}: {tier.name}</h1>
         <p className="mb-10 max-w-[620px] text-[15.5px] leading-[1.6] text-[var(--color-muted)]">
-          Pay 50% of the onboarding fee to secure your start. The balance is due at launch, and the monthly managed service is scoped on your kickoff call.
+          Pay 50% of the onboarding fee to secure your start. The balance is due at launch. Monthly maintenance is optional — add it below to lock today's rate.
         </p>
 
         {canceled && (
@@ -100,6 +101,22 @@ export default function BookingForm({ slug, tierIndex, canceled }: { slug: strin
             <input className={input} required type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             <input className={input} required type="tel" placeholder="Phone / WhatsApp" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             <input className={input} placeholder="Business / clinic / firm name (optional)" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
+
+            {/* MONTHLY MAINTENANCE — opt-in, priced from the tier, not charged today */}
+            {tier.monthly && (
+              <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 ${maintenance ? "border-[rgba(168,85,247,0.5)] bg-[rgba(124,58,237,0.12)]" : "border-[var(--color-line)] bg-white/[0.02]"}`}>
+                <input type="checkbox" checked={maintenance} onChange={() => setMaintenance((m) => !m)} className="mt-[3px] h-4 w-4 accent-[#7C3AED]" />
+                <span>
+                  <span className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="text-[13.5px] font-semibold text-white">Add monthly maintenance</span>
+                    <span className="text-[13px] font-semibold text-[var(--color-brand-soft)]">{market ? `${tier.monthly[market]}` : "…"}</span>
+                  </span>
+                  <span className="mt-1 block text-[12px] leading-[1.5] text-[var(--color-faint)]">
+                    Ongoing managed service — content, campaigns, reporting and optimization. Billed monthly in advance from kickoff, not charged today. {maintenanceNote}
+                  </span>
+                </span>
+              </label>
+            )}
 
             {/* ADD-ONS */}
             <div className="rounded-xl border border-[var(--color-line)] bg-white/[0.02]">
@@ -169,6 +186,12 @@ export default function BookingForm({ slug, tierIndex, canceled }: { slug: strin
               <span>Balance at launch</span>
               <span>{due !== null ? fmt(due, market!) : "—"}</span>
             </div>
+            {maintenance && tier.monthly && market && (
+              <div className="mb-1 flex items-baseline justify-between text-[13px] text-[var(--color-brand-soft)]">
+                <span>Maintenance from kickoff</span>
+                <span>{tier.monthly[market]}</span>
+              </div>
+            )}
             {addOnMonthly > 0 && market && (
               <div className="mb-1 flex items-baseline justify-between text-[13px] text-[var(--color-brand-soft)]">
                 <span>Monthly add-ons from kickoff</span>
@@ -176,7 +199,7 @@ export default function BookingForm({ slug, tierIndex, canceled }: { slug: strin
               </div>
             )}
             <ul className="mt-3 flex flex-col gap-2 border-t border-white/5 pt-4 text-[12.5px] leading-[1.5] text-[var(--color-faint)]">
-              <li className="flex gap-2"><Icon name="autorenew" className="mt-[1px] text-[14px] text-[var(--color-brand-soft)]" />Ongoing monthly managed service scoped on your kickoff call.</li>
+              <li className="flex gap-2"><Icon name="autorenew" className="mt-[1px] text-[14px] text-[var(--color-brand-soft)]" />{maintenance ? "Maintenance starts at kickoff, billed monthly in advance at the rate locked today." : "Maintenance is optional — adding it later costs 15% more."}</li>
               <li className="flex gap-2"><Icon name="fact_check" className="mt-[1px] text-[14px] text-[var(--color-brand-soft)]" />Starts with your Growth Audit and a live tracking dashboard.</li>
               <li className="flex gap-2"><Icon name="campaign" className="mt-[1px] text-[14px] text-[var(--color-brand-soft)]" />Ad/media budgets are always paid directly by you, never marked up.</li>
             </ul>
