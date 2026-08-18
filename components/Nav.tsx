@@ -10,6 +10,9 @@ const links = [
   { label: "Services", href: "/services" },
   { label: "Industries", href: "/industries" },
   { label: "Use Cases", href: "/use-cases" },
+  // Proof lives on each program page now (demos, blueprint, samples sit beside the
+  // pricing). /proof remains as a gallery, linked from the footer.
+  { label: "Demo Sites", href: "/proof" },
   { label: "About", href: "/about" },
   { label: "Free Growth Audit", href: "/growth-audit" },
 ];

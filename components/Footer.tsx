@@ -24,6 +24,7 @@ const cols = [
     title: "Explore",
     items: [
       { label: "Use Cases", href: "/use-cases" },
+      { label: "Proof & Demos", href: "/proof" },
       { label: "Add-Ons & Partnerships", href: "/add-ons" },
       { label: "Free Growth Audit", href: "/growth-audit" },
       { label: "Book a Call", href: "/contact" },

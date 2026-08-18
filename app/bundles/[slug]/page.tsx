@@ -6,6 +6,9 @@ import CTASection from "@/components/CTASection";
 import Market, { MarketOnly } from "@/components/Market";
 import { bundleBaseline } from "@/lib/content";
 import { programBySlug, isBookable, maintenanceNote, type Tier } from "@/lib/programs";
+import { proofForTier, siteForIndustry, blueprintForIndustry, samples, sampleBySlug, process90, fictionalNote } from "@/lib/proof";
+import IndustryDemos from "@/components/demos/IndustryDemos";
+import SampleExcerpt from "@/components/SampleExcerpt";
 
 export function generateStaticParams() {
   return Object.keys(programBySlug).map((slug) => ({ slug }));
@@ -17,7 +20,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return p ? { title: `${p.name} — ${p.industry} Program`, description: p.tagline } : { title: "Program" };
 }
 
-function TierCard({ tier, featured, slug, index }: { tier: Tier; featured: boolean; slug: string; index: number }) {
+function TierCard({
+  tier,
+  featured,
+  slug,
+  index,
+  industry,
+  tierCount,
+}: {
+  tier: Tier;
+  featured: boolean;
+  slug: string;
+  index: number;
+  industry: string;
+  tierCount: number;
+}) {
+  const proof = proofForTier(industry, index, tierCount);
   return (
     <div
       className={`flex flex-col rounded-2xl border p-[26px] ${
@@ -94,7 +112,7 @@ function TierCard({ tier, featured, slug, index }: { tier: Tier; featured: boole
         <div className="mb-4 text-[12px] font-semibold uppercase tracking-[0.07em] text-[var(--color-fg)]">Everything in the previous tier, plus expanded scope:</div>
       )}
 
-      <div className="mt-auto border-t border-white/5 pt-4">
+      <div className="border-t border-white/5 pt-4">
         <div className="mb-2 text-[11.5px] font-semibold uppercase tracking-[0.08em] text-[var(--color-faint)]">Scope</div>
         <div className="flex flex-wrap gap-1.5">
           {tier.guardrails.map((g) => (
@@ -102,6 +120,30 @@ function TierCard({ tier, featured, slug, index }: { tier: Tier; featured: boole
           ))}
         </div>
       </div>
+
+      {/* Proof for THIS tier — the demo site at this tier, the demo behind it, and
+          the document you'd receive. Each tier's proof genuinely differs. */}
+      {proof.length > 0 && (
+        <div className="mt-auto border-t border-white/5 pt-4">
+          <div className="mb-2 flex items-center gap-1.5 text-[11.5px] font-semibold uppercase tracking-[0.08em] text-[var(--color-brand-soft)]">
+            <Icon name="visibility" className="text-[14px]" />
+            See this tier before you buy
+          </div>
+          <div className="flex flex-col gap-1.5">
+            {proof.map((p) => (
+              <Link
+                key={p.href + p.label}
+                href={p.href}
+                title={p.desc}
+                className="group flex items-center gap-2 text-[12.5px] leading-[1.45] text-[var(--color-muted)] hover:text-white"
+              >
+                <Icon name={p.icon} className="shrink-0 text-[15px] text-[var(--color-brand-soft)]" />
+                <span className="underline decoration-white/20 underline-offset-2 group-hover:decoration-white/60">{p.label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -110,6 +152,12 @@ export default async function ProgramDetail({ params }: { params: Promise<{ slug
   const { slug } = await params;
   const program = programBySlug[slug];
   if (!program) notFound();
+
+  const site = siteForIndustry(program.industry);
+  const blueprint = blueprintForIndustry(program.industry);
+  // The program's own monthly report if it has one, otherwise the closest equivalent.
+  const sample =
+    samples.find((s) => s.industry === program.industry && s.type === "Monthly Report") ?? sampleBySlug["monthly-seo-report"];
 
   const related = Object.values(programBySlug).filter((p) => p.slug !== slug).slice(0, 3);
   const grid =
@@ -149,7 +197,9 @@ export default async function ProgramDetail({ params }: { params: Promise<{ slug
             <p className="max-w-[620px] text-[15px] leading-[1.6] text-[var(--color-muted)]">{program.tierIntro ?? "Every tier includes everything in the tier below it. Tier prices are one-time onboarding — book with 50% of it. Monthly maintenance is optional and can be added at checkout."}</p>
           </div>
           <div className={`grid gap-[18px] ${grid}`}>
-            {program.tiers.map((t, i) => <TierCard key={t.name} tier={t} featured={i === featured} slug={program.slug} index={i} />)}
+            {program.tiers.map((t, i) => (
+              <TierCard key={t.name} tier={t} featured={i === featured} slug={program.slug} index={i} industry={program.industry} tierCount={program.tiers.length} />
+            ))}
           </div>
           {program.notes && (
             <div className="mt-5 flex flex-col gap-2">
@@ -164,6 +214,166 @@ export default async function ProgramDetail({ params }: { params: Promise<{ slug
               })}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* DEMO SITE — the whole program, browsable, tier by tier */}
+      {site && (
+        <section id="demo-site" className="scroll-mt-24 px-5 py-12 sm:px-8">
+          <div className="mx-auto max-w-[1240px]">
+            <div className="overflow-hidden rounded-2xl border border-[rgba(168,85,247,0.25)] bg-[linear-gradient(160deg,rgba(30,20,55,0.75),rgba(12,10,24,0.75))]">
+              <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+                <div>
+                  <div className="eyebrow mb-3">Proof Before Payment</div>
+                  <h2 className="mb-3 text-[26px] font-extrabold leading-[1.15] tracking-[-0.02em] text-white sm:text-3xl">
+                    Browse a Whole {program.name} Site — at Any Tier
+                  </h2>
+                  <p className="mb-5 max-w-[520px] text-[14.5px] leading-[1.65] text-[var(--color-muted)]">
+                    <strong className="text-white">{site.brand}</strong> is a fictional {site.business.toLowerCase()} we built to this
+                    program&apos;s exact specification. Switch between tiers and watch the systems light up — everything above your tier
+                    shows locked, with what it costs to unlock.
+                  </p>
+                  <div className="mb-6 flex flex-wrap gap-2">
+                    {site.tiers.map((t, i) => (
+                      <Link
+                        key={t.label}
+                        href={`/proof/sites/${site.slug}?tier=${i + 1}`}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(168,85,247,0.35)] bg-[rgba(124,58,237,0.12)] px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-brand-soft)] transition-colors hover:bg-[rgba(124,58,237,0.28)] hover:text-white"
+                      >
+                        <Icon name="visibility" className="text-[15px]" />
+                        View at {t.label}
+                      </Link>
+                    ))}
+                  </div>
+                  <Link href={`/proof/sites/${site.slug}`} className="btn-primary">
+                    Open the demo site <Icon name="arrow_forward" className="text-[18px]" />
+                  </Link>
+                </div>
+
+                <Link href={`/proof/sites/${site.slug}`} className="group block overflow-hidden rounded-xl border border-white/10 bg-white shadow-[0_0_40px_rgba(0,0,0,0.45)]">
+                  <div className="flex items-center gap-2 border-b border-black/10 bg-[#e9ecf1] px-3 py-2">
+                    <span className="flex gap-1.5">
+                      {["#ff5f57", "#febc2e", "#28c840"].map((c) => (
+                        <span key={c} className="h-[9px] w-[9px] rounded-full" style={{ background: c }} />
+                      ))}
+                    </span>
+                    <span className="mx-auto rounded bg-white px-2.5 py-0.5 text-[10.5px] text-[#5b6472]">
+                      www.{site.slug.replace(/-/g, "")}.demo
+                    </span>
+                  </div>
+                  <iframe
+                    src={`/demo-sites/${site.slug}/index.html`}
+                    title={`${site.brand} demo website preview`}
+                    tabIndex={-1}
+                    loading="lazy"
+                    sandbox="allow-scripts allow-same-origin"
+                    className="pointer-events-none block h-[300px] w-full border-0 bg-white"
+                  />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* LIVE DEMOS — the systems this program deploys, running here */}
+      <section id="demos" className="scroll-mt-24 border-t border-white/5 px-5 py-12 sm:px-8">
+        <div className="mx-auto max-w-[1240px]">
+          <div className="eyebrow mb-3">See It Working</div>
+          <h2 className="h2 mb-3">The Automation in This Program — Live, Right Here</h2>
+          <p className="mb-9 max-w-[660px] text-[15px] leading-[1.6] text-[var(--color-muted)]">
+            These are the systems inside {program.name}, running on this page with fictional {program.industry.toLowerCase()} data.
+            Click them. What you&apos;re testing is what gets deployed for you — trained on your business instead.
+          </p>
+          <IndustryDemos industry={program.industry} />
+        </div>
+      </section>
+
+      {/* SAMPLE DELIVERABLE — what actually lands in your inbox */}
+      <section id="sample" className="scroll-mt-24 border-t border-white/5 px-5 py-12 sm:px-8">
+        <div className="mx-auto max-w-[1240px]">
+          <div className="eyebrow mb-3">What You&apos;ll Receive</div>
+          <h2 className="h2 mb-3">Your Monthly Report, Before You Pay for One</h2>
+          <p className="mb-7 max-w-[660px] text-[15px] leading-[1.6] text-[var(--color-muted)]">
+            Every tier reports monthly. Tier 1 reports on presence; higher tiers add conversion, cost per customer and strategy.
+            Here&apos;s the opening of a real one.
+          </p>
+          <SampleExcerpt doc={sample} />
+        </div>
+      </section>
+
+      {/* THE SYSTEM — blueprint folded in */}
+      {blueprint && (
+        <section id="system" className="scroll-mt-24 border-t border-white/5 px-5 py-12 sm:px-8">
+          <div className="mx-auto max-w-[1240px]">
+            <div className="eyebrow mb-3">The System Behind This Program</div>
+            <h2 className="h2 mb-3">{blueprint.title}</h2>
+            <p className="mb-8 max-w-[680px] text-[15px] leading-[1.6] text-[var(--color-muted)]">{blueprint.promise}</p>
+
+            <div className="mb-8 flex flex-col gap-4">
+              {blueprint.stages.map((s, i) => (
+                <div key={s.name} className="card p-6">
+                  <div className="mb-3 flex items-start gap-4">
+                    <span className="icon-grad h-[44px] w-[44px] shrink-0 text-[23px]"><Icon name={s.icon} /></span>
+                    <div>
+                      <h3 className="text-[16.5px] font-bold text-white">{s.name}</h3>
+                      <p className="mt-0.5 text-[13px] italic text-[var(--color-brand-soft)]">{s.desc}</p>
+                    </div>
+                    <span className="ml-auto hidden text-[32px] font-extrabold text-white/10 sm:block">{i + 1}</span>
+                  </div>
+                  <ul className="grid gap-2.5 sm:grid-cols-2">
+                    {s.items.map((it) => (
+                      <li key={it} className="flex items-start gap-2.5 text-[13.5px] leading-[1.55] text-[var(--color-muted)]">
+                        <span className="mt-[3px] flex h-[17px] w-[17px] shrink-0 items-center justify-center rounded-[5px] bg-[rgba(52,211,153,0.14)] text-[#6EE7B7]">
+                          <Icon name="check" className="text-[12px]" />
+                        </span>
+                        {it}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+
+            <h3 className="mb-4 text-xl font-bold tracking-[-0.02em] text-white">The KPIs we report on</h3>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {blueprint.kpis.map((k) => (
+                <div key={k.label} className="card p-5">
+                  <Icon name="monitoring" className="mb-2.5 text-[22px] text-[var(--color-brand-soft)]" />
+                  <h4 className="mb-1.5 text-[14.5px] font-bold text-white">{k.label}</h4>
+                  <p className="text-[12.5px] leading-[1.5] text-[var(--color-faint)]">{k.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* FIRST 90 DAYS — process transparency for everything that can't be demoed */}
+      <section id="process" className="scroll-mt-24 border-t border-white/5 px-5 py-12 sm:px-8">
+        <div className="mx-auto max-w-[1240px]">
+          <div className="eyebrow mb-3">Your First 90 Days</div>
+          <h2 className="h2 mb-3">Exactly What Happens After You Book</h2>
+          <p className="mb-8 max-w-[660px] text-[15px] leading-[1.6] text-[var(--color-muted)]">
+            A retainer can&apos;t be demoed — so here&apos;s the machine itself. This is every engagement&apos;s first 90 days, and you can hold us to it.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {process90.map((p, i) => (
+              <div key={p.title} className="card">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="icon-chip h-[42px] w-[42px] text-[22px]"><Icon name={p.icon} /></span>
+                  <span className="text-[28px] font-extrabold text-white/10">{i + 1}</span>
+                </div>
+                <div className="mb-1 text-[11.5px] font-semibold uppercase tracking-[0.08em] text-[var(--color-brand-soft)]">{p.phase}</div>
+                <h3 className="mb-2 text-[16px] font-bold text-white">{p.title}</h3>
+                <p className="text-[13px] leading-[1.55] text-[var(--color-faint)]">{p.desc}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-6 text-[12.5px] leading-[1.6] text-[var(--color-faint)]">
+            <Icon name="theater_comedy" className="mr-1.5 align-[-3px] text-[15px] text-[var(--color-brand-soft)]" />
+            {fictionalNote}
+          </p>
         </div>
       </section>
 
