@@ -23,7 +23,10 @@
 }
 
 @layer base {
-  html { scroll-behavior: smooth; }
+  /* Dark native UI (select popups, date pickers, scrollbars) to match the theme */
+  html { scroll-behavior: smooth; color-scheme: dark; }
+  /* Windows Chrome paints option rows itself — force them onto the dark surface */
+  select option { background: var(--color-surface-2); color: var(--color-fg); }
   body { background: var(--color-bg); color: var(--color-fg); font-family: var(--font-sans); }
   ::selection { background: rgba(168, 85, 247, 0.35); color: #fff; }
   /* Accessibility: visible focus ring */

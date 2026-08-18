@@ -35,6 +35,8 @@ export type Program = {
   addOnModules?: { icon: string; name: string; desc: string }[];
   termLine: string;
   scopeNote?: string; // healthcare regulatory scope note
+  // Custom plans only (admin-set): % of the price charged at booking. Catalogue programs are always 50.
+  upfrontPct?: 50 | 100;
 };
 
 export const programs: Program[] = [

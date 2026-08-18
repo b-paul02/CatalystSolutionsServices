@@ -4,22 +4,27 @@ import Link from "next/link";
 import { useState } from "react";
 import Icon from "@/components/Icon";
 import { useMarket } from "@/components/Market";
-import { programBySlug, isBookable, setupAmount, processingFeeRate, bookableAddOns, maintenanceNote } from "@/lib/programs";
+import { programBySlug, isBookable, setupAmount, processingFeeRate, bookableAddOns, maintenanceNote, type Program } from "@/lib/programs";
 
 const fmt = (n: number, market: "in" | "us") => {
   const opts = n % 1 ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : undefined;
   return market === "in" ? `₹${n.toLocaleString("en-IN", opts)}` : `$${n.toLocaleString("en-US", opts)}`;
 };
 
-export default function BookingForm({ slug, tierIndex, canceled }: { slug: string; tierIndex: number; canceled: boolean }) {
-  const market = useMarket();
+// Custom plan booking (/plans/[token]) — resolved server-side by book/page.tsx.
+// The plan fixes the market; geo detection is ignored.
+export type CustomPlanProps = { token: string; market: "in" | "us"; program: Program };
+
+export default function BookingForm({ slug, tierIndex, canceled, custom = null }: { slug: string; tierIndex: number; canceled: boolean; custom?: CustomPlanProps | null }) {
+  const geoMarket = useMarket();
+  const market = custom ? custom.market : geoMarket;
   const [form, setForm] = useState({ name: "", email: "", phone: "", company: "" });
   const [selected, setSelected] = useState<string[]>([]);
   const [maintenance, setMaintenance] = useState(false); // opt-in, never billed at checkout
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const program = programBySlug[slug];
+  const program = custom ? custom.program : programBySlug[slug];
   const tier = program?.tiers[tierIndex];
 
   if (!program || !tier || !isBookable(tier)) {
@@ -36,8 +41,9 @@ export default function BookingForm({ slug, tierIndex, canceled }: { slug: strin
   }
 
   const chosen = bookableAddOns.filter((a) => selected.includes(a.name));
+  const pct = program.upfrontPct ?? 50; // custom plans can charge 100% upfront
   const total = market ? setupAmount(tier.setup![market]) : null;
-  const due = total !== null ? total / 2 : null;
+  const due = total !== null ? (total * pct) / 100 : null;
   const addOnOneTime = market ? chosen.reduce((s, a) => s + (a.setup?.[market] ?? 0), 0) : 0;
   const addOnMonthly = market ? chosen.reduce((s, a) => s + (a.monthly?.[market] ?? 0), 0) : 0;
   const feeRate = market ? processingFeeRate[market] : 0;
@@ -57,7 +63,7 @@ export default function BookingForm({ slug, tierIndex, canceled }: { slug: strin
       const res = await fetch("/api/book", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, tier: tierIndex, market, addOns: selected, maintenance, ...form }),
+        body: JSON.stringify({ slug, plan: custom?.token, tier: tierIndex, market, addOns: selected, maintenance, ...form }),
       });
       const data = await res.json();
       if (!res.ok || !data.url) throw new Error(data.error ?? "Something went wrong. Please try again.");
@@ -78,14 +84,16 @@ export default function BookingForm({ slug, tierIndex, canceled }: { slug: strin
         <nav className="mb-[26px] flex items-center gap-2 text-[13px] text-[var(--color-faint)]" aria-label="Breadcrumb">
           <Link href="/industries" className="hover:text-[var(--color-brand-soft)]">Industries</Link>
           <Icon name="chevron_right" className="text-[16px]" />
-          <Link href={`/bundles/${program.slug}`} className="hover:text-[var(--color-brand-soft)]">{program.name}</Link>
+          <Link href={custom ? `/plans/${custom.token}` : `/bundles/${program.slug}`} className="hover:text-[var(--color-brand-soft)]">{program.name}</Link>
           <Icon name="chevron_right" className="text-[16px]" />
           <span className="text-[var(--color-brand-soft)]">Book</span>
         </nav>
 
         <h1 className="mb-3 text-[clamp(1.9rem,5vw,40px)] font-extrabold tracking-[-0.025em] text-white">Book {program.name} — {tier.label}: {tier.name}</h1>
         <p className="mb-10 max-w-[620px] text-[15.5px] leading-[1.6] text-[var(--color-muted)]">
-          Pay 50% of the onboarding fee to secure your start. The balance is due at launch. Monthly maintenance is optional — add it below to lock today's rate.
+          {pct === 100
+            ? "The full fee is charged at booking. Monthly maintenance is optional — add it below to lock today's rate."
+            : "Pay 50% of the onboarding fee to secure your start. The balance is due at launch. Monthly maintenance is optional — add it below to lock today's rate."}
         </p>
 
         {canceled && (
@@ -165,7 +173,7 @@ export default function BookingForm({ slug, tierIndex, canceled }: { slug: strin
               <div className="flex justify-between gap-3"><span className="text-[var(--color-faint)]">{tier.setupLabel ?? "Onboarding"}</span><span className="font-semibold">{total !== null ? fmt(total, market!) : "—"}</span></div>
             </div>
             <div className="mb-1 flex items-baseline justify-between text-[13.5px] text-[var(--color-muted)]">
-              <span>Deposit (50%)</span>
+              <span>{pct === 100 ? "Charged at booking (100%)" : "Deposit (50%)"}</span>
               <span>{due !== null ? fmt(due, market!) : "—"}</span>
             </div>
             {chosen.filter((a) => a.setup).map((a) => (
@@ -182,10 +190,12 @@ export default function BookingForm({ slug, tierIndex, canceled }: { slug: strin
               <span className="text-[13.5px] text-[var(--color-muted)]">Total due now</span>
               <span className="text-[24px] font-extrabold text-white">{payNow !== null ? fmt(payNow, market!) : "—"}</span>
             </div>
-            <div className="mb-1 flex items-baseline justify-between text-[13px] text-[var(--color-faint)]">
-              <span>Balance at launch</span>
-              <span>{due !== null ? fmt(due, market!) : "—"}</span>
-            </div>
+            {pct !== 100 && (
+              <div className="mb-1 flex items-baseline justify-between text-[13px] text-[var(--color-faint)]">
+                <span>Balance at launch</span>
+                <span>{due !== null ? fmt(due, market!) : "—"}</span>
+              </div>
+            )}
             {maintenance && tier.monthly && market && (
               <div className="mb-1 flex items-baseline justify-between text-[13px] text-[var(--color-brand-soft)]">
                 <span>Maintenance from kickoff</span>

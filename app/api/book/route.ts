@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { programBySlug, isBookable, setupAmount, processingFeeRate, addOnByName, maintenanceLaterUplift } from "@/lib/programs";
+import { db } from "@/lib/audit/db";
+import { parsePlanProgram, planExpired } from "@/lib/customPresets";
 
 // Creates a Stripe Checkout session for a 50% onboarding deposit plus any
 // selected add-ons (INR for Indian visitors, USD otherwise). One-time add-on
@@ -9,15 +11,25 @@ import { programBySlug, isBookable, setupAmount, processingFeeRate, addOnByName,
 // Amounts are always recomputed server-side from lib/programs — never trusted
 // from the client. ponytail: plain REST call, no stripe SDK dependency.
 export async function POST(req: NextRequest) {
-  let body: { slug?: string; tier?: number; market?: string; name?: string; email?: string; phone?: string; company?: string; addOns?: string[]; maintenance?: boolean };
+  let body: { slug?: string; plan?: string; tier?: number; market?: string; name?: string; email?: string; phone?: string; company?: string; addOns?: string[]; maintenance?: boolean };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  const { slug = "", tier: tierIndex = -1, market, name = "", email = "", phone = "", company = "", addOns: selected = [], maintenance = false } = body;
-  const program = programBySlug[slug];
+  const { slug = "", plan: planToken = "", tier: tierIndex = -1, market, name = "", email = "", phone = "", company = "", addOns: selected = [], maintenance = false } = body;
+
+  // Custom plan bookings (/plans/[token]) price from the stored plan JSON;
+  // catalogue bookings price from lib/programs. Amounts are server-side either way.
+  let program = programBySlug[slug];
+  if (planToken && typeof planToken === "string") {
+    const plan = await db.customPlan.findUnique({ where: { token: planToken } });
+    const parsed = plan && !planExpired(plan) ? parsePlanProgram(plan.json) : null;
+    if (!parsed) return NextResponse.json({ error: "This plan is no longer available — please get in touch." }, { status: 400 });
+    if (market !== plan!.market) return NextResponse.json({ error: "Invalid market." }, { status: 400 });
+    program = parsed;
+  }
   const tier = program?.tiers[Number(tierIndex)];
   if (!program || !tier || !isBookable(tier)) return NextResponse.json({ error: "This package can't be booked online." }, { status: 400 });
   if (market !== "in" && market !== "us") return NextResponse.json({ error: "Invalid market." }, { status: 400 });
@@ -37,8 +49,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Online payment isn't configured yet — please book a call instead." }, { status: 503 });
   }
 
-  // All amounts in minor units (paise/cents). Deposit = 50% of onboarding = amount × 50.
-  const deposit = setupAmount(tier.setup![market]) * 50;
+  // All amounts in minor units (paise/cents): amount × 100 × pct/100 = amount × pct.
+  // Catalogue programs are always 50% at booking; custom plans can be 100%.
+  const pct = program.upfrontPct === 100 ? 100 : 50;
+  const deposit = setupAmount(tier.setup![market]) * pct;
   const currency = market === "in" ? "inr" : "usd";
   const origin = req.nextUrl.origin;
 
@@ -49,15 +63,18 @@ export async function POST(req: NextRequest) {
     "line_items[0][price_data][currency]": currency,
     "line_items[0][price_data][unit_amount]": String(deposit),
     "line_items[0][price_data][product_data][name]": `${program.name} — ${tier.label}: ${tier.name}`,
-    "line_items[0][price_data][product_data][description]": "50% onboarding deposit — balance due at launch.",
-    "metadata[program]": program.name,
+    "line_items[0][price_data][product_data][description]":
+      pct === 100 ? "Full payment at booking." : "50% onboarding deposit — balance due at launch.",
+    "metadata[program]": planToken ? `${program.name} (custom plan ${planToken})` : program.name,
     "metadata[tier]": `${tier.label}: ${tier.name}`,
     "metadata[market]": market,
     "metadata[name]": name.slice(0, 200),
     "metadata[phone]": phone.slice(0, 50),
     "metadata[company]": company.slice(0, 200),
     success_url: `${origin}/book/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/book?slug=${slug}&tier=${tierIndex}&canceled=1`,
+    cancel_url: planToken
+      ? `${origin}/book?plan=${planToken}&tier=${tierIndex}&canceled=1`
+      : `${origin}/book?slug=${slug}&tier=${tierIndex}&canceled=1`,
   });
 
   // One-time add-on components: charged in full now, each as its own line item.

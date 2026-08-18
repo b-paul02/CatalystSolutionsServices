@@ -68,6 +68,23 @@ model InternalArtifact {
   json   String
 }
 
+// Customer-specific pricing proposal. `json` holds a full Program object
+// (lib/programs Tier shape) so the public page renders with the same components
+// as /bundles/[slug]. Shared via /plans/[token].
+model CustomPlan {
+  id           String    @id @default(cuid())
+  token        String    @unique @default(cuid())
+  customerName String
+  email        String?
+  market       String // in | us — the plan is priced for one market only
+  json         String // Program JSON
+  // draft | sent | accepted | expired
+  status       String    @default("draft")
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
 model Event {
   id        String   @id @default(cuid())
   leadId    String
