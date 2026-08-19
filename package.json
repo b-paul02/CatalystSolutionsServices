@@ -7,7 +7,10 @@
     "build": "prisma generate && next build",
     "postinstall": "prisma generate",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "seed:price-book": "node --experimental-strip-types scripts/seed-price-book.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -22,6 +25,7 @@
     "@types/react": "19.1.0",
     "@types/react-dom": "19.1.0",
     "tailwindcss": "4.1.13",
-    "typescript": "5.7.2"
+    "typescript": "5.7.2",
+    "vitest": "^3.2.7"
   }
 }

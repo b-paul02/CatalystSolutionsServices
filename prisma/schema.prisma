@@ -93,3 +93,269 @@ model Event {
   data      String?
   createdAt DateTime @default(now())
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sales Partner Portal. Money columns are BigInt MINOR units (paise / cents) —
+// never floats, never converted between markets. See lib/partner/money.ts.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?
+  // partner | deal_desk | admin | finance | super_admin
+  role         String   @default("partner")
+  name         String?
+  disabledAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  partner Partner?
+}
+
+model PartnerApplication {
+  id                  String   @id @default(cuid())
+  // applied | screening | interview | approved | rejected | low_priority
+  status              String   @default("applied")
+  score               Int?
+  scoreBreakdown      String? // JSON
+  fullName            String
+  email               String
+  phone               String?
+  country             String?
+  city                String?
+  linkedinUrl         String?
+  companyName         String?
+  companyWebsite      String?
+  entityType          String?
+  yearsExperience     Int?
+  industries          String? // JSON string[]
+  typicalDealSizeBand String?
+  dealExamples        String?
+  prospects90dBand    String?
+  leadSources         String? // JSON string[]
+  markets             String? // JSON string[] of "IN" | "US"
+  targetFamilies      String? // JSON string[]
+  hasOwnDelivery      Boolean  @default(false)
+  hoursPerWeek        Int?
+  teamSize            Int?
+  expectedDealsBand   String?
+  whyCatalyst         String?
+  duplicateFlags      String?// JSON — email/phone/linkedin matches, informational only
+  reviewerId          String?
+  reasonCode          String?
+  internalNotes       String?
+  convertedPartnerId  String?
+  requestedFields     String? // JSON string[] — fields the applicant may edit after "request info"
+  statusToken         String   @unique @default(cuid())
+  submittedAt         DateTime?
+  deletedAt           DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  partner Partner?
+}
+
+model Partner {
+  id            String   @id @default(cuid())
+  applicationId String?  @unique
+  application   PartnerApplication? @relation(fields: [applicationId], references: [id])
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  legalName     String
+  entityType    String?
+  contactEmail  String
+  contactPhone  String?
+  markets       String   @default("[]") // JSON string[]
+  families      String   @default("[]") // JSON string[]
+  // pending_agreement | active | suspended | terminated
+  status        String   @default("pending_agreement")
+  protectionDays Int     @default(90)
+  quoteThresholdTier String @default("T2")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  rates       CommissionRate[]
+  deals       Deal[]
+  commissions Commission[]
+  activities  Activity[]
+}
+
+// APPEND-ONLY. Never UPDATE, never DELETE. Current rate = latest row with
+// effectiveFrom <= today AND approvedAt not null.
+model CommissionRate {
+  id            String   @id @default(cuid())
+  partnerId     String
+  partner       Partner  @relation(fields: [partnerId], references: [id])
+  rateBp        Int // basis points; 3000 = 30%
+  effectiveFrom DateTime
+  reason        String
+  setByUserId   String
+  // rates above 3000bp need a second admin: null until they do
+  approvedAt        DateTime?
+  approvedByUserId  String?
+  createdAt     DateTime @default(now())
+
+  @@index([partnerId, effectiveFrom])
+}
+
+model PriceBook {
+  id                 String   @id @default(cuid())
+  market             String // IN | US
+  currency           String // INR | USD
+  family             String
+  familyLabel        String
+  program            String
+  tier               String
+  packageName        String
+  onboardingFee      BigInt // minor units — the only commissionable amount
+  growthPlanMonthly  BigInt? // minor units — displayed, NEVER commissionable
+  buildDays          Int?
+  billingSchedule    String   @default("50_50") // 50_50 | 40_40_20
+  guardrails         String?
+  activeFrom         DateTime @default(now())
+  activeTo           DateTime?
+
+  deals Deal[]
+
+  @@unique([market, program, tier])
+  @@index([market, family])
+}
+
+model Client {
+  id                 String   @id @default(cuid())
+  legalName          String
+  domainNormalised   String   @unique
+  country            String?
+  contactName        String?
+  contactEmail       String?
+  contactPhone       String?
+  isHouseAccount     Boolean  @default(false)
+  existingClientSince DateTime?
+  createdAt          DateTime @default(now())
+
+  deals Deal[]
+}
+
+model Deal {
+  id          String   @id @default(cuid())
+  partnerId   String
+  partner     Partner  @relation(fields: [partnerId], references: [id])
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id])
+  market      String // IN | US — fixed at creation, never changes
+  priceBookId String?
+  priceBook   PriceBook? @relation(fields: [priceBookId], references: [id])
+  // registered | qualified | demo_given | proposal_sent | negotiation | won | lost | lapsed
+  stage       String   @default("registered")
+  family      String?
+  estimatedTier String?
+  estimatedValue BigInt? // minor units, partner's guess — never used for commission
+  expectedCloseDate DateTime?
+  howYouKnowThem String?
+  notes       String?
+  registeredAt DateTime @default(now())
+  protectedUntil DateTime
+  proposalSentAt DateTime?
+  lastActivityAt DateTime @default(now())
+  onboardingFee BigInt? // minor units, copied from price book at quote time
+  wonAt       DateTime?
+  lostReason  String?
+  // the partner's rate at the moment the deal was won — commissions read THIS
+  commissionRateBpLocked Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  activities  Activity[]
+  invoices    Invoice[]
+  commissions Commission[]
+
+  @@index([partnerId, stage])
+}
+
+model Invoice {
+  id       String   @id @default(cuid())
+  dealId   String
+  deal     Deal     @relation(fields: [dealId], references: [id])
+  amount   BigInt // minor units
+  tax      BigInt   @default(0)
+  issuedAt DateTime @default(now())
+  dueAt    DateTime?
+  // issued | paid | credited
+  status   String   @default("issued")
+  reference String?
+  createdAt DateTime @default(now())
+
+  collections Collection[]
+}
+
+model Collection {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id])
+  amount      BigInt // minor units
+  collectedAt DateTime @default(now())
+  method      String?
+  reference   String?
+  createdAt   DateTime @default(now())
+
+  commissions Commission[]
+}
+
+model Commission {
+  id         String   @id @default(cuid())
+  dealId     String
+  deal       Deal     @relation(fields: [dealId], references: [id])
+  partnerId  String
+  partner    Partner  @relation(fields: [partnerId], references: [id])
+  // the base and rate this row was computed with — frozen, never recalculated
+  baseAmount BigInt
+  rateBp     Int
+  amount     BigInt
+  currency   String
+  // pending | accrued | payable | paid | adjusted | void
+  state      String   @default("pending")
+  // set when this row was made payable by a specific collection (pro-rata slice)
+  collectionId String?
+  collection   Collection? @relation(fields: [collectionId], references: [id])
+  accruedAt  DateTime?
+  payableAt  DateTime?
+  paidAt     DateTime?
+  payoutRef  String?
+  adjustmentOfId String?
+  // refund | chargeback | misselling — the ONLY three. No retention clawback:
+  // a Growth Plan lapse can never produce an adjustment. Deliberate.
+  adjustmentReasonCode String?
+  adjustmentReason     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([partnerId, state])
+}
+
+model Activity {
+  id         String   @id @default(cuid())
+  dealId     String
+  deal       Deal     @relation(fields: [dealId], references: [id])
+  partnerId  String
+  partner    Partner  @relation(fields: [partnerId], references: [id])
+  type       String
+  occurredAt DateTime @default(now())
+  notes      String?
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actorRole String?
+  entity    String
+  entityId  String
+  action    String
+  beforeJson String?
+  afterJson  String?
+  reason    String?
+  ip        String?
+  at        DateTime @default(now())
+
+  @@index([entity, entityId])
+}
