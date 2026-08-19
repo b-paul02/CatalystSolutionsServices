@@ -1,755 +1,950 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
-    <title>Verve Botanicals — Clean, effective skincare</title>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    
-    <meta name="description" content="Plant-led serums, oils and moisturisers formulated without the guesswork. Free shipping over ₹999.">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verve Botanicals — Clean, effective skincare</title>
+<meta name="description" content="Plant-led serums, oils and moisturisers formulated without the guesswork. Free shipping over ₹999.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FBFAF6;
+    --cream-2:#F4F1E8;
+    --green:#15803D;
+    --green-deep:#14532D;
+    --green-soft:#DCEFE2;
+    --green-mist:#EAF4EC;
+    --pink:#EC4899;
+    --pink-soft:#FCE7F3;
+    --ink:#1F2937;
+    --ink-soft:#4B5563;
+    --line:#E5E1D6;
+    --white:#FFFFFF;
+    --r-lg:20px;
+    --r-md:14px;
+    --r-sm:10px;
+    --shadow-1:0 2px 8px rgba(20,83,45,.06);
+    --shadow-2:0 12px 32px rgba(20,83,45,.10);
+    --font-head:'Lora',Georgia,serif;
+    --font-body:'Raleway',system-ui,sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--font-body);
+    color:var(--ink);
+    background:var(--cream);
+    line-height:1.65;
+    font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:var(--font-head);color:var(--green-deep);line-height:1.2;font-weight:600}
+  img,svg{max-width:100%}
+  a{color:var(--green)}
+  a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{
+    outline:3px solid var(--green);outline-offset:2px;border-radius:4px;
+  }
+  .skip-link{
+    position:absolute;left:-9999px;top:0;background:var(--green-deep);color:#fff;
+    padding:12px 20px;z-index:200;border-radius:0 0 10px 0;text-decoration:none;font-weight:600;
+  }
+  .skip-link:focus{left:0}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+  section{padding:88px 0}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:.78rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--green);margin-bottom:14px;
+  }
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--green);border-radius:2px}
+  .sec-head{max-width:620px;margin-bottom:48px}
+  .sec-head h2{font-size:clamp(1.7rem,3.4vw,2.4rem);margin-bottom:12px}
+  .sec-head p{color:var(--ink-soft)}
+  .sec-head.center{margin-left:auto;margin-right:auto;text-align:center}
+  .sec-head.center .eyebrow{justify-content:center}
 
-    <!-- Favicon -->
-    
+  /* ---------- nav ---------- */
+  .nav{
+    position:sticky;top:0;z-index:100;
+    background:rgba(251,250,246,.92);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;height:72px}
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+  .brand svg{flex:none}
+  .brand-name{font-family:var(--font-head);font-weight:700;font-size:1.25rem;color:var(--green-deep)}
+  .brand-name i{font-style:normal;color:var(--green)}
+  .nav-links{display:flex;gap:28px;list-style:none}
+  .nav-links a{
+    text-decoration:none;color:var(--ink);font-weight:600;font-size:.92rem;
+    padding:6px 2px;border-bottom:2px solid transparent;transition:color .18s,border-color .18s;
+  }
+  .nav-links a:hover{color:var(--green);border-color:var(--green)}
+  .nav-cta{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--green);color:#fff;text-decoration:none;font-weight:700;font-size:.9rem;
+    padding:11px 20px;border-radius:999px;transition:background .18s,transform .18s;
+  }
+  .nav-cta:hover{background:var(--green-deep);transform:translateY(-1px)}
+  @media (max-width:860px){.nav-links{display:none}}
+  @media (max-width:480px){.nav-cta span{display:none}.nav-cta{padding:11px 13px}}
 
-    <!-- Google Web Fonts -->
-    
-    <link href="../_vendor/gfont-p2a4wl.css" rel="stylesheet"> 
+  /* ---------- buttons ---------- */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    font-family:var(--font-body);font-weight:700;font-size:.98rem;cursor:pointer;
+    padding:15px 28px;border-radius:999px;text-decoration:none;border:none;
+    transition:background .18s,transform .18s,box-shadow .18s;min-height:48px;
+  }
+  .btn-primary{background:var(--green);color:#fff;box-shadow:var(--shadow-1)}
+  .btn-primary:hover{background:var(--green-deep);transform:translateY(-2px);box-shadow:var(--shadow-2)}
+  .btn-ghost{background:transparent;color:var(--green-deep);border:1.5px solid var(--green)}
+  .btn-ghost:hover{background:var(--green-mist)}
 
-    <!-- Font Awesome -->
-    <link href="../_vendor/cdnjs.cloudflare.com-ajax-libs-font-awesome-5.10.0-css-all.min.css" rel="stylesheet">
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;overflow:hidden;padding:72px 0 96px;
+    background:
+      radial-gradient(900px 480px at 88% -10%, var(--pink-soft) 0%, transparent 55%),
+      radial-gradient(1100px 620px at -12% 20%, var(--green-soft) 0%, transparent 60%),
+      linear-gradient(180deg,#FDFCF9 0%,var(--cream) 100%);
+  }
+  .hero-leaves{position:absolute;inset:0;pointer-events:none}
+  .hero-leaves svg{position:absolute}
+  .hero-grid{
+    position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;
+  }
+  .hero-copy .eyebrow{color:var(--pink)}
+  .hero-copy .eyebrow::before{background:var(--pink)}
+  .hero h1{font-size:clamp(2.3rem,5.2vw,3.6rem);font-weight:600;margin-bottom:20px}
+  .hero h1 em{font-style:italic;color:var(--green)}
+  .hero-sub{font-size:clamp(1rem,1.6vw,1.15rem);color:var(--ink-soft);max-width:470px;margin-bottom:32px}
+  .hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:40px}
+  .trust-strip{display:flex;gap:26px;flex-wrap:wrap;align-items:center}
+  .trust-item{display:flex;align-items:center;gap:9px;font-size:.86rem;font-weight:600;color:var(--ink-soft)}
+  .trust-item svg{flex:none}
 
-    <!-- Libraries Stylesheet -->
-    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+  /* hero visual: bottle scene + mini card */
+  .hero-visual{position:relative;min-height:460px}
+  .hero-scene{
+    position:relative;height:420px;border-radius:28px;overflow:hidden;
+    background:
+      radial-gradient(420px 300px at 78% 18%, rgba(236,72,153,.14) 0%, transparent 60%),
+      linear-gradient(160deg,#E7F2E9 0%,#D3E8DA 48%,#BFDCC9 100%);
+    box-shadow:var(--shadow-2);
+  }
+  .hero-scene svg.scene-leaf{position:absolute}
+  .shelf{position:absolute;left:0;right:0;bottom:70px;height:3px;background:rgba(20,83,45,.16);border-radius:3px}
+  .bottle{position:absolute;bottom:73px}
+  .bottle .body{
+    border-radius:14px 14px 10px 10px;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.35), 0 14px 24px rgba(20,83,45,.18);
+    position:relative;overflow:hidden;
+  }
+  .bottle .body::after{
+    content:"";position:absolute;top:8%;left:12%;width:14%;height:70%;
+    background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,.05));border-radius:99px;
+  }
+  .bottle .neck{margin:0 auto;background:linear-gradient(180deg,#2F5A3D,#1C3A28);border-radius:5px 5px 2px 2px}
+  .bottle .label{
+    position:absolute;left:12%;right:12%;bottom:14%;height:34%;
+    background:rgba(251,250,246,.92);border-radius:7px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  }
+  .bottle .label b{font-family:var(--font-head);font-size:.6rem;letter-spacing:.06em;color:var(--green-deep)}
+  .bottle .label i{width:60%;height:2px;background:var(--green);border-radius:2px;font-size:0}
+  .b1{left:12%}
+  .b1 .neck{width:22px;height:34px}
+  .b1 .body{width:92px;height:180px;background:linear-gradient(170deg,#A7D3B2 0%,#5CA773 55%,#2F7A4B 100%)}
+  .b2{left:41%}
+  .b2 .neck{width:18px;height:44px;background:linear-gradient(180deg,#7A2E52,#5A1F3B)}
+  .b2 .body{width:74px;height:140px;background:linear-gradient(170deg,#FBD3E6 0%,#F291C0 55%,#DB5C99 100%)}
+  .b3{left:66%}
+  .b3 .neck{width:44px;height:16px;border-radius:6px 6px 2px 2px}
+  .b3 .body{width:110px;height:96px;border-radius:16px;background:linear-gradient(170deg,#F5EFD9 0%,#E4D9AE 55%,#C9B97F 100%)}
+  .hero-mini{
+    position:absolute;right:-8px;bottom:-34px;width:250px;
+    background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);
+    box-shadow:var(--shadow-2);padding:18px;
+  }
+  .hero-mini .tag{
+    display:inline-block;font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--pink);background:var(--pink-soft);padding:4px 10px;border-radius:999px;margin-bottom:10px;
+  }
+  .hero-mini h3{font-size:1.05rem;margin-bottom:4px}
+  .hero-mini p{font-size:.82rem;color:var(--ink-soft);margin-bottom:10px}
+  .hero-mini .row{display:flex;align-items:center;justify-content:space-between}
+  .hero-mini .price{font-weight:700;color:var(--green-deep);font-size:1.05rem}
+  .hero-mini a{font-size:.85rem;font-weight:700}
+  @media (max-width:920px){
+    .hero-grid{grid-template-columns:1fr;gap:44px}
+    .hero-visual{min-height:0}
+    .hero-mini{right:8px;bottom:-26px}
+  }
+  @media (max-width:420px){.hero-scene{height:360px}.b3{left:62%}}
 
-    <!-- Customized Bootstrap Stylesheet -->
-    <link href="css/style.css" rel="stylesheet">
+  /* ---------- promise / offer grid ---------- */
+  .promise{background:var(--white);border-top:1px solid var(--line);border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+  .promise .deco{position:absolute;pointer-events:none}
+  .promise-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+  .p-card{
+    background:var(--cream);border:1px solid var(--line);border-radius:var(--r-lg);
+    padding:28px 24px;transition:transform .2s,box-shadow .2s;
+  }
+  .p-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-2)}
+  .p-card .ico{
+    width:48px;height:48px;border-radius:14px;background:var(--green-mist);
+    display:flex;align-items:center;justify-content:center;margin-bottom:16px;
+  }
+  .p-card h3{font-size:1.08rem;margin-bottom:8px}
+  .p-card p{font-size:.9rem;color:var(--ink-soft)}
+  @media (max-width:920px){.promise-grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:520px){.promise-grid{grid-template-columns:1fr}}
+
+  /* ---------- about / stats ---------- */
+  .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+  .about-copy p{color:var(--ink-soft);margin-bottom:16px}
+  .about-copy p strong{color:var(--green-deep)}
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+  .stat{
+    background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);
+    padding:26px 24px;
+  }
+  .stat b{
+    display:block;font-family:var(--font-head);font-size:clamp(1.7rem,3vw,2.2rem);
+    color:var(--green);font-variant-numeric:tabular-nums;margin-bottom:4px;
+  }
+  .stat span{font-size:.86rem;font-weight:600;color:var(--ink-soft)}
+  .stat.pink b{color:var(--pink)}
+  @media (max-width:860px){.about-grid{grid-template-columns:1fr;gap:40px}}
+  @media (max-width:420px){.stats{grid-template-columns:1fr}}
+
+  /* ---------- bestsellers ---------- */
+  .shop{background:linear-gradient(180deg,var(--cream) 0%,var(--cream-2) 100%);position:relative;overflow:hidden}
+  .shop .deco{position:absolute;pointer-events:none}
+  .prod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+  .prod{
+    background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);
+    overflow:hidden;display:flex;flex-direction:column;
+    transition:transform .2s,box-shadow .2s;
+  }
+  .prod:hover{transform:translateY(-6px);box-shadow:var(--shadow-2)}
+  .prod-art{position:relative;height:210px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+  .prod-art svg.leafacc{position:absolute;pointer-events:none}
+  .pa-1{background:linear-gradient(160deg,#EAF4EC 0%,#CBE6D3 100%)}
+  .pa-2{background:linear-gradient(160deg,#FDF1F7 0%,#F9D6E8 100%)}
+  .pa-3{background:linear-gradient(160deg,#F7F4E8 0%,#EAE2C4 100%)}
+  .pa-4{background:linear-gradient(160deg,#EAF2F4 0%,#CFE4E4 100%)}
+  .pa-5{background:linear-gradient(160deg,#F1EFF9 0%,#DCD7EF 100%)}
+  .pa-6{background:linear-gradient(160deg,#EDF4EA 0%,#D5E8CB 100%)}
+  .pbottle{position:relative;margin-bottom:26px}
+  .pbottle .pneck{margin:0 auto;border-radius:4px 4px 0 0}
+  .pbottle .pbody{
+    position:relative;border-radius:12px;overflow:hidden;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.4), 0 10px 18px rgba(20,83,45,.16);
+  }
+  .pbottle .pbody::after{
+    content:"";position:absolute;top:8%;left:12%;width:15%;height:66%;
+    background:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,.05));border-radius:99px;
+  }
+  .pbottle .plabel{
+    position:absolute;left:14%;right:14%;bottom:12%;height:36%;
+    background:rgba(251,250,246,.94);border-radius:6px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .pbottle .plabel i{width:56%;height:2px;background:var(--green);border-radius:2px;font-size:0}
+  /* dropper bottle */
+  .sh-drop .pneck{width:16px;height:30px;background:linear-gradient(180deg,#333F35,#1B241E)}
+  .sh-drop .pbody{width:64px;height:118px}
+  /* tall pump */
+  .sh-pump .pneck{width:12px;height:22px;background:linear-gradient(180deg,#3A4A3E,#212B24);border-radius:3px 8px 0 0}
+  .sh-pump .pbody{width:58px;height:132px}
+  /* jar */
+  .sh-jar .pneck{width:74px;height:16px;background:linear-gradient(180deg,#4C6350,#2C3B30);border-radius:8px 8px 0 0}
+  .sh-jar .pbody{width:88px;height:76px;border-radius:14px}
+  /* tube */
+  .sh-tube .pneck{width:22px;height:14px;background:linear-gradient(180deg,#3E5142,#243027);border-radius:5px 5px 0 0}
+  .sh-tube .pbody{width:54px;height:110px;border-radius:8px 8px 18px 18px}
+  .c-1{background:linear-gradient(170deg,#9FCFAC 0%,#4E9E68 60%,#2C7247 100%)}
+  .c-2{background:linear-gradient(170deg,#FAC7DF 0%,#EF87B9 60%,#D6558F 100%)}
+  .c-3{background:linear-gradient(170deg,#F2E9C8 0%,#DBC98D 60%,#BCA45C 100%)}
+  .c-4{background:linear-gradient(170deg,#BCDCDD 0%,#7FB5B7 60%,#528C8E 100%)}
+  .c-5{background:linear-gradient(170deg,#CFC7EC 0%,#9C8FD1 60%,#6F60AC 100%)}
+  .c-6{background:linear-gradient(170deg,#C4E0B4 0%,#8CBB72 60%,#5F914A 100%)}
+  .prod-info{padding:22px 22px 24px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .prod-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .prod-info h3{font-size:1.12rem}
+  .price{font-weight:700;color:var(--green-deep);font-size:1.02rem;white-space:nowrap}
+  .prod-note{font-size:.88rem;color:var(--ink-soft)}
+  .stars{display:flex;align-items:center;gap:7px;margin-top:2px}
+  .stars svg{flex:none}
+  .stars span{font-size:.8rem;font-weight:600;color:var(--ink-soft)}
+  .add-btn{
+    margin-top:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    min-height:46px;border-radius:999px;border:1.5px solid var(--green);
+    background:transparent;color:var(--green-deep);font-family:var(--font-body);
+    font-weight:700;font-size:.92rem;cursor:pointer;transition:background .18s,color .18s;
+  }
+  .add-btn:hover{background:var(--green);color:#fff}
+  .add-btn:hover svg{stroke:#fff}
+  @media (max-width:920px){.prod-grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:560px){.prod-grid{grid-template-columns:1fr}}
+
+  /* ---------- ethos ---------- */
+  .ethos{background:var(--green-deep);position:relative;overflow:hidden}
+  .ethos .deco{position:absolute;pointer-events:none}
+  .ethos .eyebrow{color:#86EFAC}
+  .ethos .eyebrow::before{background:#86EFAC}
+  .ethos h2{color:var(--cream)}
+  .ethos .sec-head p{color:#C7E5D2}
+  .chip-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:44px}
+  .chip{
+    display:inline-flex;align-items:center;gap:9px;
+    background:rgba(251,250,246,.08);border:1px solid rgba(251,250,246,.22);
+    color:var(--cream);font-weight:600;font-size:.88rem;
+    padding:11px 18px;border-radius:999px;
+  }
+  .chip svg{flex:none}
+  .ethos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .e-card{
+    background:rgba(251,250,246,.06);border:1px solid rgba(251,250,246,.16);
+    border-radius:var(--r-lg);padding:26px 24px;
+  }
+  .e-card h3{color:var(--cream);font-size:1.06rem;margin-bottom:8px}
+  .e-card p{color:#B9DCC6;font-size:.9rem}
+  @media (max-width:860px){.ethos-grid{grid-template-columns:1fr}}
+
+  /* ---------- ritual ---------- */
+  .ritual-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;position:relative}
+  .r-step{
+    background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);
+    padding:30px 26px;position:relative;transition:transform .2s,box-shadow .2s;
+  }
+  .r-step:hover{transform:translateY(-5px);box-shadow:var(--shadow-2)}
+  .r-num{
+    font-family:var(--font-head);font-size:.85rem;font-weight:700;letter-spacing:.12em;
+    color:var(--pink);margin-bottom:14px;display:block;
+  }
+  .r-step .ico{
+    width:52px;height:52px;border-radius:16px;background:var(--green-mist);
+    display:flex;align-items:center;justify-content:center;margin-bottom:16px;
+  }
+  .r-step h3{font-size:1.15rem;margin-bottom:8px}
+  .r-step p{font-size:.9rem;color:var(--ink-soft)}
+  .r-step em{display:block;margin-top:12px;font-style:italic;font-family:var(--font-head);font-size:.88rem;color:var(--green)}
+  @media (max-width:860px){.ritual-strip{grid-template-columns:1fr}}
+
+  /* ---------- reviews ---------- */
+  .reviews{background:var(--cream-2);position:relative;overflow:hidden}
+  .reviews .deco{position:absolute;pointer-events:none}
+  .rev-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+  .rev{
+    background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);
+    padding:28px 26px;display:flex;flex-direction:column;gap:16px;
+    transition:transform .2s,box-shadow .2s;
+  }
+  .rev:hover{transform:translateY(-5px);box-shadow:var(--shadow-2)}
+  .rev blockquote{font-family:var(--font-head);font-style:italic;font-size:1.02rem;color:var(--ink);flex:1}
+  .rev-foot{display:flex;align-items:center;gap:12px}
+  .avatar{
+    width:46px;height:46px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:.9rem;color:#fff;
+  }
+  .av-1{background:linear-gradient(140deg,#2F7A4B,#14532D)}
+  .av-2{background:linear-gradient(140deg,#EC4899,#B12D6F)}
+  .av-3{background:linear-gradient(140deg,#8C7A3F,#5C4F26)}
+  .rev-foot b{display:block;font-size:.92rem;color:var(--green-deep)}
+  .skin-tag{
+    display:inline-block;margin-top:3px;font-size:.72rem;font-weight:700;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--green);background:var(--green-mist);
+    padding:3px 10px;border-radius:999px;
+  }
+  .skin-tag.pink{color:var(--pink);background:var(--pink-soft)}
+  @media (max-width:860px){.rev-grid{grid-template-columns:1fr}}
+
+  /* ---------- contact ---------- */
+  .contact-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:start}
+  .form-card{
+    background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);
+    padding:34px 32px;box-shadow:var(--shadow-1);
+  }
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .field{margin-bottom:18px}
+  .field label{display:block;font-weight:600;font-size:.88rem;margin-bottom:7px;color:var(--green-deep)}
+  .field input,.field textarea{
+    width:100%;min-height:48px;padding:12px 16px;
+    border:1.5px solid var(--line);border-radius:var(--r-sm);
+    font-family:var(--font-body);font-size:.95rem;color:var(--ink);background:var(--cream);
+    transition:border-color .18s;
+  }
+  .field textarea{min-height:120px;resize:vertical}
+  .field input:focus,.field textarea:focus{border-color:var(--green)}
+  .contact-side .info-card{
+    background:var(--green-mist);border:1px solid #CBE3D3;border-radius:var(--r-lg);
+    padding:28px 26px;margin-bottom:20px;
+  }
+  .info-line{display:flex;gap:13px;align-items:flex-start;margin-bottom:16px}
+  .info-line:last-child{margin-bottom:0}
+  .info-line svg{flex:none;margin-top:2px}
+  .info-line b{display:block;font-size:.82rem;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:2px}
+  .info-line a{color:var(--ink);text-decoration:none;font-weight:600}
+  .info-line a:hover{color:var(--green)}
+  .info-line span{font-weight:600}
+  .hours{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);padding:26px}
+  .hours h3{font-size:1rem;margin-bottom:14px}
+  .hours dl{display:grid;grid-template-columns:1fr auto;gap:8px 20px;font-size:.9rem}
+  .hours dt{color:var(--ink-soft);font-weight:600}
+  .hours dd{font-variant-numeric:tabular-nums;font-weight:600;color:var(--green-deep)}
+  @media (max-width:860px){.contact-grid{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}}
+
+  /* ---------- footer ---------- */
+  footer{background:var(--green-deep);color:#B9DCC6;padding:52px 0 140px}
+  .foot-grid{display:flex;justify-content:space-between;gap:32px;flex-wrap:wrap;margin-bottom:36px}
+  .foot-brand .brand-name{color:var(--cream)}
+  .foot-brand p{max-width:320px;font-size:.9rem;margin-top:10px}
+  .foot-links{display:flex;gap:24px;list-style:none;flex-wrap:wrap}
+  .foot-links a{color:#B9DCC6;text-decoration:none;font-weight:600;font-size:.9rem}
+  .foot-links a:hover{color:var(--cream)}
+  .foot-note{border-top:1px solid rgba(251,250,246,.18);padding-top:24px;font-size:.82rem}
+
+  /* ---------- reveal motion ---------- */
+  @media (prefers-reduced-motion: no-preference){
+    .reveal{opacity:0;transform:translateY(22px);transition:opacity .28s ease-out,transform .28s ease-out}
+    .reveal.in{opacity:1;transform:none}
+  }
+</style>
 </head>
-
 <body>
-    <!-- Topbar Start -->
-    <div class="container-fluid">
-        <div class="row bg-secondary py-2 px-xl-5">
-            <div class="col-lg-6 d-none d-lg-block">
-                <div class="d-inline-flex align-items-center">
-                    <a class="text-dark" href="">FAQs</a>
-                    <span class="text-muted px-2">|</span>
-                    <a class="text-dark" href="">Help</a>
-                    <span class="text-muted px-2">|</span>
-                    <a class="text-dark" href="">Support</a>
-                </div>
-            </div>
-            <div class="col-lg-6 text-center text-lg-right">
-                <div class="d-inline-flex align-items-center">
-                    <a class="text-dark px-2" href="">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-                    <a class="text-dark px-2" href="">
-                        <i class="fab fa-twitter"></i>
-                    </a>
-                    <a class="text-dark px-2" href="">
-                        <i class="fab fa-linkedin-in"></i>
-                    </a>
-                    <a class="text-dark px-2" href="">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <a class="text-dark pl-2" href="">
-                        <i class="fab fa-youtube"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-        <div class="row align-items-center py-3 px-xl-5">
-            <div class="col-lg-3 d-none d-lg-block">
-                <a href="" class="text-decoration-none">
-                    <h1 class="m-0 display-5 font-weight-semi-bold"><span class="text-primary font-weight-bold border px-3 mr-1">E</span>Shopper</h1>
-                </a>
-            </div>
-            <div class="col-lg-6 col-6 text-left">
-                <form onsubmit="event.preventDefault();this.reset();alert('Demo site — this form is illustrative and does not send anything.')">
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Search for products">
-                        <div class="input-group-append">
-                            <span class="input-group-text bg-transparent text-primary">
-                                <i class="fa fa-search"></i>
-                            </span>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="col-lg-3 col-6 text-right">
-                <a href="" class="btn border">
-                    <i class="fas fa-heart text-primary"></i>
-                    <span class="badge">0</span>
-                </a>
-                <a href="" class="btn border">
-                    <i class="fas fa-shopping-cart text-primary"></i>
-                    <span class="badge">0</span>
-                </a>
-            </div>
-        </div>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top" aria-label="Verve Botanicals home">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+        <path d="M15 27C15 27 4 21 4 11.5C4 6 8.5 3 15 3C21.5 3 26 6 26 11.5C26 21 15 27 15 27Z" stroke="#15803D" stroke-width="1.8"/>
+        <path d="M15 27V9M15 15c0-3 2.5-5 5.5-5M15 20c0-3-2.5-5-5.5-5" stroke="#15803D" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <span class="brand-name">Verve <i>Botanicals</i></span>
+    </a>
+    <nav aria-label="Primary">
+      <ul class="nav-links">
+        <li><a href="#shop">Bestsellers</a></li>
+        <li><a href="#ethos">Our Ethos</a></li>
+        <li><a href="#ritual">The Ritual</a></li>
+        <li><a href="#reviews">Reviews</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <a class="nav-cta" href="tel:+912244881200">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      <span>+91 22 4488 1200</span>
+    </a>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- HERO -->
+  <section class="hero" id="top" aria-label="Introduction">
+    <div class="hero-leaves" aria-hidden="true">
+      <svg style="top:6%;left:2%;opacity:.35" width="120" height="120" viewBox="0 0 120 120" fill="none">
+        <path d="M60 110C60 110 15 85 15 45C15 20 35 8 60 8C85 8 105 20 105 45C105 85 60 110 60 110Z" stroke="#15803D" stroke-width="1.5"/>
+        <path d="M60 110V30M60 55c0-12 10-20 22-20M60 78c0-12-10-20-22-20" stroke="#15803D" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <svg style="bottom:10%;right:4%;opacity:.3" width="90" height="90" viewBox="0 0 120 120" fill="none">
+        <path d="M60 110C60 110 15 85 15 45C15 20 35 8 60 8C85 8 105 20 105 45C105 85 60 110 60 110Z" stroke="#EC4899" stroke-width="1.5"/>
+        <path d="M60 110V30M60 55c0-12 10-20 22-20M60 78c0-12-10-20-22-20" stroke="#EC4899" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
     </div>
-    <!-- Topbar End -->
-
-
-    <!-- Navbar Start -->
-    <div class="container-fluid mb-5">
-        <div class="row border-top px-xl-5">
-            <div class="col-lg-3 d-none d-lg-block">
-                <a class="btn shadow-none d-flex align-items-center justify-content-between bg-primary text-white w-100" data-toggle="collapse" href="#navbar-vertical" style="height: 65px; margin-top: -1px; padding: 0 30px;">
-                    <h6 class="m-0">Categories</h6>
-                    <i class="fa fa-angle-down text-dark"></i>
-                </a>
-                <nav class="collapse show navbar navbar-vertical navbar-light align-items-start p-0 border border-top-0 border-bottom-0" id="navbar-vertical">
-                    <div class="navbar-nav w-100 overflow-hidden" style="height: 410px">
-                        <div class="nav-item dropdown">
-                            <a href="#" class="nav-link" data-toggle="dropdown">Dresses <i class="fa fa-angle-down float-right mt-1"></i></a>
-                            <div class="dropdown-menu position-absolute bg-secondary border-0 rounded-0 w-100 m-0">
-                                <a href="" class="dropdown-item">Men's Dresses</a>
-                                <a href="" class="dropdown-item">Women's Dresses</a>
-                                <a href="" class="dropdown-item">Baby's Dresses</a>
-                            </div>
-                        </div>
-                        <a href="" class="nav-item nav-link">Shirts</a>
-                        <a href="" class="nav-item nav-link">Jeans</a>
-                        <a href="" class="nav-item nav-link">Swimwear</a>
-                        <a href="" class="nav-item nav-link">Sleepwear</a>
-                        <a href="" class="nav-item nav-link">Sportswear</a>
-                        <a href="" class="nav-item nav-link">Jumpsuits</a>
-                        <a href="" class="nav-item nav-link">Blazers</a>
-                        <a href="" class="nav-item nav-link">Jackets</a>
-                        <a href="" class="nav-item nav-link">Shoes</a>
-                    </div>
-                </nav>
-            </div>
-            <div class="col-lg-9">
-                <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-0">
-                    <a href="" class="text-decoration-none d-block d-lg-none">
-                        <h1 class="m-0 display-5 font-weight-semi-bold"><span class="text-primary font-weight-bold border px-3 mr-1">E</span>Shopper</h1>
-                    </a>
-                    <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
-                        <div class="navbar-nav mr-auto py-0">
-                            <a href="index.html" class="nav-item nav-link active">Home</a>
-                            <a href="shop.html" class="nav-item nav-link">Shop</a>
-                            <a href="detail.html" class="nav-item nav-link">Shop Detail</a>
-                            <div class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Pages</a>
-                                <div class="dropdown-menu rounded-0 m-0">
-                                    <a href="cart.html" class="dropdown-item">Shopping Cart</a>
-                                    <a href="checkout.html" class="dropdown-item">Checkout</a>
-                                </div>
-                            </div>
-                            <a href="contact.html" class="nav-item nav-link">Contact</a>
-                        </div>
-                        <div class="navbar-nav ml-auto py-0">
-                            <a href="" class="nav-item nav-link">Login</a>
-                            <a href="" class="nav-item nav-link">Register</a>
-                        </div>
-                    </div>
-                </nav>
-                <div id="header-carousel" class="carousel slide" data-ride="carousel">
-                    <div class="carousel-inner">
-                        <div class="carousel-item active" style="height: 410px;">
-                            <img class="img-fluid" src="img/carousel-1.jpg" alt="Image">
-                            <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
-                                <div class="p-3" style="max-width: 700px;">
-                                    <h4 class="text-light text-uppercase font-weight-medium mb-3">10% Off Your First Order</h4>
-                                    <h3 class="display-4 text-white font-weight-semi-bold mb-4">Fashionable Dress</h3>
-                                    <a href="" class="btn btn-light py-2 px-3">Shop Now</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="carousel-item" style="height: 410px;">
-                            <img class="img-fluid" src="img/carousel-2.jpg" alt="Image">
-                            <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
-                                <div class="p-3" style="max-width: 700px;">
-                                    <h4 class="text-light text-uppercase font-weight-medium mb-3">10% Off Your First Order</h4>
-                                    <h3 class="display-4 text-white font-weight-semi-bold mb-4">Reasonable Price</h3>
-                                    <a href="" class="btn btn-light py-2 px-3">Shop Now</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <a class="carousel-control-prev" href="#header-carousel" data-slide="prev">
-                        <div class="btn btn-dark" style="width: 45px; height: 45px;">
-                            <span class="carousel-control-prev-icon mb-n2"></span>
-                        </div>
-                    </a>
-                    <a class="carousel-control-next" href="#header-carousel" data-slide="next">
-                        <div class="btn btn-dark" style="width: 45px; height: 45px;">
-                            <span class="carousel-control-next-icon mb-n2"></span>
-                        </div>
-                    </a>
-                </div>
-            </div>
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow">Small-batch skincare, Mumbai</span>
+        <h1>Skincare that reads like a <em>recipe</em>, not a chemistry exam.</h1>
+        <p class="hero-sub">Plant-led serums, oils and moisturisers formulated without the guesswork. Nine ingredients or fewer per formula, every one explained in plain language.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#shop">
+            Shop bestsellers
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <a class="btn btn-ghost" href="#ritual">See the ritual</a>
         </div>
+        <div class="trust-strip" aria-label="Trust highlights">
+          <span class="trust-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            4.9 from 2,300+ reviews
+          </span>
+          <span class="trust-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            Free shipping over ₹999
+          </span>
+          <span class="trust-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            30-day easy returns
+          </span>
+        </div>
+      </div>
+      <div class="hero-visual reveal">
+        <div class="hero-scene" role="img" aria-label="Illustration of three Verve Botanicals bottles on a shelf among leaves">
+          <svg class="scene-leaf" style="top:-18px;left:-24px;opacity:.5" width="180" height="180" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+            <path d="M60 110C60 110 15 85 15 45C15 20 35 8 60 8C85 8 105 20 105 45C105 85 60 110 60 110Z" stroke="#14532D" stroke-width="1.4"/>
+            <path d="M60 110V30M60 55c0-12 10-20 22-20M60 78c0-12-10-20-22-20" stroke="#14532D" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          <svg class="scene-leaf" style="top:22px;right:-14px;opacity:.45;transform:rotate(30deg)" width="120" height="120" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+            <path d="M60 110C60 110 15 85 15 45C15 20 35 8 60 8C85 8 105 20 105 45C105 85 60 110 60 110Z" stroke="#EC4899" stroke-width="1.4"/>
+            <path d="M60 110V30" stroke="#EC4899" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          <div class="shelf"></div>
+          <div class="bottle b1"><div class="neck"></div><div class="body"><div class="label"><b>NIGHT REPAIR</b><i></i></div></div></div>
+          <div class="bottle b2"><div class="neck"></div><div class="body"><div class="label"><b>GLOW DROPS</b><i></i></div></div></div>
+          <div class="bottle b3"><div class="neck"></div><div class="body"><div class="label"><b>CLOUD CREAM</b><i></i></div></div></div>
+        </div>
+        <aside class="hero-mini" aria-label="Featured bestseller">
+          <span class="tag">No. 1 Bestseller</span>
+          <h3>Night Repair Oil</h3>
+          <p>Jojoba + rosehip. Wake up to calmer, brighter skin.</p>
+          <div class="row">
+            <span class="price">₹1,450</span>
+            <a href="#shop">View product</a>
+          </div>
+        </aside>
+      </div>
     </div>
-    <!-- Navbar End -->
+  </section>
 
-
-    <!-- Featured Start -->
-    <div class="container-fluid pt-5">
-        <div class="row px-xl-5 pb-3">
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="d-flex align-items-center border mb-4" style="padding: 30px;">
-                    <h1 class="fa fa-check text-primary m-0 mr-3"></h1>
-                    <h5 class="font-weight-semi-bold m-0">Quality Product</h5>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="d-flex align-items-center border mb-4" style="padding: 30px;">
-                    <h1 class="fa fa-shipping-fast text-primary m-0 mr-2"></h1>
-                    <h5 class="font-weight-semi-bold m-0">Free Shipping</h5>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="d-flex align-items-center border mb-4" style="padding: 30px;">
-                    <h1 class="fas fa-exchange-alt text-primary m-0 mr-3"></h1>
-                    <h5 class="font-weight-semi-bold m-0">14-Day Return</h5>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="d-flex align-items-center border mb-4" style="padding: 30px;">
-                    <h1 class="fa fa-phone-volume text-primary m-0 mr-3"></h1>
-                    <h5 class="font-weight-semi-bold m-0">24/7 Support</h5>
-                </div>
-            </div>
-        </div>
+  <!-- PROMISE -->
+  <section class="promise" id="promise" aria-label="Why shop with Verve">
+    <svg class="deco" style="top:-30px;right:-40px;opacity:.12" width="260" height="260" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+      <path d="M60 110C60 110 15 85 15 45C15 20 35 8 60 8C85 8 105 20 105 45C105 85 60 110 60 110Z" stroke="#15803D" stroke-width="1"/>
+      <path d="M60 110V30M60 55c0-12 10-20 22-20M60 78c0-12-10-20-22-20" stroke="#15803D" stroke-width="1" stroke-linecap="round"/>
+    </svg>
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow">The Verve promise</span>
+        <h2>Fewer ingredients. Better sourcing. No guesswork.</h2>
+        <p>Every formula is made in small batches in our Mumbai lab and shipped fresh — never warehoused for a year.</p>
+      </div>
+      <div class="promise-grid">
+        <article class="p-card reveal">
+          <div class="ico">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+          </div>
+          <h3>Nine or fewer</h3>
+          <p>Every product holds to nine ingredients or fewer — each one named, dosed and explained on the label.</p>
+        </article>
+        <article class="p-card reveal">
+          <div class="ico">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+          </div>
+          <h3>Traceable farms</h3>
+          <p>Rosehip from Himachal, jojoba from Rajasthan, green clay from Gujarat — 14 partner farms, all named on our site.</p>
+        </article>
+        <article class="p-card reveal">
+          <div class="ico">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+          </div>
+          <h3>Dermatologist reviewed</h3>
+          <p>Formulas reviewed by an independent panel of three dermatologists before a single bottle is filled.</p>
+        </article>
+        <article class="p-card reveal">
+          <div class="ico">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          </div>
+          <h3>30-day returns</h3>
+          <p>Opened or not, if a product doesn't suit your skin we refund it. No photos, no interrogation.</p>
+        </article>
+      </div>
     </div>
-    <!-- Featured End -->
+  </section>
 
-
-    <!-- Categories Start -->
-    <div class="container-fluid pt-5">
-        <div class="row px-xl-5 pb-3">
-            <div class="col-lg-4 col-md-6 pb-1">
-                <div class="cat-item d-flex flex-column border mb-4" style="padding: 30px;">
-                    <p class="text-right">15 Products</p>
-                    <a href="" class="cat-img position-relative overflow-hidden mb-3">
-                        <img class="img-fluid" src="img/cat-1.jpg" alt="">
-                    </a>
-                    <h5 class="font-weight-semi-bold m-0">Men's dresses</h5>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 pb-1">
-                <div class="cat-item d-flex flex-column border mb-4" style="padding: 30px;">
-                    <p class="text-right">15 Products</p>
-                    <a href="" class="cat-img position-relative overflow-hidden mb-3">
-                        <img class="img-fluid" src="img/cat-2.jpg" alt="">
-                    </a>
-                    <h5 class="font-weight-semi-bold m-0">Women's dresses</h5>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 pb-1">
-                <div class="cat-item d-flex flex-column border mb-4" style="padding: 30px;">
-                    <p class="text-right">15 Products</p>
-                    <a href="" class="cat-img position-relative overflow-hidden mb-3">
-                        <img class="img-fluid" src="img/cat-3.jpg" alt="">
-                    </a>
-                    <h5 class="font-weight-semi-bold m-0">Baby's dresses</h5>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 pb-1">
-                <div class="cat-item d-flex flex-column border mb-4" style="padding: 30px;">
-                    <p class="text-right">15 Products</p>
-                    <a href="" class="cat-img position-relative overflow-hidden mb-3">
-                        <img class="img-fluid" src="img/cat-4.jpg" alt="">
-                    </a>
-                    <h5 class="font-weight-semi-bold m-0">Accerssories</h5>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 pb-1">
-                <div class="cat-item d-flex flex-column border mb-4" style="padding: 30px;">
-                    <p class="text-right">15 Products</p>
-                    <a href="" class="cat-img position-relative overflow-hidden mb-3">
-                        <img class="img-fluid" src="img/cat-5.jpg" alt="">
-                    </a>
-                    <h5 class="font-weight-semi-bold m-0">Bags</h5>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 pb-1">
-                <div class="cat-item d-flex flex-column border mb-4" style="padding: 30px;">
-                    <p class="text-right">15 Products</p>
-                    <a href="" class="cat-img position-relative overflow-hidden mb-3">
-                        <img class="img-fluid" src="img/cat-6.jpg" alt="">
-                    </a>
-                    <h5 class="font-weight-semi-bold m-0">Shoes</h5>
-                </div>
-            </div>
-        </div>
+  <!-- ABOUT / STATS -->
+  <section id="about" aria-label="About Verve Botanicals">
+    <div class="wrap about-grid">
+      <div class="about-copy reveal">
+        <span class="eyebrow">Since 2019</span>
+        <h2 style="font-size:clamp(1.7rem,3.4vw,2.4rem);margin-bottom:16px">Started at a Bandra farmers' market. Still made the same way.</h2>
+        <p>Verve began as a single face oil blended in founder <strong>Riya Kapoor's</strong> kitchen and sold at the Linking Road farmers' market. The formula hasn't changed — only the batch size has.</p>
+        <p>Today a team of eleven — including two cosmetic chemists — makes every product in our own Mumbai lab. We bottle in weekly small batches, so what reaches you was made days ago, <strong>not months</strong>.</p>
+        <p>We publish every batch date, every supplier, and every third-party test. If we wouldn't put it on our own skin, it doesn't ship.</p>
+      </div>
+      <div class="stats">
+        <div class="stat reveal"><b>2,300+</b><span>Verified 4.9-star reviews</span></div>
+        <div class="stat pink reveal"><b>72%</b><span>Of customers reorder within 90 days</span></div>
+        <div class="stat reveal"><b>14</b><span>Named partner farms across India</span></div>
+        <div class="stat reveal"><b>48h</b><span>From batch to dispatch, on average</span></div>
+      </div>
     </div>
-    <!-- Categories End -->
+  </section>
 
+  <!-- BESTSELLERS -->
+  <section class="shop" id="shop" aria-label="Bestselling products">
+    <svg class="deco" style="bottom:-50px;left:-60px;opacity:.1" width="320" height="320" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+      <path d="M60 110C60 110 15 85 15 45C15 20 35 8 60 8C85 8 105 20 105 45C105 85 60 110 60 110Z" stroke="#14532D" stroke-width="1"/>
+      <path d="M60 110V30M60 55c0-12 10-20 22-20M60 78c0-12-10-20-22-20" stroke="#14532D" stroke-width="1" stroke-linecap="round"/>
+    </svg>
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow">Bestsellers</span>
+        <h2>The six your shelf actually needs</h2>
+        <p>Our most-repurchased formulas, ranked by real reorder data — not by what we'd like to sell you.</p>
+      </div>
+      <div class="prod-grid">
 
-    <!-- Offer Start -->
-    <div class="container-fluid offer pt-5">
-        <div class="row px-xl-5">
-            <div class="col-md-6 pb-4">
-                <div class="position-relative bg-secondary text-center text-md-right text-white mb-2 py-5 px-5">
-                    <img src="img/offer-1.png" alt="">
-                    <div class="position-relative" style="z-index: 1;">
-                        <h5 class="text-uppercase text-primary mb-3">20% off the all order</h5>
-                        <h1 class="mb-4 font-weight-semi-bold">Spring Collection</h1>
-                        <a href="" class="btn btn-outline-primary py-md-2 px-md-3">Shop Now</a>
-                    </div>
-                </div>
+        <article class="prod reveal">
+          <div class="prod-art pa-1">
+            <svg class="leafacc" style="top:14px;left:14px;opacity:.5" width="54" height="54" viewBox="0 0 120 120" fill="none" aria-hidden="true"><path d="M60 110C60 110 15 85 15 45C15 20 35 8 60 8C85 8 105 20 105 45C105 85 60 110 60 110Z" stroke="#14532D" stroke-width="2"/><path d="M60 110V30" stroke="#14532D" stroke-width="2" stroke-linecap="round"/></svg>
+            <div class="pbottle sh-drop"><div class="pneck"></div><div class="pbody c-1"><div class="plabel"><i></i></div></div></div>
+          </div>
+          <div class="prod-info">
+            <div class="prod-top"><h3>Night Repair Oil</h3><span class="price">₹1,450</span></div>
+            <p class="prod-note">Jojoba + rosehip overnight oil for calmer, brighter mornings.</p>
+            <div class="stars" aria-label="Rated 4.9 out of 5 stars">
+              <svg width="88" height="16" viewBox="0 0 110 20" fill="#15803D" aria-hidden="true"><path d="M10 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9L10 14.1 4.7 17.2 6 11.3 1.5 7.2l6-.6zM32 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM54 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM76 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM98 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6z"/></svg>
+              <span>4.9 · 812 reviews</span>
             </div>
-            <div class="col-md-6 pb-4">
-                <div class="position-relative bg-secondary text-center text-md-left text-white mb-2 py-5 px-5">
-                    <img src="img/offer-2.png" alt="">
-                    <div class="position-relative" style="z-index: 1;">
-                        <h5 class="text-uppercase text-primary mb-3">20% off the all order</h5>
-                        <h1 class="mb-4 font-weight-semi-bold">Winter Collection</h1>
-                        <a href="" class="btn btn-outline-primary py-md-2 px-md-3">Shop Now</a>
-                    </div>
-                </div>
+            <button class="add-btn" type="button">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#14532D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+              Add to cart
+            </button>
+          </div>
+        </article>
+
+        <article class="prod reveal">
+          <div class="prod-art pa-2">
+            <svg class="leafacc" style="top:16px;right:14px;opacity:.5;transform:rotate(24deg)" width="50" height="50" viewBox="0 0 120 120" fill="none" aria-hidden="true"><path d="M60 110C60 110 15 85 15 45C15 20 35 8 60 8C85 8 105 20 105 45C105 85 60 110 60 110Z" stroke="#B12D6F" stroke-width="2"/><path d="M60 110V30" stroke="#B12D6F" stroke-width="2" stroke-linecap="round"/></svg>
+            <div class="pbottle sh-drop"><div class="pneck"></div><div class="pbody c-2"><div class="plabel"><i style="background:#EC4899"></i></div></div></div>
+          </div>
+          <div class="prod-info">
+            <div class="prod-top"><h3>Rosehip Glow Drops</h3><span class="price">₹1,280</span></div>
+            <p class="prod-note">Cold-pressed Himachal rosehip for dullness and uneven tone.</p>
+            <div class="stars" aria-label="Rated 4.8 out of 5 stars">
+              <svg width="88" height="16" viewBox="0 0 110 20" fill="#15803D" aria-hidden="true"><path d="M10 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9L10 14.1 4.7 17.2 6 11.3 1.5 7.2l6-.6zM32 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM54 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM76 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM98 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6z"/></svg>
+              <span>4.8 · 647 reviews</span>
             </div>
-        </div>
+            <button class="add-btn" type="button">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#14532D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+              Add to cart
+            </button>
+          </div>
+        </article>
+
+        <article class="prod reveal">
+          <div class="prod-art pa-3">
+            <svg class="leafacc" style="bottom:20px;left:16px;opacity:.5;transform:rotate(-20deg)" width="46" height="46" viewBox="0 0 120 120" fill="none" aria-hidden="true"><path d="M60 110C60 110 15 85 15 45C15 20 35 8 60 8C85 8 105 20 105 45C105 85 60 110 60 110Z" stroke="#5C4F26" stroke-width="2"/><path d="M60 110V30" stroke="#5C4F26" stroke-width="2" stroke-linecap="round"/></svg>
+            <div class="pbottle sh-jar"><div class="pneck"></div><div class="pbody c-3"><div class="plabel"><i style="background:#8C7A3F"></i></div></div></div>
+          </div>
+          <div class="prod-info">
+            <div class="prod-top"><h3>Cloud Cream</h3><span class="price">₹980</span></div>
+            <p class="prod-note">Whipped shea-oat moisturiser that sinks in, not sits on.</p>
+            <div class="stars" aria-label="Rated 4.9 out of 5 stars">
+              <svg width="88" height="16" viewBox="0 0 110 20" fill="#15803D" aria-hidden="true"><path d="M10 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9L10 14.1 4.7 17.2 6 11.3 1.5 7.2l6-.6zM32 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM54 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM76 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM98 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6z"/></svg>
+              <span>4.9 · 534 reviews</span>
+            </div>
+            <button class="add-btn" type="button">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#14532D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+              Add to cart
+            </button>
+          </div>
+        </article>
+
+        <article class="prod reveal">
+          <div class="prod-art pa-4">
+            <svg class="leafacc" style="top:18px;left:18px;opacity:.5;transform:rotate(-14deg)" width="48" height="48" viewBox="0 0 120 120" fill="none" aria-hidden="true"><path d="M60 110C60 110 15 85 15 45C15 20 35 8 60 8C85 8 105 20 105 45C105 85 60 110 60 110Z" stroke="#2C6B6D" stroke-width="2"/><path d="M60 110V30" stroke="#2C6B6D" stroke-width="2" stroke-linecap="round"/></svg>
+            <div class="pbottle sh-tube"><div class="pneck"></div><div class="pbody c-4"><div class="plabel"><i style="background:#2C6B6D"></i></div></div></div>
+          </div>
+          <div class="prod-info">
+            <div class="prod-top"><h3>Green Clay Cleanser</h3><span class="price">₹720</span></div>
+            <p class="prod-note">Gentle Gujarat green clay wash — clean, never squeaky.</p>
+            <div class="stars" aria-label="Rated 4.7 out of 5 stars">
+              <svg width="88" height="16" viewBox="0 0 110 20" fill="#15803D" aria-hidden="true"><path d="M10 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9L10 14.1 4.7 17.2 6 11.3 1.5 7.2l6-.6zM32 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM54 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM76 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM98 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6z"/></svg>
+              <span>4.7 · 421 reviews</span>
+            </div>
+            <button class="add-btn" type="button">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#14532D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+              Add to cart
+            </button>
+          </div>
+        </article>
+
+        <article class="prod reveal">
+          <div class="prod-art pa-5">
+            <svg class="leafacc" style="top:14px;right:16px;opacity:.5;transform:rotate(18deg)" width="52" height="52" viewBox="0 0 120 120" fill="none" aria-hidden="true"><path d="M60 110C60 110 15 85 15 45C15 20 35 8 60 8C85 8 105 20 105 45C105 85 60 110 60 110Z" stroke="#544894" stroke-width="2"/><path d="M60 110V30" stroke="#544894" stroke-width="2" stroke-linecap="round"/></svg>
+            <div class="pbottle sh-pump"><div class="pneck"></div><div class="pbody c-5"><div class="plabel"><i style="background:#6F60AC"></i></div></div></div>
+          </div>
+          <div class="prod-info">
+            <div class="prod-top"><h3>Dew Point Serum</h3><span class="price">₹1,150</span></div>
+            <p class="prod-note">Triple-weight hyaluronic + lavender water, morning hydration.</p>
+            <div class="stars" aria-label="Rated 4.8 out of 5 stars">
+              <svg width="88" height="16" viewBox="0 0 110 20" fill="#15803D" aria-hidden="true"><path d="M10 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9L10 14.1 4.7 17.2 6 11.3 1.5 7.2l6-.6zM32 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM54 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM76 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM98 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6z"/></svg>
+              <span>4.8 · 389 reviews</span>
+            </div>
+            <button class="add-btn" type="button">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#14532D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+              Add to cart
+            </button>
+          </div>
+        </article>
+
+        <article class="prod reveal">
+          <div class="prod-art pa-6">
+            <svg class="leafacc" style="bottom:24px;right:14px;opacity:.5;transform:rotate(-26deg)" width="46" height="46" viewBox="0 0 120 120" fill="none" aria-hidden="true"><path d="M60 110C60 110 15 85 15 45C15 20 35 8 60 8C85 8 105 20 105 45C105 85 60 110 60 110Z" stroke="#3F6B2C" stroke-width="2"/><path d="M60 110V30" stroke="#3F6B2C" stroke-width="2" stroke-linecap="round"/></svg>
+            <div class="pbottle sh-jar"><div class="pneck"></div><div class="pbody c-6"><div class="plabel"><i style="background:#5F914A"></i></div></div></div>
+          </div>
+          <div class="prod-info">
+            <div class="prod-top"><h3>Matcha Eye Balm</h3><span class="price">₹840</span></div>
+            <p class="prod-note">Caffeine-rich matcha balm for tired, puffy mornings.</p>
+            <div class="stars" aria-label="Rated 4.7 out of 5 stars">
+              <svg width="88" height="16" viewBox="0 0 110 20" fill="#15803D" aria-hidden="true"><path d="M10 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9L10 14.1 4.7 17.2 6 11.3 1.5 7.2l6-.6zM32 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM54 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM76 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6zM98 1l2.5 5.6 6 .6-4.5 4.1 1.3 5.9-5.3-3.1-5.3 3.1 1.3-5.9-4.5-4.1 6-.6z"/></svg>
+              <span>4.7 · 296 reviews</span>
+            </div>
+            <button class="add-btn" type="button">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#14532D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+              Add to cart
+            </button>
+          </div>
+        </article>
+
+      </div>
     </div>
-    <!-- Offer End -->
+  </section>
 
-
-    <!-- Products Start -->
-    <div class="container-fluid pt-5">
-        <div class="text-center mb-4">
-            <h2 class="section-title px-5"><span class="px-2">Trandy Products</span></h2>
-        </div>
-        <div class="row px-xl-5 pb-3">
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="card product-item border-0 mb-4">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-1.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="card product-item border-0 mb-4">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-2.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="card product-item border-0 mb-4">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-3.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="card product-item border-0 mb-4">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-4.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="card product-item border-0 mb-4">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-5.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="card product-item border-0 mb-4">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-6.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="card product-item border-0 mb-4">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-7.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="card product-item border-0 mb-4">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-8.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <!-- ETHOS -->
+  <section class="ethos" id="ethos" aria-label="Ingredients and ethos">
+    <svg class="deco" style="top:-40px;right:-50px;opacity:.14" width="300" height="300" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+      <path d="M60 110C60 110 15 85 15 45C15 20 35 8 60 8C85 8 105 20 105 45C105 85 60 110 60 110Z" stroke="#FBFAF6" stroke-width="1"/>
+      <path d="M60 110V30M60 55c0-12 10-20 22-20M60 78c0-12-10-20-22-20" stroke="#FBFAF6" stroke-width="1" stroke-linecap="round"/>
+    </svg>
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Ingredients &amp; ethos</span>
+        <h2>What's in the bottle — and what will never be</h2>
+        <p>Our whole ingredient philosophy fits on a postcard. Here it is.</p>
+      </div>
+      <div class="chip-row reveal" aria-label="Product standards">
+        <span class="chip">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#86EFAC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>
+          100% Vegan
+        </span>
+        <span class="chip">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#86EFAC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21.5c-4.5 0-8-2.5-8-6.5 0-2.5 1.5-4 3-5l-1-5 4 2c.6-.2 1.3-.3 2-.3s1.4.1 2 .3l4-2-1 5c1.5 1 3 2.5 3 5 0 4-3.5 6.5-8 6.5Z"/><circle cx="9.5" cy="14" r="1"/><circle cx="14.5" cy="14" r="1"/></svg>
+          Cruelty-free
+        </span>
+        <span class="chip">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#86EFAC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v7.31L4.34 19.03A2 2 0 0 0 6.07 22h11.86a2 2 0 0 0 1.73-2.97L14 9.31V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg>
+          Small-batch made
+        </span>
+        <span class="chip">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#86EFAC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
+          No synthetic fragrance
+        </span>
+        <span class="chip">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#86EFAC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Recyclable glass
+        </span>
+      </div>
+      <div class="ethos-grid">
+        <article class="e-card reveal">
+          <h3>We name our farms</h3>
+          <p>Rosehip from the Sharma orchards in Kullu. Jojoba from a women-run cooperative in Jaisalmer. Every supplier is listed with every product.</p>
+        </article>
+        <article class="e-card reveal">
+          <h3>We publish our tests</h3>
+          <p>Third-party heavy-metal and stability reports for every batch, downloadable from the batch code on your bottle.</p>
+        </article>
+        <article class="e-card reveal">
+          <h3>We skip the filler</h3>
+          <p>No synthetic fragrance, no drying alcohols, no dyes. If an ingredient is there for the smell or the shelf photo, it's not in ours.</p>
+        </article>
+      </div>
     </div>
-    <!-- Products End -->
+  </section>
 
-
-    <!-- Subscribe Start -->
-    <div class="container-fluid bg-secondary my-5">
-        <div class="row justify-content-md-center py-5 px-xl-5">
-            <div class="col-md-6 col-12 py-5">
-                <div class="text-center mb-2 pb-2">
-                    <h2 class="section-title px-5 mb-3"><span class="bg-secondary px-2">Stay Updated</span></h2>
-                    <p>Amet lorem at rebum amet dolores. Elitr lorem dolor sed amet diam labore at justo ipsum eirmod duo labore labore.</p>
-                </div>
-                <form onsubmit="event.preventDefault();this.reset();alert('Demo site — this form is illustrative and does not send anything.')">
-                    <div class="input-group">
-                        <input type="text" class="form-control border-white p-4" placeholder="Email Goes Here">
-                        <div class="input-group-append">
-                            <button class="btn btn-primary px-4">Subscribe</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
+  <!-- RITUAL -->
+  <section id="ritual" aria-label="The three-step ritual">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow">The ritual</span>
+        <h2>Three steps. Four minutes. Every day.</h2>
+        <p>Skincare routines fail because they're complicated. Ours is three steps you'll actually keep.</p>
+      </div>
+      <div class="ritual-strip">
+        <article class="r-step reveal">
+          <span class="r-num">STEP 01</span>
+          <div class="ico">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+          </div>
+          <h3>Cleanse</h3>
+          <p>Green Clay Cleanser, 60 seconds, lukewarm water. Lifts the day off without stripping your barrier.</p>
+          <em>Morning and evening</em>
+        </article>
+        <article class="r-step reveal">
+          <span class="r-num">STEP 02</span>
+          <div class="ico">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v8"/><path d="m8 6 4 4 4-4"/><rect x="7" y="12" width="10" height="10" rx="3"/></svg>
+          </div>
+          <h3>Treat</h3>
+          <p>Dew Point Serum by day, Night Repair Oil by night. Three drops, pressed in — never rubbed.</p>
+          <em>Damp skin, always</em>
+        </article>
+        <article class="r-step reveal">
+          <span class="r-num">STEP 03</span>
+          <div class="ico">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+          </div>
+          <h3>Seal</h3>
+          <p>Cloud Cream to lock everything in. A pea-sized amount covers face and neck — a jar lasts three months.</p>
+          <em>Finish with SPF by day</em>
+        </article>
+      </div>
     </div>
-    <!-- Subscribe End -->
+  </section>
 
-
-    <!-- Products Start -->
-    <div class="container-fluid pt-5">
-        <div class="text-center mb-4">
-            <h2 class="section-title px-5"><span class="px-2">Just Arrived</span></h2>
-        </div>
-        <div class="row px-xl-5 pb-3">
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="card product-item border-0 mb-4">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-1.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="card product-item border-0 mb-4">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-2.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="card product-item border-0 mb-4">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-3.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="card product-item border-0 mb-4">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-4.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="card product-item border-0 mb-4">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-5.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="card product-item border-0 mb-4">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-6.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="card product-item border-0 mb-4">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-7.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
-                <div class="card product-item border-0 mb-4">
-                    <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img class="img-fluid w-100" src="img/product-8.jpg" alt="">
-                    </div>
-                    <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">Colorful Stylish Shirt</h6>
-                        <div class="d-flex justify-content-center">
-                            <h6>$123.00</h6><h6 class="text-muted ml-2"><del>$123.00</del></h6>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between bg-light border">
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                        <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <!-- REVIEWS -->
+  <section class="reviews" id="reviews" aria-label="Customer reviews">
+    <svg class="deco" style="top:-30px;left:-40px;opacity:.1" width="240" height="240" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+      <path d="M60 110C60 110 15 85 15 45C15 20 35 8 60 8C85 8 105 20 105 45C105 85 60 110 60 110Z" stroke="#15803D" stroke-width="1"/>
+      <path d="M60 110V30M60 55c0-12 10-20 22-20M60 78c0-12-10-20-22-20" stroke="#15803D" stroke-width="1" stroke-linecap="round"/>
+    </svg>
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow">Reviews</span>
+        <h2>From shelves like yours</h2>
+        <p>2,300+ verified reviews, average 4.9. Here are three we didn't have to ask for.</p>
+      </div>
+      <div class="rev-grid">
+        <article class="rev reveal">
+          <blockquote>"I finished the bottle. I never finish bottles. The Night Repair Oil is the first product my combination skin hasn't argued with."</blockquote>
+          <div class="rev-foot">
+            <span class="avatar av-1" aria-hidden="true">AR</span>
+            <div><b>Aisha R.</b><span class="skin-tag">Combination skin</span></div>
+          </div>
+        </article>
+        <article class="rev reveal">
+          <blockquote>"Asked about ingredients on WhatsApp at 11pm — got a real answer in seconds, not a script. The Glow Drops evened my tone in six weeks."</blockquote>
+          <div class="rev-foot">
+            <span class="avatar av-2" aria-hidden="true">NT</span>
+            <div><b>Neha T.</b><span class="skin-tag pink">Dull &amp; uneven</span></div>
+          </div>
+        </article>
+        <article class="rev reveal">
+          <blockquote>"Returned one product, no questions asked. Ordered three more since. My sensitive skin finally has a routine it trusts."</blockquote>
+          <div class="rev-foot">
+            <span class="avatar av-3" aria-hidden="true">KS</span>
+            <div><b>Kavya S.</b><span class="skin-tag">Sensitive skin</span></div>
+          </div>
+        </article>
+      </div>
     </div>
-    <!-- Products End -->
+  </section>
 
-
-    <!-- Vendor Start -->
-    <div class="container-fluid py-5">
-        <div class="row px-xl-5">
-            <div class="col">
-                <div class="owl-carousel vendor-carousel">
-                    <div class="vendor-item border p-4">
-                        <img src="img/vendor-1.jpg" alt="">
-                    </div>
-                    <div class="vendor-item border p-4">
-                        <img src="img/vendor-2.jpg" alt="">
-                    </div>
-                    <div class="vendor-item border p-4">
-                        <img src="img/vendor-3.jpg" alt="">
-                    </div>
-                    <div class="vendor-item border p-4">
-                        <img src="img/vendor-4.jpg" alt="">
-                    </div>
-                    <div class="vendor-item border p-4">
-                        <img src="img/vendor-5.jpg" alt="">
-                    </div>
-                    <div class="vendor-item border p-4">
-                        <img src="img/vendor-6.jpg" alt="">
-                    </div>
-                    <div class="vendor-item border p-4">
-                        <img src="img/vendor-7.jpg" alt="">
-                    </div>
-                    <div class="vendor-item border p-4">
-                        <img src="img/vendor-8.jpg" alt="">
-                    </div>
-                </div>
+  <!-- CONTACT -->
+  <section id="contact" aria-label="Contact us">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Get in touch</span>
+        <h2>Questions about your skin? Ask a human.</h2>
+        <p>Ingredient doubts, order help, or a routine consult — our care team replies within one business day.</p>
+      </div>
+      <div class="contact-grid">
+        <form class="form-card reveal" aria-label="Enquiry form">
+          <div class="form-row">
+            <div class="field">
+              <label for="f-name">Full name</label>
+              <input id="f-name" name="name" type="text" autocomplete="name" required>
             </div>
+            <div class="field">
+              <label for="f-phone">Phone</label>
+              <input id="f-phone" name="phone" type="tel" autocomplete="tel" required>
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-email">Email</label>
+            <input id="f-email" name="email" type="email" autocomplete="email" required>
+          </div>
+          <div class="field">
+            <label for="f-msg">How can we help?</label>
+            <textarea id="f-msg" name="message" placeholder="Tell us about your skin, your order, or the product you're curious about" required></textarea>
+          </div>
+          <button class="btn btn-primary" type="submit" style="width:100%">
+            Send enquiry
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>
+          </button>
+        </form>
+        <div class="contact-side">
+          <div class="info-card reveal">
+            <div class="info-line">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <div><b>Phone</b><a href="tel:+912244881200">+91 22 4488 1200</a></div>
+            </div>
+            <div class="info-line">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              <div><b>Email</b><a href="mailto:care@vervebotanicals.demo">care@vervebotanicals.demo</a></div>
+            </div>
+            <div class="info-line">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              <div><b>Studio &amp; store</b><span>8 Linking Road, Mumbai 400050</span></div>
+            </div>
+          </div>
+          <div class="hours reveal">
+            <h3>Care team hours</h3>
+            <dl>
+              <dt>Monday – Friday</dt><dd>9:00 – 19:00</dd>
+              <dt>Saturday</dt><dd>10:00 – 18:00</dd>
+              <dt>Sunday</dt><dd>Closed</dd>
+            </dl>
+          </div>
         </div>
+      </div>
     </div>
-    <!-- Vendor End -->
+  </section>
 
+</main>
 
-    <!-- Footer Start -->
-    <div class="container-fluid bg-secondary text-dark mt-5 pt-5">
-        <div class="row px-xl-5 pt-5">
-            <div class="col-lg-4 col-md-12 mb-5 pr-3 pr-xl-5">
-                <a href="" class="text-decoration-none">
-                    <h1 class="mb-4 display-5 font-weight-semi-bold"><span class="text-primary font-weight-bold border border-white px-3 mr-1">E</span>Shopper</h1>
-                </a>
-                <p>Dolore erat dolor sit lorem vero amet. Sed sit lorem magna, ipsum no sit erat lorem et magna ipsum dolore amet erat.</p>
-                <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>123 Street, New York, USA</p>
-                <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>care@vervebotanicals.demo</p>
-                <p class="mb-0"><i class="fa fa-phone-alt text-primary mr-3"></i>+91 22 4488 1200</p>
-            </div>
-            <div class="col-lg-8 col-md-12">
-                <div class="row">
-                    <div class="col-md-4 mb-5">
-                        <h5 class="font-weight-bold text-dark mb-4">Quick Links</h5>
-                        <div class="d-flex flex-column justify-content-start">
-                            <a class="text-dark mb-2" href="index.html"><i class="fa fa-angle-right mr-2"></i>Home</a>
-                            <a class="text-dark mb-2" href="shop.html"><i class="fa fa-angle-right mr-2"></i>Our Shop</a>
-                            <a class="text-dark mb-2" href="detail.html"><i class="fa fa-angle-right mr-2"></i>Shop Detail</a>
-                            <a class="text-dark mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Shopping Cart</a>
-                            <a class="text-dark mb-2" href="checkout.html"><i class="fa fa-angle-right mr-2"></i>Checkout</a>
-                            <a class="text-dark" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-5">
-                        <h5 class="font-weight-bold text-dark mb-4">Quick Links</h5>
-                        <div class="d-flex flex-column justify-content-start">
-                            <a class="text-dark mb-2" href="index.html"><i class="fa fa-angle-right mr-2"></i>Home</a>
-                            <a class="text-dark mb-2" href="shop.html"><i class="fa fa-angle-right mr-2"></i>Our Shop</a>
-                            <a class="text-dark mb-2" href="detail.html"><i class="fa fa-angle-right mr-2"></i>Shop Detail</a>
-                            <a class="text-dark mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Shopping Cart</a>
-                            <a class="text-dark mb-2" href="checkout.html"><i class="fa fa-angle-right mr-2"></i>Checkout</a>
-                            <a class="text-dark" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-5">
-                        <h5 class="font-weight-bold text-dark mb-4">Newsletter</h5>
-                        <form onsubmit="event.preventDefault();this.reset();alert('Demo site — this form is illustrative and does not send anything.')">
-                            <div class="form-group">
-                                <input type="text" class="form-control border-0 py-4" placeholder="Your Name" required="required" />
-                            </div>
-                            <div class="form-group">
-                                <input type="email" class="form-control border-0 py-4" placeholder="Your Email"
-                                    required="required" />
-                            </div>
-                            <div>
-                                <button class="btn btn-primary btn-block border-0 py-3" type="submit">Subscribe Now</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row border-top border-light mx-xl-5 py-4">
-            <div class="col-md-6 px-xl-0">
-                <p class="mb-md-0 text-center text-md-left text-dark">
-                    &copy; <a class="text-dark font-weight-semi-bold" href="#">Your Site Name</a>. All Rights Reserved. Designed
-                    by
-                    <a class="text-dark font-weight-semi-bold" href="https://htmlcodex.com">HTML Codex</a><br>
-                    Distributed By <a href="#" target="_blank">ThemeWagon</a>
-                </p>
-            </div>
-            <div class="col-md-6 px-xl-0 text-center text-md-right">
-                <img class="img-fluid" src="img/payments.png" alt="">
-            </div>
-        </div>
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <span class="brand-name">Verve <i style="font-style:normal;color:#86EFAC">Botanicals</i></span>
+        <p>Plant-led skincare made in weekly small batches in Mumbai. Free shipping over ₹999, 30-day easy returns.</p>
+      </div>
+      <ul class="foot-links">
+        <li><a href="#shop">Bestsellers</a></li>
+        <li><a href="#ethos">Our Ethos</a></li>
+        <li><a href="#ritual">The Ritual</a></li>
+        <li><a href="#reviews">Reviews</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
     </div>
-    <!-- Footer End -->
+    <p class="foot-note">A fictional demonstration site built by Catalyst Solutions — E-commerce program specification.</p>
+  </div>
+</footer>
 
+<script>
+(function(){
+  if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches && 'IntersectionObserver' in window) {
+    var els = document.querySelectorAll('.reveal');
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if (en.isIntersecting) {
+          var el = en.target;
+          var siblings = Array.prototype.filter.call(el.parentNode.children, function(c){ return c.classList && c.classList.contains('reveal'); });
+          var idx = siblings.indexOf(el);
+          el.style.transitionDelay = (Math.max(idx,0) * 70) + 'ms';
+          el.classList.add('in');
+          io.unobserve(el);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    els.forEach(function(el){ io.observe(el); });
+  } else {
+    document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); });
+  }
+})();
+</script>
 
-    <!-- Back to Top -->
-    <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
-
-
-    <!-- JavaScript Libraries -->
-    <script src="../_vendor/code.jquery.com-jquery-3.4.1.min.js"></script>
-    <script src="../_vendor/stackpath.bootstrapcdn.com-bootstrap-4.4.1-js-bootstrap.bundle.min.js"></script>
-    <script src="lib/easing/easing.min.js"></script>
-    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
-
-    <!-- Contact Javascript File -->
-    <script src="mail/jqBootstrapValidation.min.js"></script>
-    <script src="mail/contact.js"></script>
-
-    <!-- Template Javascript -->
-    <script src="js/main.js"></script>
-<link rel="stylesheet" href="../_vendor/tier-layer.css"><script>window.__TIER_LAYER={"brand":"Verve Botanicals","accent":"#65A30D","tiers":[{"label":"Tier 1 — Store Foundation","short":"T1","widgets":[]},{"label":"Tier 2 — Revenue Engine","short":"T2","widgets":["enquiry","whatsapp","reviews","dashboard"]}],"hello":"The Night Repair restock is live — first 100 orders get the travel size free.","locations":[],"dashHref":"/bundles/ecommerce-revenue-stack#demos","bookLabel":"Get 10% off your first order","bookCta":"Claim the code","chatIntro":"Hi! Verve assistant 🌿 Ingredients, shipping, or your order — how can I help?","chatLabel":"Ask about products","chat":[{"q":"Is the face oil ok for oily skin?","a":"Fair worry — most face oils are too heavy. Ours is jojoba-based, closest to your own sebum, so it absorbs instead of sitting on top. Most-repurchased product among oily-skin customers."},{"q":"What is your returns policy?","a":"30 days, opened or not. If it does not suit your skin, we refund it — no photos, no interrogation."},{"q":"Where is my order?","a":"In production I would look it up from your number automatically. Orders ship within 24h and tracking arrives on WhatsApp."}],"wa":[{"f":"e","t":"🛒 Cart abandoned — ₹2,340, 40 minutes ago"},{"f":"b","t":"Hi! Verve here 🌿 You left the Night Repair Oil in your bag. Anything I can help with — ingredients, sizing, delivery?"},{"f":"u","t":"Is the oil ok for oily skin? Bad experiences before…"},{"f":"b","t":"Fair worry. It is jojoba-based — closest to your skin's own sebum, absorbs instead of sitting on top. And returns are 30 days, opened or not."},{"f":"u","t":"Ok, that helps"},{"f":"b","t":"I have applied FIRST10 for 10% off too. Your bag is saved — free shipping over ₹999 included ✅"},{"f":"e","t":"✅ Cart recovered — ₹2,106 order, 2m 14s after the nudge"}],"reviews":[{"n":"Aisha R.","t":"I finished the bottle. I never finish bottles."},{"n":"Neha T.","t":"Asked about ingredients on WhatsApp at 11pm — got a real answer in seconds."},{"n":"Kavya S.","t":"Returned one product, no questions. Ordered three more since."}]}</script><script src="../_vendor/tier-layer.js" defer></script></body>
-
+<link rel="stylesheet" href="../_vendor/tier-layer.css">
+<script>window.__TIER_LAYER={"brand":"Verve Botanicals","accent":"#65A30D","tiers":[{"label":"Tier 1 — Store Foundation","short":"T1","widgets":[]},{"label":"Tier 2 — Revenue Engine","short":"T2","widgets":["enquiry","whatsapp","reviews","dashboard"]}],"hello":"The Night Repair restock is live — first 100 orders get the travel size free.","locations":[],"dashHref":"/bundles/ecommerce-revenue-stack#demos","bookLabel":"Get 10% off your first order","bookCta":"Claim the code","chatIntro":"Hi! Verve assistant 🌿 Ingredients, shipping, or your order — how can I help?","chatLabel":"Ask about products","chat":[{"q":"Is the face oil ok for oily skin?","a":"Fair worry — most face oils are too heavy. Ours is jojoba-based, closest to your own sebum, so it absorbs instead of sitting on top. Most-repurchased product among oily-skin customers."},{"q":"What is your returns policy?","a":"30 days, opened or not. If it does not suit your skin, we refund it — no photos, no interrogation."},{"q":"Where is my order?","a":"In production I would look it up from your number automatically. Orders ship within 24h and tracking arrives on WhatsApp."}],"wa":[{"f":"e","t":"🛒 Cart abandoned — ₹2,340, 40 minutes ago"},{"f":"b","t":"Hi! Verve here 🌿 You left the Night Repair Oil in your bag. Anything I can help with — ingredients, sizing, delivery?"},{"f":"u","t":"Is the oil ok for oily skin? Bad experiences before…"},{"f":"b","t":"Fair worry. It is jojoba-based — closest to your skin's own sebum, absorbs instead of sitting on top. And returns are 30 days, opened or not."},{"f":"u","t":"Ok, that helps"},{"f":"b","t":"I have applied FIRST10 for 10% off too. Your bag is saved — free shipping over ₹999 included ✅"},{"f":"e","t":"✅ Cart recovered — ₹2,106 order, 2m 14s after the nudge"}],"reviews":[{"n":"Aisha R.","t":"I finished the bottle. I never finish bottles."},{"n":"Neha T.","t":"Asked about ingredients on WhatsApp at 11pm — got a real answer in seconds."},{"n":"Kavya S.","t":"Returned one product, no questions. Ordered three more since."}]}</script><script src="../_vendor/tier-layer.js" defer></script>
+</body>
 </html>

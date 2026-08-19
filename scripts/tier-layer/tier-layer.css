@@ -47,8 +47,8 @@
   box-shadow: 0 8px 28px rgba(0,0,0,.35); transition: transform .15s ease;
 }
 .tl-fab:hover { transform: scale(1.05); }
-.tl-fab-wa { right: 18px; bottom: 84px; background: #25d366; }
-.tl-fab-chat { right: 18px; bottom: 18px; background: var(--tl-accent); }
+.tl .tl-fab-wa { right: 18px; bottom: 84px; background: #25d366; }
+.tl .tl-fab-chat { right: 18px; bottom: 18px; background: var(--tl-accent); }
 .tl-fab svg { width: 19px; height: 19px; fill: currentColor; }
 
 /* ---------- sticky book bar ---------- */

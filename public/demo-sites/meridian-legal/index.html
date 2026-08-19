@@ -1,545 +1,797 @@
-<!doctype html>
-<html class="no-js" lang="zxx">
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Meridian Legal Partners — Clear counsel, measured strategy</title>
-    <meta name="description" content="Corporate, employment, family and property law. Structured 30-minute consultations with partner-led matters.">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian Legal Partners — Clear counsel, measured strategy</title>
+<meta name="description" content="Corporate, employment, family and property law. Structured 30-minute consultations with partner-led matters.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page:#F8FAFC;
+  --ink:#0F172A;
+  --navy:#1E3A8A;
+  --navy-deep:#172E6E;
+  --bronze:#B45309;
+  --bronze-soft:#92400E;
+  --mut:#475569;
+  --mut-2:#64748B;
+  --line:#E2E8F0;
+  --line-dk:#CBD5E1;
+  --white:#FFFFFF;
+  --r-s:4px;
+  --r-m:6px;
+  --r-l:8px;
+  --shadow-1:0 1px 2px rgba(15,23,42,.05);
+  --shadow-2:0 10px 30px -12px rgba(15,23,42,.14);
+  --serif:'EB Garamond', Georgia, serif;
+  --sans:'Lato', -apple-system, sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:88px}
+body{
+  font-family:var(--sans);
+  background:var(--page);
+  color:var(--ink);
+  font-size:1.0625rem;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:var(--serif);font-weight:500;line-height:1.15;letter-spacing:-.01em}
+h1{font-size:clamp(2.4rem,5.4vw,3.9rem)}
+h2{font-size:clamp(1.9rem,3.6vw,2.7rem)}
+h3{font-size:clamp(1.25rem,2vw,1.5rem)}
+p{color:var(--mut)}
+a{color:var(--navy)}
+img,svg{max-width:100%}
+.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+section{padding:clamp(64px,9vw,110px) 0}
 
-    <!-- <link rel="manifest" href="site.webmanifest"> -->
-    <!-- <link rel="shortcut icon" type="image/x-icon" href="img/logo.png"> -->
-    <!-- Place favicon.ico in the root directory -->
+/* ---------- utilities ---------- */
+.eyebrow{
+  display:inline-flex;align-items:center;gap:12px;
+  font-family:var(--sans);font-size:.78rem;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--bronze);
+  margin-bottom:18px;
+}
+.eyebrow::before{content:"";width:34px;height:1px;background:var(--bronze)}
+.lede{max-width:56ch;margin-top:14px;font-size:1.1rem}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  font-family:var(--sans);font-weight:700;font-size:.98rem;
+  padding:15px 28px;border-radius:var(--r-s);
+  text-decoration:none;border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,border-color .18s ease,transform .18s ease;
+  min-height:48px;cursor:pointer;
+}
+.btn-primary{background:var(--navy);color:#fff}
+.btn-primary:hover{background:var(--navy-deep)}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line-dk)}
+.btn-ghost:hover{border-color:var(--navy);color:var(--navy)}
+.btn-bronze{background:var(--bronze);color:#fff}
+.btn-bronze:hover{background:var(--bronze-soft)}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{
+  outline:2px solid var(--bronze);outline-offset:3px;border-radius:2px;
+}
+.skip-link{
+  position:absolute;left:-9999px;top:0;background:var(--navy);color:#fff;
+  padding:12px 20px;z-index:200;font-weight:700;text-decoration:none;
+}
+.skip-link:focus{left:12px;top:12px}
 
-    <!-- CSS here -->
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/owl.carousel.min.css">
-    <link rel="stylesheet" href="css/magnific-popup.css">
-    <link rel="stylesheet" href="css/font-awesome.min.css">
-    <link rel="stylesheet" href="css/themify-icons.css">
-    <link rel="stylesheet" href="css/nice-select.css">
-    <link rel="stylesheet" href="css/flaticon.css">
-    <link rel="stylesheet" href="css/flaticon.css">
-    <link rel="stylesheet" href="css/gijgo.css">
-    <link rel="stylesheet" href="css/slicknav.css">
-    <link rel="stylesheet" href="css/style.css">
-    <!--  -->
+/* ---------- nav ---------- */
+.nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(248,250,252,.92);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.nav-inner{
+  max-width:1140px;margin:0 auto;padding:0 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  height:74px;gap:24px;
+}
+.wordmark{
+  display:flex;align-items:baseline;gap:10px;text-decoration:none;color:var(--ink);
+}
+.wordmark .wm-name{font-family:var(--serif);font-size:1.42rem;font-weight:600;letter-spacing:.01em}
+.wordmark .wm-sub{font-size:.68rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--bronze)}
+.nav-links{display:flex;align-items:center;gap:30px;list-style:none}
+.nav-links a{
+  text-decoration:none;color:var(--mut);font-weight:700;font-size:.92rem;
+  padding:6px 0;border-bottom:1px solid transparent;transition:color .15s;
+}
+.nav-links a:hover{color:var(--navy);border-bottom-color:var(--bronze)}
+.nav-phone{
+  display:inline-flex;align-items:center;gap:8px;text-decoration:none;
+  font-weight:700;font-size:.92rem;color:var(--navy);
+  border:1px solid var(--line-dk);border-radius:var(--r-s);
+  padding:10px 16px;min-height:44px;transition:border-color .15s,background .15s;
+  white-space:nowrap;
+}
+.nav-phone:hover{border-color:var(--navy);background:#EEF2FF}
+.nav-toggle{
+  display:none;background:none;border:1px solid var(--line-dk);border-radius:var(--r-s);
+  width:46px;height:46px;align-items:center;justify-content:center;cursor:pointer;color:var(--ink);
+}
+@media (max-width:900px){
+  .nav-links{
+    display:none;position:absolute;top:74px;left:0;right:0;
+    background:var(--page);border-bottom:1px solid var(--line);
+    flex-direction:column;align-items:flex-start;gap:0;padding:8px 24px 16px;
+  }
+  .nav-links.open{display:flex}
+  .nav-links li{width:100%}
+  .nav-links a{display:block;padding:13px 0;border-bottom:1px solid var(--line);width:100%}
+  .nav-toggle{display:inline-flex}
+  .nav-phone .np-txt{display:none}
+  .nav-phone{padding:10px 12px}
+}
+
+/* ---------- hero ---------- */
+.hero{
+  padding:clamp(56px,8vw,96px) 0 clamp(64px,9vw,104px);
+  border-bottom:1px solid var(--line);
+  background:
+    linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
+  position:relative;overflow:hidden;
+}
+.hero-grid{
+  display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);
+  gap:clamp(36px,6vw,80px);align-items:center;
+}
+.hero-kicker{
+  display:inline-flex;align-items:center;gap:12px;
+  font-size:.78rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--navy);margin-bottom:22px;
+}
+.hero-kicker::before,.hero-kicker::after{content:"";height:1px;width:30px;background:var(--bronze)}
+.hero h1{color:var(--ink)}
+.hero h1 em{font-style:italic;color:var(--navy)}
+.hero-rule{width:72px;height:2px;background:var(--bronze);margin:26px 0 22px}
+.hero-sub{font-size:1.14rem;max-width:52ch}
+.hero-ctas{display:flex;flex-wrap:wrap;gap:14px;margin-top:32px}
+.trust-strip{
+  margin-top:44px;padding-top:26px;border-top:1px solid var(--line-dk);
+  display:flex;flex-wrap:wrap;gap:8px 40px;
+}
+.trust-item{display:flex;flex-direction:column;gap:2px}
+.trust-item strong{
+  font-family:var(--serif);font-size:1.5rem;font-weight:600;color:var(--navy);
+  font-variant-numeric:tabular-nums;
+}
+.trust-item span{font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut-2)}
+.hero-art{position:relative;display:flex;justify-content:center}
+.hero-art .frame{
+  background:var(--white);border:1px solid var(--line);border-radius:var(--r-l);
+  box-shadow:var(--shadow-2);padding:clamp(24px,3vw,40px);
+  width:100%;max-width:420px;
+}
+.hero-art .frame-cap{
+  margin-top:18px;padding-top:16px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+}
+.hero-art .frame-cap .fc-l{font-family:var(--serif);font-size:1.05rem;font-style:italic;color:var(--ink)}
+.hero-art .frame-cap .fc-r{font-size:.72rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--bronze)}
+@media (max-width:900px){
+  .hero-grid{grid-template-columns:1fr}
+  .hero-art{order:-1}
+  .hero-art .frame{max-width:340px}
+}
+
+/* ---------- practice areas ---------- */
+.practice-head{
+  display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);
+  gap:24px;align-items:end;margin-bottom:clamp(36px,5vw,56px);
+}
+.practice-head p{margin-top:14px}
+@media (max-width:900px){.practice-head{grid-template-columns:1fr}}
+.practice-list{list-style:none;border-top:1px solid var(--line-dk)}
+.practice-item{
+  display:grid;
+  grid-template-columns:88px minmax(0,4fr) minmax(0,6fr) 56px;
+  gap:24px;align-items:center;
+  padding:30px 0;border-bottom:1px solid var(--line-dk);
+  transition:background .18s ease;
+}
+.practice-item:hover{background:#F1F5F9}
+.practice-num{
+  font-family:var(--serif);font-size:2rem;font-weight:500;color:var(--bronze);
+  font-variant-numeric:tabular-nums;transition:color .18s ease;
+}
+.practice-item:hover .practice-num{color:var(--bronze)}
+.practice-item h3{font-size:1.45rem}
+.practice-item .pi-tag{
+  display:block;font-family:var(--sans);font-size:.74rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--bronze);margin-top:6px;
+}
+.practice-item p{font-size:.99rem}
+.practice-arrow{color:var(--navy);opacity:0;transform:translateX(-8px);transition:opacity .18s ease,transform .18s ease;justify-self:end}
+.practice-item:hover .practice-arrow{opacity:1;transform:translateX(0)}
+@media (max-width:800px){
+  .practice-item{grid-template-columns:56px 1fr;gap:8px 20px;align-items:start}
+  .practice-num{font-size:1.5rem;grid-row:span 2}
+  .practice-item p{grid-column:2}
+  .practice-arrow{display:none}
+}
+
+/* ---------- about / stats ---------- */
+.about{background:var(--navy);border-top:1px solid var(--navy-deep);border-bottom:1px solid var(--navy-deep)}
+.about .eyebrow{color:#FCD34D}
+.about .eyebrow::before{background:#FCD34D}
+.about h2{color:#fff}
+.about p{color:#C7D2FE}
+.about-grid{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:clamp(36px,6vw,80px)}
+.about-points{list-style:none;margin-top:28px;display:grid;gap:18px}
+.about-points li{display:flex;gap:14px;align-items:flex-start;color:#E0E7FF;font-size:1rem}
+.about-points svg{flex:none;margin-top:3px;color:#FCD34D}
+.stats{display:grid;grid-template-columns:1fr 1fr;align-self:center}
+.stat{
+  padding:28px 26px;border:1px solid rgba(255,255,255,.14);
+  margin:-1px 0 0 -1px;
+}
+.stat strong{
+  display:block;font-family:var(--serif);font-weight:500;
+  font-size:clamp(2.2rem,3.6vw,3rem);color:#fff;
+  font-variant-numeric:tabular-nums;line-height:1.05;
+}
+.stat span{display:block;margin-top:8px;font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#A5B4FC}
+@media (max-width:900px){.about-grid{grid-template-columns:1fr}}
+@media (max-width:480px){.stats{grid-template-columns:1fr 1fr}.stat{padding:20px 16px}}
+
+/* ---------- engagement steps ---------- */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--line-dk);border-radius:var(--r-l);overflow:hidden;background:var(--white);margin-top:clamp(36px,5vw,52px)}
+.step{padding:clamp(28px,3.5vw,44px);border-left:1px solid var(--line-dk);position:relative}
+.step:first-child{border-left:none}
+.step-num{
+  font-family:var(--serif);font-size:.95rem;font-weight:600;color:var(--bronze);
+  letter-spacing:.14em;text-transform:uppercase;font-family:var(--sans);font-size:.74rem;
+  display:inline-flex;align-items:center;gap:10px;margin-bottom:18px;
+}
+.step-num::after{content:"";width:26px;height:1px;background:var(--bronze)}
+.step h3{margin-bottom:12px}
+.step p{font-size:.98rem}
+.step .step-note{
+  margin-top:18px;padding-top:14px;border-top:1px solid var(--line);
+  font-size:.85rem;color:var(--mut-2);font-style:italic;font-family:var(--serif);font-size:1rem;
+}
+@media (max-width:800px){
+  .steps{grid-template-columns:1fr}
+  .step{border-left:none;border-top:1px solid var(--line-dk)}
+  .step:first-child{border-top:none}
+}
+
+/* ---------- partners ---------- */
+.partners-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:clamp(36px,5vw,52px)}
+.partner{
+  background:var(--white);border:1px solid var(--line);border-radius:var(--r-l);
+  padding:32px 28px;box-shadow:var(--shadow-1);
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+.partner:hover{transform:translateY(-4px);box-shadow:var(--shadow-2);border-color:var(--line-dk)}
+.monogram{
+  width:64px;height:64px;border-radius:var(--r-s);
+  background:var(--navy);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:1.5rem;font-weight:500;letter-spacing:.04em;
+  margin-bottom:22px;position:relative;
+}
+.monogram::after{
+  content:"";position:absolute;inset:-5px;border:1px solid var(--line-dk);border-radius:var(--r-m);
+}
+.partner h3{font-size:1.35rem}
+.partner .p-role{
+  display:block;font-size:.76rem;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--bronze);margin:8px 0 14px;
+}
+.partner p{font-size:.96rem}
+.partner .p-bar{
+  margin-top:18px;padding-top:14px;border-top:1px solid var(--line);
+  font-size:.86rem;color:var(--mut-2);
+}
+@media (max-width:900px){.partners-grid{grid-template-columns:1fr;max-width:520px}}
+
+/* ---------- testimonials ---------- */
+.tst{background:#F1F5F9;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.tst-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:clamp(36px,5vw,52px)}
+.tst-card{
+  background:var(--white);border:1px solid var(--line);border-radius:var(--r-l);
+  padding:32px 28px;display:flex;flex-direction:column;gap:20px;
+  box-shadow:var(--shadow-1);
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+.tst-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-2)}
+.tst-card .quote-mark{color:var(--bronze)}
+.tst-card blockquote{
+  font-family:var(--serif);font-size:1.16rem;line-height:1.5;color:var(--ink);
+  font-style:italic;flex:1;
+}
+.tst-who{display:flex;align-items:center;gap:14px;padding-top:16px;border-top:1px solid var(--line)}
+.tst-avatar{
+  width:46px;height:46px;border-radius:50%;flex:none;
+  background:#EEF2FF;border:1px solid var(--line-dk);color:var(--navy);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-weight:600;font-size:1rem;
+}
+.tst-who strong{display:block;font-size:.95rem}
+.tst-who span{display:block;font-size:.82rem;color:var(--mut-2)}
+@media (max-width:900px){.tst-grid{grid-template-columns:1fr;max-width:520px}}
+
+/* ---------- contact ---------- */
+.contact-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(36px,5vw,64px);margin-top:clamp(36px,5vw,52px)}
+.form-card{
+  background:var(--white);border:1px solid var(--line);border-radius:var(--r-l);
+  padding:clamp(28px,3.5vw,44px);box-shadow:var(--shadow-1);
+}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:560px){.form-row{grid-template-columns:1fr}}
+.field{margin-bottom:20px}
+.field label{
+  display:block;font-size:.82rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink);margin-bottom:8px;
+}
+.field input,.field select,.field textarea{
+  width:100%;min-height:48px;padding:12px 14px;
+  font-family:var(--sans);font-size:1rem;color:var(--ink);
+  background:var(--page);border:1px solid var(--line-dk);border-radius:var(--r-s);
+  transition:border-color .15s;
+}
+.field textarea{min-height:130px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--navy)}
+.form-fine{font-size:.85rem;color:var(--mut-2);margin-top:14px}
+.contact-aside{display:flex;flex-direction:column;gap:0;border:1px solid var(--line-dk);border-radius:var(--r-l);background:var(--white);overflow:hidden;align-self:start}
+.ca-block{padding:26px 28px;border-top:1px solid var(--line)}
+.ca-block:first-child{border-top:none}
+.ca-block h3{font-size:1.15rem;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.ca-block h3 svg{color:var(--bronze)}
+.ca-block p, .ca-block a{font-size:.97rem;color:var(--mut);text-decoration:none}
+.ca-block a{color:var(--navy);font-weight:700}
+.ca-block a:hover{text-decoration:underline}
+.hours{list-style:none;font-size:.95rem;color:var(--mut)}
+.hours li{display:flex;justify-content:space-between;gap:16px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.hours li:last-child{border-bottom:none}
+.hours li span:last-child{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:700}
+@media (max-width:900px){.contact-grid{grid-template-columns:1fr}}
+
+/* ---------- footer ---------- */
+footer{
+  background:var(--ink);color:#94A3B8;padding:56px 0 110px;
+}
+.foot-grid{display:flex;flex-wrap:wrap;justify-content:space-between;gap:28px;align-items:flex-start}
+.foot-brand .wm-name{font-family:var(--serif);font-size:1.4rem;color:#fff;font-weight:500}
+.foot-brand .wm-sub{display:block;font-size:.68rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--bronze);margin-top:4px}
+.foot-links{list-style:none;display:flex;flex-wrap:wrap;gap:10px 26px}
+.foot-links a{color:#CBD5E1;text-decoration:none;font-size:.92rem;font-weight:700}
+.foot-links a:hover{color:#fff}
+.foot-rule{border:none;border-top:1px solid rgba(255,255,255,.12);margin:34px 0 22px}
+.foot-note{font-size:.85rem;color:#64748B}
+
+/* ---------- reveal motion ---------- */
+@media (prefers-reduced-motion: no-preference){
+  .rv{opacity:0;transform:translateY(18px);transition:opacity .28s ease-out,transform .28s ease-out}
+  .rv.in{opacity:1;transform:none}
+  .rv-d1{transition-delay:.06s}
+  .rv-d2{transition-delay:.12s}
+  .rv-d3{transition-delay:.18s}
+}
+</style>
 </head>
-
 <body>
-    <!--[if lte IE 9]>
-            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience and security.</p>
-        <![endif]-->
+<a class="skip-link" href="#main">Skip to main content</a>
 
-    <!-- header-start -->
-    <header>
-        <div class="header-area ">
-            <div id="sticky-header" class="main-header-area">
-                <div class="container-fluid p-0">
-                    <div class="row align-items-center justify-content-between no-gutters">
-                        <div class="col-xl-2 col-lg-2">
-                            <div class="logo-img">
-                                <a href="index.html">
-                                    <img src="img/logo.png" alt="">
-                                </a>
-                            </div>
-                        </div>
-                        <div class="col-xl-7 col-lg-8">
-                            <div class="main-menu  d-none d-lg-block">
-                                <nav>
-                                    <ul id="navigation">
-                                        <li><a class="active" href="index.html">home</a></li>
-                                        <li><a href="about.html">About</a></li>
-                                        <li><a href="Practice.html">Practice Area</a></li>
-                                        <li><a href="#">blog <i class="ti-angle-down"></i></a>
-                                            <ul class="submenu">
-                                                <li><a href="blog.html">blog</a></li>
-                                                <li><a href="single-blog.html">single-blog</a></li>
-                                            </ul>
-                                        </li>
-                                        <li><a href="#">pages <i class="ti-angle-down"></i></a>
-                                            <ul class="submenu">
-                                                <li><a href="elements.html">elements</a></li>
-                                            </ul>
-                                        </li>
-                                        <li><a href="contact.html">Contact</a></li>
-                                    </ul>
-                                </nav>
-                            </div>
-                        </div>
-                        <div class="col-xl-3 col-lg-2 d-none d-lg-block">
-                            <div class="social_media_links">
-                                <ul>
-                                    <li><a href="#"> <i class="fa fa-facebook"></i> </a></li>
-                                    <li><a href="#"> <i class="fa fa-twitter"></i> </a></li>
-                                    <li><a href="#"> <i class="fa fa-instagram"></i> </a></li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="mobile_menu d-block d-lg-none"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-    <!-- header-end -->
-
-    <!-- slider_area_start -->
-    <div class="slider_area ">
-        <div class="slider_area_inner slider_bg_1 d-flex align-items-center">
-            <div class="container">
-                <div class="row">
-                    <div class="col-xl-7">
-                        <div class="single_slider">
-                            <div class="slider_text">
-                                <h3>High Quality Law <br>
-                                    Advice and Support</h3>
-                                <p>Leading Polish Meridian Legal in your city</p>
-                                <a href="#" class="boxed-btn4 ">Learn More</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<header class="nav">
+  <div class="nav-inner">
+    <a class="wordmark" href="#top" aria-label="Meridian Legal Partners — home">
+      <span class="wm-name">Meridian</span>
+      <span class="wm-sub">Legal Partners</span>
+    </a>
+    <nav aria-label="Primary">
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#practice">Practice areas</a></li>
+        <li><a href="#firm">The firm</a></li>
+        <li><a href="#engagement">How we work</a></li>
+        <li><a href="#partners">Partners</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <div style="display:flex;align-items:center;gap:12px">
+      <a class="nav-phone" href="tel:+912267894400">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span class="np-txt">+91 22 6789 4400</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+      </button>
     </div>
-    <!-- slider_area_end -->
+  </div>
+</header>
 
-    <!-- about_area _start  -->
-    <div class="about_area">
-        <div class="opacity_icon d-none d-lg-block">
-            <i class="flaticon-balance"></i>
+<main id="main">
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="top" aria-labelledby="heroHeading">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <span class="hero-kicker">Mumbai · Est. 2009</span>
+        <h1 id="heroHeading">Clear counsel.<br><em>Measured strategy.</em></h1>
+        <div class="hero-rule" aria-hidden="true"></div>
+        <p class="hero-sub">Meridian Legal Partners advises businesses and families across corporate, employment, family and property law — every matter partner-led, every fee agreed in writing before work begins.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-bronze" href="#contact">Request a consultation</a>
+          <a class="btn btn-ghost" href="#practice">Explore practice areas</a>
         </div>
-        <div class="container">
-            <div class="row">
-                <div class="col-xl-6 col-md-6">
-                    <div class="single_about_info text-center">
-                        <div class="about_thumb">
-                            <img src="img/about/1.png" alt="">
-                        </div>
-                        <h3>Finest And Strongest Law <br>
-                            Firm Win The World</h3>
-                        <p>There are many variations of passages of Lorem Ipsum <br> available, but the majority have
-                            suffered alteration in <br> some form, by injected humour, or randomised words <br> which
-                            don't look even slightly believable. </p>
-                        <div class="signature">
-                            <img src="img/about/signature.png" alt="">
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-6 col-md-6">
-                    <div class="single_about_info text-center">
-                        <div class="about_thumb">
-                            <div class="image_hover">
-                                <div class="hover_inner">
-                                    <h2>93%</h2>
-                                    <span>Success Case</span>
-                                </div>
-                            </div>
-                        </div>
-                        <h3>About Meridian Legal Justice</h3>
-                        <p>There are many variations of passages of Lorem Ipsum <br> available, but the majority have
-                            suffered alteration in <br> some form, by injected humour, or randomised words <br> which
-                            don't look even slightly believable. </p>
-                        <div class="total_cases">
-                            <div class="single_cases">
-                                <h4>879</h4>
-                                <p>Total Cases</p>
-                            </div>
-                            <div class="single_cases">
-                                <h4>787</h4>
-                                <p>Case Won</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="trust-strip" role="list" aria-label="Firm credentials">
+          <div class="trust-item" role="listitem"><strong>17 yrs</strong><span>At the Mumbai bar</span></div>
+          <div class="trust-item" role="listitem"><strong>1,400+</strong><span>Matters concluded</span></div>
+          <div class="trust-item" role="listitem"><strong>92%</strong><span>Resolved pre-trial</span></div>
         </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="frame">
+          <svg viewBox="0 0 320 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+            <!-- column of justice line art -->
+            <g stroke="#1E3A8A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <!-- pediment -->
+              <path d="M56 78 L160 30 L264 78"/>
+              <path d="M70 78 L160 40 L250 78"/>
+              <line x1="48" y1="88" x2="272" y2="88"/>
+              <line x1="56" y1="96" x2="264" y2="96"/>
+              <!-- columns -->
+              <g>
+                <line x1="84" y1="108" x2="84" y2="228"/><line x1="100" y1="108" x2="100" y2="228"/>
+                <line x1="82" y1="104" x2="102" y2="104"/><line x1="82" y1="232" x2="102" y2="232"/>
+              </g>
+              <g>
+                <line x1="136" y1="108" x2="136" y2="228"/><line x1="152" y1="108" x2="152" y2="228"/>
+                <line x1="134" y1="104" x2="154" y2="104"/><line x1="134" y1="232" x2="154" y2="232"/>
+              </g>
+              <g>
+                <line x1="188" y1="108" x2="188" y2="228"/><line x1="204" y1="108" x2="204" y2="228"/>
+                <line x1="186" y1="104" x2="206" y2="104"/><line x1="186" y1="232" x2="206" y2="232"/>
+              </g>
+              <g>
+                <line x1="240" y1="108" x2="240" y2="228"/><line x1="256" y1="108" x2="256" y2="228"/>
+                <line x1="238" y1="104" x2="258" y2="104"/><line x1="238" y1="232" x2="258" y2="232"/>
+              </g>
+              <!-- steps -->
+              <line x1="52" y1="242" x2="268" y2="242"/>
+              <line x1="42" y1="254" x2="278" y2="254"/>
+              <line x1="32" y1="266" x2="288" y2="266"/>
+            </g>
+            <!-- bronze scale accent -->
+            <g stroke="#B45309" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="160" y1="52" x2="160" y2="74"/>
+              <line x1="146" y1="58" x2="174" y2="58"/>
+              <path d="M146 58 L140 68 A7 7 0 0 0 152 68 Z"/>
+              <path d="M174 58 L168 68 A7 7 0 0 0 180 68 Z"/>
+            </g>
+          </svg>
+          <div class="frame-cap">
+            <span class="fc-l">“Advice first, litigation last.”</span>
+            <span class="fc-r">Firm principle</span>
+          </div>
+        </div>
+      </div>
     </div>
-    <!-- about_area _end -->
+  </div>
+</section>
 
-    <!-- practice_area_start -->
-    <div class="practice_area">
-        <div class="container-fluid p-0">
-            <div class="row">
-                <div class="col-xl-12">
-                    <div class="section_title text-center mb-60">
-                        <h3>Practice Area</h3>
-                        <p>Many variations of passages of Lorem Ipsum available, but the majority have <br> suffered alteration in some.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="row no-gutters">
-                <div class="col-xl-3 col-md-6">
-                    <div class="single_practice">
-                        <div class="practice_image">
-                            <img src="img/practice/1.png" alt="">
-                        </div>
-                        <div class="practice_hover text-center">
-                            <div class="hover_inner">
-                                <i class="flaticon-case"></i>
-                                <h3>Business Law</h3>
-                                <p>There are many variations of passages of <br> Lorem Ipsum available, <br> but the
-                                    majority have suffered</p>
-                                <a href="#" class="lern_more">Learn More</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="single_practice">
-                        <div class="practice_image">
-                            <img src="img/practice/2.png" alt="">
-                        </div>
-                        <div class="practice_hover text-center">
-                            <div class="hover_inner">
-                                <i class="flaticon-courthouse"></i>
-                                <h3>Finance Law</h3>
-                                <p>There are many variations of passages of <br> Lorem Ipsum available, <br> but the
-                                    majority have suffered</p>
-                                <a href="#" class="lern_more">Learn More</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="single_practice">
-                        <div class="practice_image">
-                            <img src="img/practice/3.png" alt="">
-                        </div>
-                        <div class="practice_hover text-center">
-                            <div class="hover_inner">
-                                <i class="flaticon-judge"></i>
-                                <h3>Family Law</h3>
-                                <p>There are many variations of passages of <br> Lorem Ipsum available, <br> but the
-                                    majority have suffered</p>
-                                <a href="#" class="lern_more">Learn More</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="single_practice">
-                        <div class="practice_image">
-                            <img src="img/practice/4.png" alt="">
-                        </div>
-                        <div class="practice_hover text-center">
-                            <div class="hover_inner">
-                                <i class="flaticon-jury"></i>
-                                <h3>Education Law</h3>
-                                <p>There are many variations of passages of <br> Lorem Ipsum available, <br> but the
-                                    majority have suffered</p>
-                                <a href="#" class="lern_more">Learn More</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- ============ PRACTICE AREAS ============ -->
+<section id="practice" aria-labelledby="practiceHeading">
+  <div class="wrap">
+    <div class="practice-head rv">
+      <div>
+        <span class="eyebrow">Practice areas</span>
+        <h2 id="practiceHeading">Four disciplines, practised deeply</h2>
+      </div>
+      <p>We deliberately keep the firm narrow. Each practice is led by a partner who works in that field exclusively — no generalists, no hand-offs to juniors you have never met.</p>
     </div>
-    <!-- practice_area_end -->
-
-    <!-- our_loyers-start  -->
-    <div class="our_loyers">
-        <div class="container">
-                <div class="row">
-                        <div class="col-xl-12">
-                            <div class="section_title text-center mb-60">
-                                <h3>Our Lawyers</h3>
-                                <p>Many variations of passages of Lorem Ipsum available, but the majority have <br> suffered alteration in some.</p>
-                            </div>
-                        </div>
-                    </div>
-            <div class="row">
-                <div class="col-xl-4 col-md-6 col-lg-4">
-                    <div class="single_loyers text-center">
-                        <div class="thumb">
-                            <img src="img/lawyers/1.png" alt="">
-                        </div>
-                        <h3>Henry Miller</h3>
-                        <span>Family Meridian Legal</span>
-                        <div class="social_links">
-                            <ul>
-                                <li><a href="#"> <i class="fa fa-facebook"></i> </a></li>
-                                <li><a href="#"> <i class="fa fa-twitter"></i> </a></li>
-                                <li><a href="#"> <i class="fa fa-instagram"></i> </a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-4 col-md-6 col-lg-4">
-                    <div class="single_loyers text-center">
-                        <div class="thumb">
-                            <img src="img/lawyers/2.png" alt="">
-                        </div>
-                        <h3>Jon Anderson</h3>
-                        <span>Consumer Meridian Legal</span>
-                        <div class="social_links">
-                            <ul>
-                                <li><a href="#"> <i class="fa fa-facebook"></i> </a></li>
-                                <li><a href="#"> <i class="fa fa-twitter"></i> </a></li>
-                                <li><a href="#"> <i class="fa fa-instagram"></i> </a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-4 col-md-6 col-lg-4">
-                    <div class="single_loyers text-center">
-                        <div class="thumb">
-                            <img src="img/lawyers/3.png" alt="">
-                        </div>
-                        <h3>Jaky Nadan</h3>
-                        <span>Criminal Meridian Legal</span>
-                        <div class="social_links">
-                            <ul>
-                                <li><a href="#"> <i class="fa fa-facebook"></i> </a></li>
-                                <li><a href="#"> <i class="fa fa-twitter"></i> </a></li>
-                                <li><a href="#"> <i class="fa fa-instagram"></i> </a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <ol class="practice-list">
+      <li class="practice-item rv">
+        <span class="practice-num" aria-hidden="true">01</span>
+        <div>
+          <h3>Corporate &amp; Commercial</h3>
+          <span class="pi-tag">Led by A. Merchant</span>
         </div>
+        <p>Company formation, shareholder agreements, commercial contracts, private-round documentation and dispute avoidance for founders and SMEs from Fort to BKC.</p>
+        <svg class="practice-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </li>
+      <li class="practice-item rv rv-d1">
+        <span class="practice-num" aria-hidden="true">02</span>
+        <div>
+          <h3>Employment &amp; Workplace</h3>
+          <span class="pi-tag">Led by R. Deshpande</span>
+        </div>
+        <p>Severance and release review, wrongful termination, POSH compliance, employment contracts and workplace investigations — for employees and employers alike.</p>
+        <svg class="practice-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </li>
+      <li class="practice-item rv rv-d2">
+        <span class="practice-num" aria-hidden="true">03</span>
+        <div>
+          <h3>Family &amp; Matrimonial</h3>
+          <span class="pi-tag">Led by N. Kulkarni</span>
+        </div>
+        <p>Divorce, maintenance, custody and settlement structuring — handled with discretion, a preference for mediation, and candour about likely outcomes from day one.</p>
+        <svg class="practice-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </li>
+      <li class="practice-item rv rv-d3">
+        <span class="practice-num" aria-hidden="true">04</span>
+        <div>
+          <h3>Property &amp; Real Estate</h3>
+          <span class="pi-tag">Led by A. Merchant</span>
+        </div>
+        <p>Title due diligence, redevelopment agreements, society disputes, leave-and-licence drafting and RERA matters across Mumbai and the wider MMR.</p>
+        <svg class="practice-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ ABOUT / STATS ============ -->
+<section class="about" id="firm" aria-labelledby="firmHeading">
+  <div class="wrap">
+    <div class="about-grid">
+      <div class="rv">
+        <span class="eyebrow">The firm</span>
+        <h2 id="firmHeading">A quieter way to practise law</h2>
+        <p class="lede">Founded in 2009 by two partners who left larger chambers, Meridian was built on a simple premise: clients deserve to know what their matter will cost, who is actually working on it, and what a realistic outcome looks like.</p>
+        <ul class="about-points">
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Written fee estimate before any work begins — fixed-fee phases wherever the matter allows.
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Every matter is partner-led. Juniors assist; they never carry your file alone.
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            We will tell you when not to litigate — 92% of our matters conclude before trial.
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Plain-language advice memos after every consultation, in English, Hindi or Marathi.
+          </li>
+        </ul>
+      </div>
+      <div class="stats rv rv-d1" role="list" aria-label="Firm statistics">
+        <div class="stat" role="listitem"><strong>1,400+</strong><span>Matters concluded</span></div>
+        <div class="stat" role="listitem"><strong>3</strong><span>Equity partners</span></div>
+        <div class="stat" role="listitem"><strong>48 hrs</strong><span>Memo turnaround</span></div>
+        <div class="stat" role="listitem"><strong>4.9</strong><span>Rating · 310+ reviews</span></div>
+      </div>
     </div>
-    <!-- our_loyers-end  -->
+  </div>
+</section>
 
-    <!-- testmonial_area_start  -->
-    <div class="testmonial_area testmonial_bg_1 overlay2">
-        <div class="container">
-            <div class="row">
-                <div class="col-xl-12">
-                    <div class="testmonial_active owl-carousel">
-                        <div class="single_testmonial text-center">
-                            <i class="flaticon-straight-quotes"></i>
-                            <p>There are many variations of passages of Lorem Ipsum available, but the <br> majority have suffered alteration in some form, by injected humour, or <br> randomised words which don't look even slightly believable. </p>
-                            <div class="author_info d-flex justify-content-center align-items-center">
-                                <div class="thumb">
-                                    <img src="img/testmonial/smaill_thumb.png" alt="">
-                                </div>
-                                <span>- Millan Mirza</span>
-                            </div>
-                        </div>
-                        <div class="single_testmonial text-center">
-                            <i class="flaticon-straight-quotes"></i>
-                            <p>There are many variations of passages of Lorem Ipsum available, but the <br> majority have suffered alteration in some form, by injected humour, or <br> randomised words which don't look even slightly believable. </p>
-                            <div class="author_info d-flex justify-content-center align-items-center">
-                                <div class="thumb">
-                                    <img src="img/testmonial/smaill_thumb.png" alt="">
-                                </div>
-                                <span>- Millan Mirza</span>
-                            </div>
-                        </div>
-                        <div class="single_testmonial text-center">
-                            <i class="flaticon-straight-quotes"></i>
-                            <p>There are many variations of passages of Lorem Ipsum available, but the <br> majority have suffered alteration in some form, by injected humour, or <br> randomised words which don't look even slightly believable. </p>
-                            <div class="author_info d-flex justify-content-center align-items-center">
-                                <div class="thumb">
-                                    <img src="img/testmonial/smaill_thumb.png" alt="">
-                                </div>
-                                <span>- Millan Mirza</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- ============ ENGAGEMENT ============ -->
+<section id="engagement" aria-labelledby="engagementHeading">
+  <div class="wrap">
+    <div class="rv">
+      <span class="eyebrow">How an engagement works</span>
+      <h2 id="engagementHeading">Three steps, no surprises</h2>
+      <p class="lede">Most clients tell us the anxiety of hiring a lawyer is not the law — it is the uncertainty. So we removed it.</p>
     </div>
-    <!-- testmonial_area_end  -->
+    <ol class="steps">
+      <li class="step rv">
+        <span class="step-num">Step one</span>
+        <h3>Structured 30-minute consultation</h3>
+        <p>A fixed-fee session with the relevant partner. You send documents beforehand; the partner reads them first, so the full 30 minutes goes on advice — not intake paperwork.</p>
+        <p class="step-note">Credited against your matter if you instruct us.</p>
+      </li>
+      <li class="step rv rv-d1">
+        <span class="step-num">Step two</span>
+        <h3>Written strategy memo</h3>
+        <p>Within 48 hours you receive a plain-language memo: your position, realistic outcomes, the routes available, and a fee estimate for each. Yours to keep, whoever you hire.</p>
+        <p class="step-note">Including the honest option of doing nothing.</p>
+      </li>
+      <li class="step rv rv-d2">
+        <span class="step-num">Step three</span>
+        <h3>Partner-led matter</h3>
+        <p>If you proceed, the same partner runs your matter end to end — fixed-fee phases where possible, fortnightly written updates, and email answered within one working day.</p>
+        <p class="step-note">One partner, one file, start to finish.</p>
+      </li>
+    </ol>
+  </div>
+</section>
 
-    <div class="appointment_area">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-xl-5 col-md-6 col-lg-6">
-                    <div class="appiontment_thumb d-none d-lg-block">
-                        <img src="img/appointment/1.png" alt="">
-                    </div>
-                </div>
-                <div class="col-xl-6 offset-xl-1 col-md-6 col-md-12 col-lg-6">
-                    <div class="appointment_info">
-                        <div class="opacity_icon d-none d-lg-block">
-                            <i class="flaticon-balance"></i>
-                        </div>
-                        <h3>Make an Appointment</h3>
-                        <p>Many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some.</p>
-                        <form onsubmit="event.preventDefault();this.reset();alert('Demo site — this form is illustrative and does not send anything.')">
-                                <div class="row">
-                                    <div class="col-xl-6 col-md-6">
-                                            <input type="text" placeholder="Your Name">
-                                    </div>
-                                    <div class="col-xl-6 col-md-6">
-                                            <input type="email" placeholder="Your Email">
-                                    </div>
-                                    <div class="col-xl-6 col-md-6">
-                                            <input type="text" placeholder="Phone no.">
-                                    </div>
-                                    <div class="col-xl-6 col-md-6">
-                                        <input id="datepicker" placeholder="Appointment date">
-                                    </div>
-                                    <div class="col-xl-12">
-                                        <textarea placeholder="Message" ></textarea>
-                                    </div>
-                                    <div class="col-xl-12">
-                                        <div class="appoinment_button">
-                                            <button class="boxed-btn5 " type="submit" >Submit</button>
-                                        </div>
-                                    </div>
-                                </div>
-        
-                            </form>
-                    </div>
-
-                </div>
-            </div>
-        </div>
+<!-- ============ PARTNERS ============ -->
+<section id="partners" aria-labelledby="partnersHeading" style="padding-top:0">
+  <div class="wrap">
+    <div class="rv">
+      <span class="eyebrow">The partners</span>
+      <h2 id="partnersHeading">Who will actually run your matter</h2>
+      <p class="lede">Three equity partners, one office, no revolving door. The person you meet at the consultation is the person who signs your filings.</p>
     </div>
+    <div class="partners-grid">
+      <article class="partner rv">
+        <div class="monogram" aria-hidden="true">AM</div>
+        <h3>Aarav Merchant</h3>
+        <span class="p-role">Managing Partner · Corporate &amp; Property</span>
+        <p>Sixteen years advising founders, family businesses and housing societies. Formerly of a national full-service firm; left to build a practice where the partner still drafts.</p>
+        <p class="p-bar">B.A. LL.B. (Hons.), Government Law College, Mumbai</p>
+      </article>
+      <article class="partner rv rv-d1">
+        <div class="monogram" aria-hidden="true">RD</div>
+        <h3>Rhea Deshpande</h3>
+        <span class="p-role">Partner · Employment &amp; Workplace</span>
+        <p>Acts for both employees and employers — which is exactly why her severance and POSH advice is trusted on both sides of the table. 400+ workplace matters concluded.</p>
+        <p class="p-bar">LL.M. (Labour Law), University of Mumbai</p>
+      </article>
+      <article class="partner rv rv-d2">
+        <div class="monogram" aria-hidden="true">NK</div>
+        <h3>Nikhil Kulkarni</h3>
+        <span class="p-role">Partner · Family &amp; Matrimonial</span>
+        <p>A trained mediator who settles four matters for every one he argues. Known for candour in first consultations — including when the best advice is to reconcile terms, not fight.</p>
+        <p class="p-bar">Accredited Mediator, Bombay High Court panel</p>
+      </article>
+    </div>
+  </div>
+</section>
 
-    <!-- footer_start -->
-    <footer class="footer">
-        <div class="footer_top">
-            <div class="container">
-                <div class="row">
-                    <div class="col-xl-4 col-md-6 col-lg-3">
-                        <div class="footer_widget">
-                            <div class="footer_logo">
-                                <a href="index.html">
-                                    <img src="img/logo.png" alt="">
-                                </a>
-                            </div>
-                            <p class="footer_text">200, A-block, Green road, USA <br>
-                                +91 22 6789 4400 <br>
-                                <a class="domain" href="#">consult@meridianlegal.demo</a></p>
-                            <div class="socail_links">
-                                <ul>
-                                    <li>
-                                        <a href="#">
-                                            <i class="fa fa-facebook"></i>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="#">
-                                            <i class="fa fa-twitter"></i>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="#">
-                                            <i class="fa fa-instagram"></i>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xl-2 col-md-6 col-lg-2">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">
-                                    Practice Area
-                            </h3>
-                            <ul>
-                                <li><a href="#">Business law
-                                    </a></li>
-                                <li><a href="#">Finance law</a></li>
-                                <li><a href="#">Education law</a></li>
-                                <li><a href="#">Family law</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-xl-2 col-md-6 col-lg-2">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">
-                                    Useful Links
-                            </h3>
-                            <ul>
-                                <li><a href="#">About</a></li>
-                                <li><a href="#">Blog</a></li>
-                                <li><a href="#"> Contact</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-xl-4 col-md-6 col-lg-4">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">
-                                    Subscribe
-                            </h3>
-                            <form class="newsletter_form" onsubmit="event.preventDefault();this.reset();alert('Demo site — this form is illustrative and does not send anything.')">
-                                <input type="text" placeholder="Enter your mail">
-                                <button type="submit">Sign Up</button>
-                            </form>
-                            <p class="newsletter_text">Subscribe newsletter to get updates</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<!-- ============ TESTIMONIALS ============ -->
+<section class="tst" aria-labelledby="tstHeading">
+  <div class="wrap">
+    <div class="rv">
+      <span class="eyebrow">Client accounts</span>
+      <h2 id="tstHeading">Spoken plainly, like our advice</h2>
+    </div>
+    <div class="tst-grid">
+      <article class="tst-card rv">
+        <svg class="quote-mark" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21c3-1 5-3.5 5-8H4V5h8v8c0 5-3 7.5-9 8z"/><path d="M14 21c3-1 5-3.5 5-8h-4V5h8v8c0 5-3 7.5-9 8z" transform="translate(-2 0) scale(0.92)"/></svg>
+        <blockquote>The strategy memo alone was worth the consultation fee. For the first time I understood my own dispute — and what each route would cost me.</blockquote>
+        <div class="tst-who">
+          <span class="tst-avatar" aria-hidden="true">VS</span>
+          <div><strong>Vikram Shetty</strong><span>Director, logistics company · Corporate</span></div>
         </div>
-        <div class="copy-right_text">
-            <div class="container">
-                <div class="footer_border"></div>
-                <div class="row">
-                    <div class="col-xl-12">
-                        <p class="copy_right text-center">
-                            <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="fa fa-heart-o" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
-<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-                        </p>
-                    </div>
-                </div>
-            </div>
+      </article>
+      <article class="tst-card rv rv-d1">
+        <svg class="quote-mark" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21c3-1 5-3.5 5-8H4V5h8v8c0 5-3 7.5-9 8z"/><path d="M14 21c3-1 5-3.5 5-8h-4V5h8v8c0 5-3 7.5-9 8z" transform="translate(-2 0) scale(0.92)"/></svg>
+        <blockquote>I was asked to sign a release in four days. Ms Deshpande read everything before our call and told me exactly what to change. I negotiated double the severance.</blockquote>
+        <div class="tst-who">
+          <span class="tst-avatar" aria-hidden="true">PJ</span>
+          <div><strong>Priya Joshi</strong><span>Product manager · Employment</span></div>
         </div>
-    </footer>
-    <!-- footer_end -->
+      </article>
+      <article class="tst-card rv rv-d2">
+        <svg class="quote-mark" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21c3-1 5-3.5 5-8H4V5h8v8c0 5-3 7.5-9 8z"/><path d="M14 21c3-1 5-3.5 5-8h-4V5h8v8c0 5-3 7.5-9 8z" transform="translate(-2 0) scale(0.92)"/></svg>
+        <blockquote>Our society's redevelopment agreement sat unsigned for two years. Meridian's title diligence found the actual blocker in three weeks, and the fee never moved from the estimate.</blockquote>
+        <div class="tst-who">
+          <span class="tst-avatar" aria-hidden="true">SD</span>
+          <div><strong>Sunil D'Souza</strong><span>Society chairman · Property</span></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
 
+<!-- ============ CONTACT ============ -->
+<section id="contact" aria-labelledby="contactHeading">
+  <div class="wrap">
+    <div class="rv">
+      <span class="eyebrow">Contact</span>
+      <h2 id="contactHeading">Request a consultation</h2>
+      <p class="lede">Tell us briefly what has happened. The relevant partner reviews every enquiry before your consultation is confirmed — usually within one working day.</p>
+    </div>
+    <div class="contact-grid">
+      <form class="form-card rv" aria-label="Consultation request form">
+        <div class="form-row">
+          <div class="field">
+            <label for="f-name">Full name</label>
+            <input id="f-name" name="name" type="text" autocomplete="name" required>
+          </div>
+          <div class="field">
+            <label for="f-phone">Phone</label>
+            <input id="f-phone" name="phone" type="tel" autocomplete="tel" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="f-email">Email</label>
+            <input id="f-email" name="email" type="email" autocomplete="email" required>
+          </div>
+          <div class="field">
+            <label for="f-area">Matter type</label>
+            <select id="f-area" name="matter">
+              <option>Corporate &amp; commercial</option>
+              <option>Employment &amp; workplace</option>
+              <option>Family &amp; matrimonial</option>
+              <option>Property &amp; real estate</option>
+              <option>Not sure yet</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-msg">What has happened, briefly</label>
+          <textarea id="f-msg" name="message" required placeholder="Two or three sentences is enough — the partner will ask the rest."></textarea>
+        </div>
+        <button class="btn btn-primary" type="submit" style="width:100%">Send enquiry</button>
+        <p class="form-fine">Sending an enquiry does not create a lawyer–client relationship. Please do not include highly sensitive details at this stage.</p>
+      </form>
+      <aside class="contact-aside rv rv-d1" aria-label="Office details">
+        <div class="ca-block">
+          <h3>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Chambers
+          </h3>
+          <p>12 Fort Street, Mumbai 400001<br>Second office: BKC, by appointment</p>
+        </div>
+        <div class="ca-block">
+          <h3>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Speak to us
+          </h3>
+          <p><a href="tel:+912267894400">+91 22 6789 4400</a><br><a href="mailto:consult@meridianlegal.demo">consult@meridianlegal.demo</a></p>
+        </div>
+        <div class="ca-block">
+          <h3>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+            Hours
+          </h3>
+          <ul class="hours">
+            <li><span>Monday – Friday</span><span>9:30 – 18:30</span></li>
+            <li><span>Saturday</span><span>10:00 – 14:00</span></li>
+            <li><span>Sunday</span><span>Closed</span></li>
+          </ul>
+          <p style="margin-top:12px;font-size:.88rem">Urgent employment deadlines are triaged same-day.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
 
-    <!-- JS here -->
-    <script src="js/vendor/modernizr-3.5.0.min.js"></script>
-    <script src="js/vendor/jquery-1.12.4.min.js"></script>
-    <script src="js/popper.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/owl.carousel.min.js"></script>
-    <script src="js/isotope.pkgd.min.js"></script>
-    <script src="js/ajax-form.js"></script>
-    <script src="js/waypoints.min.js"></script>
-    <script src="js/jquery.counterup.min.js"></script>
-    <script src="js/imagesloaded.pkgd.min.js"></script>
-    <script src="js/scrollIt.js"></script>
-    <script src="js/jquery.scrollUp.min.js"></script>
-    <script src="js/wow.min.js"></script>
-    <script src="js/nice-select.min.js"></script>
-    <script src="js/gijgo.min.js"></script>
-    <script src="js/jquery.slicknav.min.js"></script>
-    <script src="js/jquery.magnific-popup.min.js"></script>
-    <script src="js/plugins.js"></script>
+</main>
 
-    <!--contact js-->
-    <script src="js/contact.js"></script>
-    <script src="js/jquery.ajaxchimp.min.js"></script>
-    <script src="js/jquery.form.js"></script>
-    <script src="js/jquery.validate.min.js"></script>
-    <script src="js/mail-script.js"></script>
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <span class="wm-name">Meridian</span>
+        <span class="wm-sub">Legal Partners</span>
+      </div>
+      <ul class="foot-links">
+        <li><a href="#practice">Practice areas</a></li>
+        <li><a href="#firm">The firm</a></li>
+        <li><a href="#engagement">How we work</a></li>
+        <li><a href="#partners">Partners</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+    <hr class="foot-rule">
+    <p class="foot-note">A fictional demonstration site built by Catalyst Solutions — Professional Services program specification.</p>
+  </div>
+</footer>
 
-    <script src="js/main.js"></script>
+<script>
+(function(){
+  var t=document.getElementById('navToggle'),l=document.getElementById('navLinks');
+  if(t&&l){
+    t.addEventListener('click',function(){
+      var open=l.classList.toggle('open');
+      t.setAttribute('aria-expanded',open?'true':'false');
+      t.setAttribute('aria-label',open?'Close menu':'Open menu');
+    });
+    l.addEventListener('click',function(e){
+      if(e.target.tagName==='A'){l.classList.remove('open');t.setAttribute('aria-expanded','false');}
+    });
+  }
+  if(window.matchMedia('(prefers-reduced-motion: no-preference)').matches&&'IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}
+      });
+    },{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+    document.querySelectorAll('.rv').forEach(function(el){io.observe(el);});
+  }else{
+    document.querySelectorAll('.rv').forEach(function(el){el.classList.add('in');});
+  }
+})();
+</script>
 
-    <script>
-            $('#datepicker').datepicker({
-                iconsLibrary: 'fontawesome',
-                // disableDaysOfWeek: [0, 0],
-            //     icons: {
-            //      rightIcon: '<span class="fa fa-caret-down"></span>'
-            //  }
-            });
-            $('#datepicker2').datepicker({
-                iconsLibrary: 'fontawesome',
-                icons: {
-                 rightIcon: '<span class="fa fa-caret-down"></span>'
-             }
-    
-            });
-            var timepicker = $('#timepicker').timepicker({
-             format: 'HH.MM'
-         });
-        </script>
-<link rel="stylesheet" href="../_vendor/tier-layer.css"><script>window.__TIER_LAYER={"brand":"Meridian Legal Partners","accent":"#B45309","tiers":[{"label":"Tier 1 — Authority Foundation","short":"T1","widgets":[]},{"label":"Tier 2 — Inquiry Engine","short":"T2","widgets":["enquiry","whatsapp","reviews"]},{"label":"Tier 3 — Practice Growth System","short":"T3","widgets":["chat","dashboard","locations"]}],"hello":"New guide: what to ask any law firm before you engage one — free download.","locations":["Fort Street — Mumbai","BKC Office"],"dashHref":"/bundles/authority-inquiry-engine#demos","bookLabel":"Request a consultation","bookCta":"See available times","chatIntro":"Hello — I'm the Meridian intake assistant. I can check whether we handle your matter and book you with the right partner.","chatLabel":"Ask the intake assistant","chat":[{"q":"Do you handle my case?","a":"We cover corporate, employment, family and property matters. Tell me roughly what's happened and I'll confirm scope — honestly, either way."},{"q":"What does a consultation cost?","a":"The initial 30-minute consultation is fixed-fee and credited against your matter if you instruct us. Written fee estimate before any work begins."},{"q":"How fast can I speak to someone?","a":"Urgent matters are triaged same-day. I'll take details now so the partner reads your situation before the call — your 30 minutes goes on advice, not paperwork."}],"wa":[{"f":"e","t":"📩 Enquiry from the employment-law page — Sun 8:40 PM"},{"f":"b","t":"Hello, Meridian Legal Partners. I can take the key details now so a partner can review before calling you. Is this an employment matter?"},{"f":"u","t":"Yes — I've been asked to resign and sign a release by Friday"},{"f":"b","t":"Understood — that deadline matters. Please don't sign anything yet. I can book a priority consultation tomorrow 10 AM or 4 PM. Which works?"},{"f":"u","t":"10 AM"},{"f":"b","t":"Confirmed ✅ Tomorrow 10 AM with our employment partner. I've noted the Friday deadline so the advice is deadline-first."},{"f":"e","t":"✅ Priority intake, partner briefed — 81 seconds"}],"reviews":[{"n":"V. Sharma, Director","t":"The intake meant our first call started at the real issue, not the paperwork."},{"n":"J. Thomas","t":"They told me upfront which route was cheaper without them. I hired them anyway."},{"n":"R. Iyer, Founder","t":"Fixed-fee phases and a partner who answers email. Rare combination."}]}</script><script src="../_vendor/tier-layer.js" defer></script></body>
-
+<link rel="stylesheet" href="../_vendor/tier-layer.css">
+<script>window.__TIER_LAYER={"brand":"Meridian Legal Partners","accent":"#B45309","tiers":[{"label":"Tier 1 — Authority Foundation","short":"T1","widgets":[]},{"label":"Tier 2 — Inquiry Engine","short":"T2","widgets":["enquiry","whatsapp","reviews"]},{"label":"Tier 3 — Practice Growth System","short":"T3","widgets":["chat","dashboard","locations"]}],"hello":"New guide: what to ask any law firm before you engage one — free download.","locations":["Fort Street — Mumbai","BKC Office"],"dashHref":"/bundles/authority-inquiry-engine#demos","bookLabel":"Request a consultation","bookCta":"See available times","chatIntro":"Hello — I'm the Meridian intake assistant. I can check whether we handle your matter and book you with the right partner.","chatLabel":"Ask the intake assistant","chat":[{"q":"Do you handle my case?","a":"We cover corporate, employment, family and property matters. Tell me roughly what's happened and I'll confirm scope — honestly, either way."},{"q":"What does a consultation cost?","a":"The initial 30-minute consultation is fixed-fee and credited against your matter if you instruct us. Written fee estimate before any work begins."},{"q":"How fast can I speak to someone?","a":"Urgent matters are triaged same-day. I'll take details now so the partner reads your situation before the call — your 30 minutes goes on advice, not paperwork."}],"wa":[{"f":"e","t":"📩 Enquiry from the employment-law page — Sun 8:40 PM"},{"f":"b","t":"Hello, Meridian Legal Partners. I can take the key details now so a partner can review before calling you. Is this an employment matter?"},{"f":"u","t":"Yes — I've been asked to resign and sign a release by Friday"},{"f":"b","t":"Understood — that deadline matters. Please don't sign anything yet. I can book a priority consultation tomorrow 10 AM or 4 PM. Which works?"},{"f":"u","t":"10 AM"},{"f":"b","t":"Confirmed ✅ Tomorrow 10 AM with our employment partner. I've noted the Friday deadline so the advice is deadline-first."},{"f":"e","t":"✅ Priority intake, partner briefed — 81 seconds"}],"reviews":[{"n":"V. Sharma, Director","t":"The intake meant our first call started at the real issue, not the paperwork."},{"n":"J. Thomas","t":"They told me upfront which route was cheaper without them. I hired them anyway."},{"n":"R. Iyer, Founder","t":"Fixed-fee phases and a partner who answers email. Rare combination."}]}</script><script src="../_vendor/tier-layer.js" defer></script>
+</body>
 </html>

@@ -1,822 +1,807 @@
-<!DOCTYPE html>
-
-<!--
- // WEBSITE: https://themefisher.com
- // TWITTER: https://twitter.com/themefisher
- // FACEBOOK: https://www.facebook.com/themefisher
- // GITHUB: https://github.com/themefisher/
--->
-
+<!doctype html>
 <html lang="en">
 <head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ascent Academy — Test-prep coaching with counselor-led admissions</title>
+<meta name="description" content="Engineering, medical and foundation programs with small batches and 24×7 admission counseling.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FDFBF7;
+  --surface:#FFFFFF;
+  --ink:#1E1B4B;
+  --ink-soft:#4B4869;
+  --indigo:#312E81;
+  --indigo-deep:#252260;
+  --orange:#F97316;
+  --orange-deep:#C2570C;
+  --sage:#5E7D5A;
+  --sage-soft:#EEF3EC;
+  --cream:#F6F1E7;
+  --line:#E8E3D8;
+  --r-lg:16px;
+  --r-md:12px;
+  --r-sm:8px;
+  --shadow-1:0 1px 2px rgba(30,27,75,.06),0 4px 12px rgba(30,27,75,.06);
+  --shadow-2:0 2px 4px rgba(30,27,75,.08),0 12px 32px rgba(30,27,75,.10);
+  --font-head:"Fraunces",Georgia,serif;
+  --font-body:"Nunito Sans",system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.6;
+  font-size:1rem;
+  -webkit-font-smoothing:antialiased;
+}
+img,svg{display:block;max-width:100%}
+a{color:inherit}
+h1,h2,h3{font-family:var(--font-head);font-weight:600;line-height:1.15;letter-spacing:-.01em}
+h1{font-size:clamp(2.1rem,5.2vw,3.4rem)}
+h2{font-size:clamp(1.6rem,3.4vw,2.35rem)}
+h3{font-size:clamp(1.1rem,2vw,1.3rem)}
+.container{max-width:1140px;margin:0 auto;padding:0 clamp(1.1rem,4vw,2rem)}
+section{padding:clamp(3.5rem,8vw,6rem) 0}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:.5rem;
+  font-size:.78rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--orange-deep);margin-bottom:.9rem;
+}
+.eyebrow::before{content:"";width:22px;height:2px;background:var(--orange);border-radius:2px}
+.section-head{max-width:640px;margin-bottom:clamp(1.8rem,4vw,3rem)}
+.section-head p{color:var(--ink-soft);margin-top:.8rem;font-size:1.05rem}
 
-  <!-- Basic Page Needs
-	================================================== -->
-  <meta charset="utf-8">
-  <title>Ascent Academy — Test-prep coaching with counselor-led admissions</title>
+/* skip link */
+.skip-link{
+  position:absolute;left:-9999px;top:0;z-index:200;
+  background:var(--indigo);color:#fff;padding:.7rem 1.2rem;border-radius:0 0 var(--r-sm) 0;font-weight:700;
+}
+.skip-link:focus{left:0}
 
-  <!-- Mobile Specific Metas
-	================================================== -->
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="description" content="Engineering, medical and foundation programs with small batches and 24×7 admission counseling.">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  
-  <meta name="generator" content="Ascent Academy Ascent Academy HTML Template v1.0">
-  
-  <!-- theme meta -->
-  <meta name="theme-name" content="Ascent Academy" />
+/* focus */
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{
+  outline:3px solid var(--orange);outline-offset:2px;border-radius:4px;
+}
 
-  <!-- ** Plugins Needed for the Project ** -->
-  <!-- Bootstrap -->
-  <link rel="stylesheet" href="plugins/bootstrap/bootstrap.min.css">
-  <!-- slick slider -->
-  <link rel="stylesheet" href="plugins/slick/slick.css">
-  <!-- themefy-icon -->
-  <link rel="stylesheet" href="plugins/themify-icons/themify-icons.css">
-  <!-- animation css -->
-  <link rel="stylesheet" href="plugins/animate/animate.css">
-  <!-- aos -->
-  <link rel="stylesheet" href="plugins/aos/aos.css">
-  <!-- venobox popup -->
-  <link rel="stylesheet" href="plugins/venobox/venobox.css">
+/* ---------- nav ---------- */
+.nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(253,251,247,.92);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.nav-inner{display:flex;align-items:center;gap:1.5rem;height:72px}
+.brand{display:flex;align-items:center;gap:.65rem;text-decoration:none;font-family:var(--font-head);font-weight:700;font-size:1.25rem;color:var(--indigo)}
+.brand-mark{width:38px;height:38px;flex:none}
+.nav-links{display:flex;gap:1.4rem;margin-left:auto;list-style:none}
+.nav-links a{text-decoration:none;font-weight:700;font-size:.95rem;color:var(--ink-soft);padding:.4rem 0;transition:color .15s}
+.nav-links a:hover{color:var(--indigo)}
+.nav-cta{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:var(--indigo);color:#fff;text-decoration:none;
+  font-weight:800;font-size:.92rem;padding:.65rem 1.15rem;border-radius:999px;
+  transition:background .15s,transform .15s;
+}
+.nav-cta:hover{background:var(--indigo-deep);transform:translateY(-1px)}
+@media (max-width:860px){.nav-links{display:none}.nav-cta{margin-left:auto}}
 
-  <!-- Main Stylesheet -->
-  <link href="css/style.css" rel="stylesheet">
+/* ---------- hero ---------- */
+.hero{padding:clamp(3rem,7vw,5.5rem) 0 clamp(3rem,7vw,5rem);overflow:hidden;position:relative}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(2rem,5vw,4rem);align-items:center}
+@media (max-width:860px){.hero-grid{grid-template-columns:1fr}}
+.hero-kicker{
+  display:inline-flex;align-items:center;gap:.55rem;
+  background:var(--sage-soft);color:var(--sage);
+  font-weight:800;font-size:.82rem;letter-spacing:.03em;
+  padding:.45rem .95rem;border-radius:999px;margin-bottom:1.3rem;
+}
+.hero-kicker svg{width:15px;height:15px}
+.hero h1 em{font-style:italic;color:var(--indigo)}
+.hero h1 .accent{color:var(--orange);font-style:normal}
+.hero-sub{color:var(--ink-soft);font-size:clamp(1.02rem,1.6vw,1.18rem);margin:1.2rem 0 1.9rem;max-width:34rem}
+.hero-ctas{display:flex;gap:.9rem;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;gap:.55rem;justify-content:center;
+  font-family:var(--font-body);font-weight:800;font-size:1rem;
+  padding:.85rem 1.55rem;border-radius:999px;text-decoration:none;cursor:pointer;border:none;
+  transition:transform .15s,background .15s,box-shadow .15s;
+}
+.btn svg{width:17px;height:17px}
+.btn-primary{background:#EA580C;color:#fff;box-shadow:0 6px 18px rgba(249,115,22,.32)}
+.btn-primary:hover{background:var(--orange-deep);transform:translateY(-2px)}
+.btn-ghost{background:transparent;color:var(--indigo);border:2px solid var(--indigo)}
+.btn-ghost:hover{background:var(--indigo);color:#fff;transform:translateY(-2px)}
+.hero-trust{display:flex;gap:1.6rem;flex-wrap:wrap;margin-top:2.4rem;padding-top:1.6rem;border-top:1px solid var(--line)}
+.trust-item{display:flex;align-items:center;gap:.6rem;font-size:.9rem;font-weight:700;color:var(--ink-soft)}
+.trust-item svg{width:20px;height:20px;color:var(--sage);flex:none}
+.hero-art{position:relative;min-height:340px}
+.hero-art svg{width:100%;height:auto}
 
-  <!--Favicon-->
-  <link rel="shortcut icon" href="images/favicon.png" type="image/x-icon">
-  <link rel="icon" href="images/favicon.png" type="image/x-icon">
+/* ---------- programs ---------- */
+.programs{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.prog-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem}
+@media (max-width:920px){.prog-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:600px){.prog-grid{grid-template-columns:1fr}}
+.prog-card{
+  background:var(--bg);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:1.7rem 1.6rem;display:flex;flex-direction:column;gap:.75rem;
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s;
+}
+.prog-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-2);border-color:transparent}
+.prog-icon{
+  width:52px;height:52px;border-radius:14px;display:grid;place-items:center;margin-bottom:.35rem;
+}
+.prog-icon svg{width:26px;height:26px}
+.ic-indigo{background:#EEEDFB;color:var(--indigo)}
+.ic-orange{background:#FEF0E4;color:var(--orange-deep)}
+.ic-sage{background:var(--sage-soft);color:var(--sage)}
+.prog-card p{color:var(--ink-soft);font-size:.95rem;flex:1}
+.prog-meta{font-size:.82rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--indigo)}
+.prog-link{
+  display:inline-flex;align-items:center;gap:.4rem;font-weight:800;font-size:.92rem;
+  color:var(--orange-deep);text-decoration:none;margin-top:.3rem;
+}
+.prog-link svg{width:15px;height:15px;transition:transform .15s}
+.prog-link:hover svg{transform:translateX(3px)}
+.enrich-row{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:1.4rem;
+}
+@media (max-width:920px){.enrich-row{grid-template-columns:1fr}}
+.enrich-card{
+  display:flex;gap:1rem;align-items:flex-start;
+  background:var(--cream);border-radius:var(--r-lg);padding:1.3rem 1.4rem;
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+.enrich-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-1)}
+.enrich-card .prog-icon{width:44px;height:44px;flex:none;margin:0}
+.enrich-card h3{font-size:1.02rem}
+.enrich-card p{color:var(--ink-soft);font-size:.88rem;margin-top:.2rem}
 
+/* ---------- outcomes band ---------- */
+.outcomes{background:var(--indigo);color:#fff;position:relative;overflow:hidden}
+.outcomes::before{
+  content:"";position:absolute;inset:0;
+  background:
+    radial-gradient(520px 300px at 88% 0%,rgba(249,115,22,.22),transparent 65%),
+    radial-gradient(460px 320px at 6% 100%,rgba(94,125,90,.28),transparent 60%);
+  pointer-events:none;
+}
+.outcomes .container{position:relative}
+.outcomes .eyebrow{color:#FDBA74}
+.outcomes .eyebrow::before{background:#FDBA74}
+.outcomes h2{color:#fff}
+.outcomes .section-head p{color:#C7C5EA}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem}
+@media (max-width:860px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+.stat{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);
+  border-radius:var(--r-lg);padding:1.6rem 1.4rem;
+}
+.stat-num{
+  font-family:var(--font-head);font-weight:700;font-size:clamp(2rem,4vw,2.9rem);
+  font-variant-numeric:tabular-nums;color:#fff;line-height:1;
+}
+.stat-num span{color:var(--orange);font-size:.65em}
+.stat-label{font-weight:700;margin-top:.55rem;font-size:.95rem;color:#DDDCF2}
+.stat-note{font-size:.8rem;color:#A9A7D6;margin-top:.25rem}
+
+/* ---------- campus life mosaic ---------- */
+.mosaic{
+  display:grid;gap:1.1rem;
+  grid-template-columns:repeat(4,1fr);
+  grid-auto-rows:150px;
+}
+@media (max-width:860px){.mosaic{grid-template-columns:repeat(2,1fr);grid-auto-rows:140px}}
+.tile{
+  border-radius:var(--r-lg);padding:1.25rem;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:flex-end;gap:.2rem;
+  color:#fff;transition:transform .2s ease,box-shadow .2s ease;
+}
+.tile:hover{transform:translateY(-4px);box-shadow:var(--shadow-2)}
+.tile h3{font-size:1.05rem;color:#fff}
+.tile p{font-size:.82rem;opacity:.88}
+.tile .tile-icon{
+  position:absolute;top:1.1rem;left:1.1rem;width:38px;height:38px;border-radius:10px;
+  background:rgba(255,255,255,.18);display:grid;place-items:center;
+}
+.tile .tile-icon svg{width:20px;height:20px}
+.tile::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(220px 160px at 85% 12%,rgba(255,255,255,.16),transparent 60%);
+}
+.tile-wide{grid-column:span 2}
+.tile-tall{grid-row:span 2}
+.t1{background:linear-gradient(140deg,#3B378F,#252260)}
+.t2{background:linear-gradient(140deg,#F97316,#C2570C)}
+.t3{background:linear-gradient(140deg,#6B8B66,#4A6647)}
+.t4{background:linear-gradient(140deg,#514DAF,#312E81)}
+.t5{background:linear-gradient(140deg,#E0662C,#A84A10)}
+.t6{background:linear-gradient(140deg,#403C99,#2A2670)}
+
+/* ---------- admissions stepper ---------- */
+.admissions{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.stepper{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;
+  counter-reset:step;position:relative;
+}
+@media (max-width:860px){.stepper{grid-template-columns:1fr;max-width:460px}}
+.step{position:relative;padding-top:1rem}
+.step-dot{
+  width:56px;height:56px;border-radius:50%;
+  background:var(--bg);border:2px solid var(--indigo);
+  display:grid;place-items:center;color:var(--indigo);
+  position:relative;z-index:1;margin-bottom:1.1rem;
+}
+.step-dot svg{width:24px;height:24px}
+.step::before{
+  content:"";position:absolute;top:calc(1rem + 27px);left:70px;right:-1.2rem;height:2px;
+  background:repeating-linear-gradient(90deg,var(--line) 0 8px,transparent 8px 16px);
+}
+.step:last-child::before{display:none}
+@media (max-width:860px){
+  .step::before{left:27px;right:auto;top:calc(1rem + 66px);bottom:-1.2rem;width:2px;height:auto;
+    background:repeating-linear-gradient(180deg,var(--line) 0 8px,transparent 8px 16px)}
+}
+.step-num{
+  font-size:.75rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--orange-deep);
+}
+.step h3{margin:.3rem 0 .4rem}
+.step p{color:var(--ink-soft);font-size:.92rem}
+
+/* ---------- testimonials ---------- */
+.quote-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem}
+@media (max-width:900px){.quote-grid{grid-template-columns:1fr}}
+.quote{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:1.7rem 1.6rem;display:flex;flex-direction:column;gap:1.1rem;
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+.quote:hover{transform:translateY(-4px);box-shadow:var(--shadow-1)}
+.quote-stars{display:flex;gap:.2rem;color:var(--orange)}
+.quote-stars svg{width:16px;height:16px}
+.quote p{color:var(--ink-soft);font-size:.97rem;flex:1}
+.quote p em{font-family:var(--font-head);font-style:italic}
+.quote-person{display:flex;align-items:center;gap:.8rem}
+.avatar{
+  width:44px;height:44px;border-radius:50%;flex:none;
+  display:grid;place-items:center;font-weight:800;font-size:.9rem;color:#fff;
+}
+.av1{background:linear-gradient(135deg,#514DAF,#312E81)}
+.av2{background:linear-gradient(135deg,#F97316,#C2570C)}
+.av3{background:linear-gradient(135deg,#6B8B66,#4A6647)}
+.quote-person strong{display:block;font-size:.94rem}
+.quote-person span{font-size:.82rem;color:var(--ink-soft)}
+
+/* ---------- contact ---------- */
+.contact{background:var(--cream)}
+.contact-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(2rem,5vw,3.5rem);align-items:start}
+@media (max-width:860px){.contact-grid{grid-template-columns:1fr}}
+.form-card{
+  background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow-1);
+  padding:clamp(1.5rem,3vw,2.2rem);
+}
+.field{margin-bottom:1.1rem}
+.field label{display:block;font-weight:800;font-size:.88rem;margin-bottom:.4rem}
+.field input,.field textarea,.field select{
+  width:100%;min-height:48px;padding:.7rem .95rem;
+  border:1.5px solid var(--line);border-radius:var(--r-md);
+  font-family:var(--font-body);font-size:1rem;color:var(--ink);background:var(--bg);
+  transition:border-color .15s;
+}
+.field textarea{min-height:120px;resize:vertical}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--indigo)}
+.form-note{font-size:.82rem;color:var(--ink-soft);margin-top:.8rem}
+.contact-info h3{margin-bottom:.4rem}
+.info-list{list-style:none;margin-top:1.4rem;display:grid;gap:1.1rem}
+.info-list li{display:flex;gap:.85rem;align-items:flex-start}
+.info-list svg{width:20px;height:20px;color:var(--orange-deep);flex:none;margin-top:.2rem}
+.info-list a{font-weight:700;text-decoration:none;color:var(--indigo)}
+.info-list a:hover{text-decoration:underline}
+.info-list span{display:block;font-size:.85rem;color:var(--ink-soft)}
+.hours{
+  margin-top:1.8rem;background:var(--surface);border-radius:var(--r-lg);
+  border:1px solid var(--line);padding:1.3rem 1.4rem;
+}
+.hours h3{font-size:1.02rem;margin-bottom:.7rem}
+.hours dl{display:grid;grid-template-columns:auto 1fr;gap:.35rem 1.2rem;font-size:.92rem}
+.hours dt{font-weight:800}
+.hours dd{color:var(--ink-soft);text-align:right}
+
+/* ---------- footer ---------- */
+footer{background:var(--indigo-deep);color:#C7C5EA;padding:2.6rem 0 7.5rem}
+.foot-inner{display:flex;flex-wrap:wrap;gap:1.5rem;align-items:center;justify-content:space-between}
+.foot-brand{display:flex;align-items:center;gap:.6rem;font-family:var(--font-head);font-weight:700;font-size:1.15rem;color:#fff}
+.foot-brand .brand-mark{width:32px;height:32px}
+.foot-note{font-size:.85rem;max-width:32rem}
+
+/* ---------- reveal motion ---------- */
+@media (prefers-reduced-motion: no-preference){
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .28s ease-out,transform .28s ease-out}
+  .reveal.in{opacity:1;transform:none}
+}
+</style>
 </head>
-
 <body>
-  <!-- preloader start -->
-  <div class="preloader">
-    <img src="images/preloader.gif" alt="preloader">
-  </div>
-  <!-- preloader end -->
+<a class="skip-link" href="#main">Skip to main content</a>
 
-
-<!-- header -->
-<header class="fixed-top header">
-  <!-- top header -->
-  <div class="top-header py-2 bg-white">
-    <div class="container">
-      <div class="row no-gutters">
-        <div class="col-lg-4 text-center text-lg-left">
-          <a class="text-color mr-3" href="tel:+91 11 4567 8800"><strong>CALL</strong> +91 11 4567 8800</a>
-          <ul class="list-inline d-inline">
-            <li class="list-inline-item mx-0"><a class="d-inline-block p-2 text-color" href="#"><i class="ti-facebook"></i></a></li>
-            <li class="list-inline-item mx-0"><a class="d-inline-block p-2 text-color" href="#"><i class="ti-twitter-alt"></i></a></li>
-            <li class="list-inline-item mx-0"><a class="d-inline-block p-2 text-color" href="#"><i class="ti-github"></i></a></li>
-            <li class="list-inline-item mx-0"><a class="d-inline-block p-2 text-color" href="#"><i class="ti-instagram"></i></a></li>
-          </ul>
-        </div>
-        <div class="col-lg-8 text-center text-lg-right">
-          <ul class="list-inline">
-            <li class="list-inline-item"><a class="text-uppercase text-color p-sm-2 py-2 px-0 d-inline-block" href="notice.html">notice</a></li>
-            <li class="list-inline-item"><a class="text-uppercase text-color p-sm-2 py-2 px-0 d-inline-block" href="research.html">research</a></li>
-            <li class="list-inline-item"><a class="text-uppercase text-color p-sm-2 py-2 px-0 d-inline-block" href="scholarship.html">SCHOLARSHIP</a></li>
-            <li class="list-inline-item"><a class="text-uppercase text-color p-sm-2 py-2 px-0 d-inline-block" href="#loginModal" data-toggle="modal" data-target="#loginModal">login</a></li>
-            <li class="list-inline-item"><a class="text-uppercase text-color p-sm-2 py-2 px-0 d-inline-block" href="#signupModal" data-toggle="modal" data-target="#signupModal">register</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- navbar -->
-  <div class="navigation w-100">
-    <div class="container">
-      <nav class="navbar navbar-expand-lg navbar-dark p-0">
-        <a class="navbar-brand" href="index.html"><img src="images/logo.png" alt="logo"></a>
-        <button class="navbar-toggler rounded-0" type="button" data-toggle="collapse" data-target="#navigation"
-          aria-controls="navigation" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navigation">
-          <ul class="navbar-nav ml-auto text-center">
-            <li class="nav-item active">
-              <a class="nav-link" href="index.html">Home</a>
-            </li>
-            <li class="nav-item @@about">
-              <a class="nav-link" href="about.html">About</a>
-            </li>
-            <li class="nav-item @@courses">
-              <a class="nav-link" href="courses.html">COURSES</a>
-            </li>
-            <li class="nav-item @@events">
-              <a class="nav-link" href="events.html">EVENTS</a>
-            </li>
-            <li class="nav-item @@blog">
-              <a class="nav-link" href="blog.html">BLOG</a>
-            </li>
-            <li class="nav-item dropdown view">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Pages
-              </a>
-              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <li><a class="dropdown-item" href="teacher.html">Teacher</a></li>
-                <li><a class="dropdown-item" href="teacher-single.html">Teacher Single</a></li>
-                <li><a class="dropdown-item" href="notice.html">Notice</a></li>
-                <li><a class="dropdown-item" href="notice-single.html">Notice Details</a></li>
-                <li><a class="dropdown-item" href="research.html">Research</a></li>
-                <li><a class="dropdown-item" href="scholarship.html">Scholarship</a></li>
-                <li><a class="dropdown-item" href="course-single.html">Course Details</a></li>
-                <li><a class="dropdown-item" href="event-single.html">Event Details</a></li>
-                <li><a class="dropdown-item" href="blog-single.html">Blog Details</a></li>
-                
-                <li class="dropdown-item dropdown dropleft">
-                  <a class="dropdown-toggle" href="#" id="navbarDropdownSubmenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Sub Menu
-                  </a>
-                  <ul class="dropdown-menu dropdown-submenu" aria-labelledby="navbarDropdownSubmenu">
-                    <li><a class="dropdown-item" href="#!">Sub Menu 01</a></li>
-                    <li><a class="dropdown-item" href="#!">Sub Menu 02</a></li>
-                    <li><a class="dropdown-item" href="#!">Sub Menu 03</a></li>
-                  </ul>
-                </li>
-              </ul>
-            </li>
-            <li class="nav-item @@contact">
-              <a class="nav-link" href="contact.html">CONTACT</a>
-            </li>
-          </ul>
-        </div>
-      </nav>
-    </div>
+<header class="nav">
+  <div class="container nav-inner">
+    <a class="brand" href="#top" aria-label="Ascent Academy home">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+        <rect x="2" y="2" width="36" height="36" rx="10" fill="#312E81"/>
+        <path d="M12 28 20 11l8 17" stroke="#F97316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M15.5 22.5h9" stroke="#FDFBF7" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      Ascent Academy
+    </a>
+    <nav aria-label="Primary">
+      <ul class="nav-links">
+        <li><a href="#programs">Programs</a></li>
+        <li><a href="#outcomes">Outcomes</a></li>
+        <li><a href="#campus">Campus Life</a></li>
+        <li><a href="#admissions">Admissions</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <a class="nav-cta" href="tel:+911145678800">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.8.7a2 2 0 0 1 1.7 2Z"/></svg>
+      +91 11 4567 8800
+    </a>
   </div>
 </header>
-<!-- /header -->
-<!-- Modal -->
-<div class="modal fade" id="signupModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content rounded-0 border-0 p-4">
-            <div class="modal-header border-0">
-                <h3>Register</h3>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="login">
-                    <form class="row" onsubmit="event.preventDefault();this.reset();alert('Demo site — this form is illustrative and does not send anything.')">
-                        <div class="col-12">
-                            <input type="text" class="form-control mb-3" id="signupPhone" name="signupPhone" placeholder="Phone">
-                        </div>
-                        <div class="col-12">
-                            <input type="text" class="form-control mb-3" id="signupName" name="signupName" placeholder="Name">
-                        </div>
-                        <div class="col-12">
-                            <input type="email" class="form-control mb-3" id="signupEmail" name="signupEmail" placeholder="Email">
-                        </div>
-                        <div class="col-12">
-                            <input type="password" class="form-control mb-3" id="signupPassword" name="signupPassword" placeholder="Password">
-                        </div>
-                        <div class="col-12">
-                            <button type="submit" class="btn btn-primary">SIGN UP</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Modal -->
-<div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content rounded-0 border-0 p-4">
-            <div class="modal-header border-0">
-                <h3>Login</h3>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form class="row" onsubmit="event.preventDefault();this.reset();alert('Demo site — this form is illustrative and does not send anything.')">
-                    <div class="col-12">
-                        <input type="text" class="form-control mb-3" id="loginPhone" name="loginPhone" placeholder="Phone">
-                    </div>
-                    <div class="col-12">
-                        <input type="text" class="form-control mb-3" id="loginName" name="loginName" placeholder="Name">
-                    </div>
-                    <div class="col-12">
-                        <input type="password" class="form-control mb-3" id="loginPassword" name="loginPassword" placeholder="Password">
-                    </div>
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-primary">LOGIN</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- hero slider -->
-<section class="hero-section overlay bg-cover" data-background="images/banner/banner-1.jpg">
+<main id="main">
+<!-- ============ HERO ============ -->
+<section class="hero" id="top" aria-labelledby="hero-h">
+  <div class="container hero-grid">
+    <div>
+      <p class="hero-kicker">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14l1.2 7L12 17.8 5.8 21 7 14 2 9.3 9 8.5Z"/></svg>
+        Admissions open for 2026–27 · Nursery to Class XII
+      </p>
+      <h1 id="hero-h">Where curious children become <em>confident learners</em><span class="accent">.</span></h1>
+      <p class="hero-sub">A K-12 academy in Nehru Nagar, New Delhi that pairs rigorous academics with small classes, caring mentors and room to grow — from first phonics to board exams and beyond.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#admissions">
+          Begin admissions
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a class="btn btn-ghost" href="#programs">Explore programs</a>
+      </div>
+      <div class="hero-trust">
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+          CBSE affiliated since 2004
+        </div>
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+          1,150 students · 96 faculty
+        </div>
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14l1.2 7L12 17.8 5.8 21 7 14 2 9.3 9 8.5Z"/></svg>
+          4.8★ from 460+ parent reviews
+        </div>
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <svg viewBox="0 0 520 440" fill="none" xmlns="http://www.w3.org/2000/svg" role="img">
+        <!-- warm backdrop blob -->
+        <path d="M96 78c58-62 214-70 300-24s130 148 96 232-142 138-250 126S22 328 24 240 62 114 96 78Z" fill="#F6F1E7"/>
+        <!-- rising path -->
+        <path d="M60 356c86 6 118-58 168-98s110-58 216-52" stroke="#312E81" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 14"/>
+        <!-- sun -->
+        <circle cx="416" cy="96" r="44" fill="#F97316" opacity=".92"/>
+        <g stroke="#F97316" stroke-width="3" stroke-linecap="round" opacity=".7">
+          <path d="M416 32v-14"/><path d="M416 174v-14"/><path d="M352 96h-14"/><path d="M494 96h-14"/>
+          <path d="M371 51 361 41"/><path d="M471 151l-10-10"/><path d="M461 51l10-10"/><path d="M361 151l10-10"/>
+        </g>
+        <!-- open book -->
+        <g>
+          <path d="M118 264c40-18 78-18 112 0v96c-34-18-72-18-112 0v-96Z" fill="#312E81"/>
+          <path d="M230 264c40-18 78-18 112 0v96c-34-18-72-18-112 0v-96Z" fill="#403C99"/>
+          <path d="M230 264v96" stroke="#FDFBF7" stroke-width="3"/>
+          <g stroke="#C7C5EA" stroke-width="2.5" stroke-linecap="round" opacity=".85">
+            <path d="M138 288c22-8 44-9 74-4"/><path d="M138 308c22-8 44-9 74-4"/><path d="M138 328c22-8 44-9 74-4"/>
+            <path d="M248 284c22-5 44-4 74 4"/><path d="M248 304c22-5 44-4 74 4"/><path d="M248 324c22-5 44-4 74 4"/>
+          </g>
+        </g>
+        <!-- geometric layers -->
+        <rect x="70" y="130" width="64" height="64" rx="16" fill="#5E7D5A" opacity=".85" transform="rotate(-8 102 162)"/>
+        <path d="M160 96l26 46h-52l26-46Z" fill="#F97316" opacity=".85"/>
+        <circle cx="236" cy="150" r="16" fill="#312E81" opacity=".2"/>
+        <circle cx="284" cy="108" r="9" fill="#5E7D5A" opacity=".6"/>
+        <rect x="392" y="270" width="52" height="52" rx="14" fill="#312E81" opacity=".12"/>
+        <!-- graduation cap on the path -->
+        <g transform="translate(392 176)">
+          <path d="M0 22 40 6l40 16-40 16L0 22Z" fill="#1E1B4B"/>
+          <path d="M14 30v18c8 8 44 8 52 0V30" stroke="#1E1B4B" stroke-width="5" fill="none"/>
+          <path d="M80 22v22" stroke="#F97316" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="80" cy="48" r="4" fill="#F97316"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROGRAMS ============ -->
+<section class="programs" id="programs" aria-labelledby="programs-h">
   <div class="container">
-    <div class="hero-slider">
-      <!-- slider item -->
-      <div class="hero-slider-item">
-        <div class="row">
-          <div class="col-md-8">
-            <h1 class="text-white" data-animation-out="fadeOutRight" data-delay-out="5" data-duration-in=".3" data-animation-in="fadeInLeft" data-delay-in=".1">Your bright future is our mission</h1>
-            <p class="text-muted mb-4" data-animation-out="fadeOutRight" data-delay-out="5" data-duration-in=".3" data-animation-in="fadeInLeft" data-delay-in=".4">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-              tempor
-              incididunt ut labore et
-              dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exer</p>
-            <a href="contact.html" class="btn btn-primary" data-animation-out="fadeOutRight" data-delay-out="5" data-duration-in=".3" data-animation-in="fadeInLeft" data-delay-in=".7">Apply now</a>
-          </div>
+    <div class="section-head reveal">
+      <p class="eyebrow">Programs</p>
+      <h2 id="programs-h">One campus, every stage of growing up</h2>
+      <p>Three academic stages with a consistent philosophy — strong foundations, small classes, and teachers who know every child by name.</p>
+    </div>
+    <div class="prog-grid">
+      <article class="prog-card reveal">
+        <div class="prog-icon ic-sage">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 20h10"/><path d="M12 20v-8"/><path d="M12 12C12 7 8 4 4 4c0 5 3 8 8 8Z"/><path d="M12 10c0-4 3.2-6 8-6 0 4-2.8 7-8 7"/></svg>
+        </div>
+        <p class="prog-meta">Nursery – Class V</p>
+        <h3>Primary Years</h3>
+        <p>Phonics-led literacy, hands-on numeracy and play-based discovery. A dedicated early-years wing with its own library, art corner and shaded play garden.</p>
+        <a class="prog-link" href="#contact">Enquire for Primary
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </article>
+      <article class="prog-card reveal">
+        <div class="prog-icon ic-indigo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+        </div>
+        <p class="prog-meta">Class VI – VIII</p>
+        <h3>Middle School</h3>
+        <p>Subject-specialist teaching begins, with lab science, a second language, coding fundamentals and structured study-skills coaching before the board years.</p>
+        <a class="prog-link" href="#contact">Enquire for Middle School
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </article>
+      <article class="prog-card reveal">
+        <div class="prog-icon ic-orange">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12.5V17c3 3 9 3 12 0v-4.5"/><path d="M22 10v6"/></svg>
+        </div>
+        <p class="prog-meta">Class IX – XII</p>
+        <h3>Senior Secondary</h3>
+        <p>Science, Commerce and Humanities streams with board-exam mentoring, integrated JEE/NEET readiness options and one-to-one university counseling.</p>
+        <a class="prog-link" href="#contact">Enquire for Senior Secondary
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </article>
+    </div>
+    <div class="enrich-row">
+      <div class="enrich-card reveal">
+        <div class="prog-icon ic-indigo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3H5a2 2 0 0 0-2 2v4"/><path d="M15 3h4a2 2 0 0 1 2 2v4"/><path d="M9 21H5a2 2 0 0 1-2-2v-4"/><path d="M15 21h4a2 2 0 0 0 2-2v-4"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <div>
+          <h3>STEM &amp; Robotics</h3>
+          <p>Atal Tinkering Lab, robotics club and an annual inter-school science fair.</p>
         </div>
       </div>
-      <!-- slider item -->
-      <div class="hero-slider-item">
-        <div class="row">
-          <div class="col-md-8">
-            <h1 class="text-white" data-animation-out="fadeOutUp" data-delay-out="5" data-duration-in=".3" data-animation-in="fadeInDown" data-delay-in=".1">Your bright future is our mission</h1>
-            <p class="text-muted mb-4" data-animation-out="fadeOutUp" data-delay-out="5" data-duration-in=".3" data-animation-in="fadeInDown" data-delay-in=".4">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-              tempor
-              incididunt ut labore et
-              dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exer</p>
-            <a href="contact.html" class="btn btn-primary" data-animation-out="fadeOutUp" data-delay-out="5" data-duration-in=".3" data-animation-in="fadeInDown" data-delay-in=".7">Apply now</a>
-          </div>
+      <div class="enrich-card reveal">
+        <div class="prog-icon ic-orange">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r="2.5"/><path d="M17 21a4 4 0 0 0-8 0"/><path d="M3 21c0-6 4-11 10.5-11S21 14 21 18"/><path d="M8 13c-2-1-3-3-3-6"/></svg>
+        </div>
+        <div>
+          <h3>Arts &amp; Music</h3>
+          <p>Theatre, Hindustani classical music, fine arts studio and a 300-seat auditorium.</p>
         </div>
       </div>
-      <!-- slider item -->
-      <div class="hero-slider-item">
-        <div class="row">
-          <div class="col-md-8">
-            <h1 class="text-white" data-animation-out="fadeOutDown" data-delay-out="5" data-duration-in=".3" data-animation-in="fadeInUp" data-delay-in=".1">Your bright future is our mission</h1>
-            <p class="text-muted mb-4" data-animation-out="fadeOutDown" data-delay-out="5" data-duration-in=".3" data-animation-in="fadeInUp" data-delay-in=".4">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-              tempor
-              incididunt ut labore et
-              dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exer</p>
-            <a href="contact.html" class="btn btn-primary" data-animation-out="fadeOutDown" data-delay-out="5" data-duration-in=".3" data-animation-in="zoomIn" data-delay-in=".7">Apply now</a>
-          </div>
+      <div class="enrich-card reveal">
+        <div class="prog-icon ic-sage">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4a1 1 0 0 0-1 1c0 2.5 1.5 4 4 4.5"/><path d="M17 6h3a1 1 0 0 1 1 1c0 2.5-1.5 4-4 4.5"/></svg>
+        </div>
+        <div>
+          <h3>Sports &amp; Wellness</h3>
+          <p>Football ground, basketball courts, yoga hall and district-level coaching squads.</p>
         </div>
       </div>
     </div>
   </div>
 </section>
-<!-- /hero slider -->
 
-<!-- banner-feature -->
-<section class="bg-gray overflow-md-hidden">
-  <div class="container-fluid p-0">
-    <div class="row no-gutters">
-      <div class="col-xl-4 col-lg-5 align-self-end">
-        <img class="img-fluid w-100" src="images/banner/banner-feature.png" alt="banner-feature">
-      </div>
-      <div class="col-xl-8 col-lg-7">
-        <div class="row feature-blocks bg-gray justify-content-between">
-          <div class="col-sm-6 col-xl-5 mb-xl-5 mb-lg-3 mb-4 text-center text-sm-left">
-            <i class="ti-book mb-xl-4 mb-lg-3 mb-4 feature-icon"></i>
-            <h3 class="mb-xl-4 mb-lg-3 mb-4">Scholorship News</h3>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore
-              et dolore magna aliqua. Ut enim ad</p>
-          </div>
-          <div class="col-sm-6 col-xl-5 mb-xl-5 mb-lg-3 mb-4 text-center text-sm-left">
-            <i class="ti-blackboard mb-xl-4 mb-lg-3 mb-4 feature-icon"></i>
-            <h3 class="mb-xl-4 mb-lg-3 mb-4">Our Notice Board</h3>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore
-              et dolore magna aliqua. Ut enim ad</p>
-          </div>
-          <div class="col-sm-6 col-xl-5 mb-xl-5 mb-lg-3 mb-4 text-center text-sm-left">
-            <i class="ti-agenda mb-xl-4 mb-lg-3 mb-4 feature-icon"></i>
-            <h3 class="mb-xl-4 mb-lg-3 mb-4">Our Achievements</h3>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore
-              et dolore magna aliqua. Ut enim ad</p>
-          </div>
-          <div class="col-sm-6 col-xl-5 mb-xl-5 mb-lg-3 mb-4 text-center text-sm-left">
-            <i class="ti-write mb-xl-4 mb-lg-3 mb-4 feature-icon"></i>
-            <h3 class="mb-xl-4 mb-lg-3 mb-4">Admission Now</h3>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore
-              et dolore magna aliqua. Ut enim ad</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-<!-- /banner-feature -->
-
-<!-- about us -->
-<section class="section">
+<!-- ============ OUTCOMES ============ -->
+<section class="outcomes" id="outcomes" aria-labelledby="outcomes-h">
   <div class="container">
-    <div class="row align-items-center">
-      <div class="col-md-6 order-2 order-md-1">
-        <h2 class="section-title">About Ascent Academy</h2>
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat </p>
-        <p>cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem</p>
-        <a href="about.html" class="btn btn-outline-primary">Learn more</a>
+    <div class="section-head reveal">
+      <p class="eyebrow">Outcomes</p>
+      <h2 id="outcomes-h">Results we publish in full — not just toppers</h2>
+      <p>Every year we release complete batch results, because parents deserve the whole picture, not a highlight reel.</p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat reveal">
+        <p class="stat-num">98<span>%</span></p>
+        <p class="stat-label">Board results, first division</p>
+        <p class="stat-note">Class X &amp; XII, 2025 batch</p>
       </div>
-      <div class="col-md-6 order-1 order-md-2 mb-4 mb-md-0">
-        <img class="img-fluid w-100" src="images/about/about-us.jpg" alt="about image">
+      <div class="stat reveal">
+        <p class="stat-num">40<span>+</span></p>
+        <p class="stat-label">University placements</p>
+        <p class="stat-note">Including IITs, DU &amp; AIIMS, 2025</p>
+      </div>
+      <div class="stat reveal">
+        <p class="stat-num">1:12</p>
+        <p class="stat-label">Teacher-to-student ratio</p>
+        <p class="stat-note">Classes capped at 30 students</p>
+      </div>
+      <div class="stat reveal">
+        <p class="stat-num">22<span>yrs</span></p>
+        <p class="stat-label">Of academic excellence</p>
+        <p class="stat-note">Serving South Delhi since 2004</p>
       </div>
     </div>
   </div>
 </section>
-<!-- /about us -->
 
-<!-- courses -->
-<section class="section-sm">
+<!-- ============ CAMPUS LIFE ============ -->
+<section id="campus" aria-labelledby="campus-h">
   <div class="container">
-    <div class="row">
-      <div class="col-12">
-        <div class="d-flex align-items-center section-title justify-content-between">
-          <h2 class="mb-0 text-nowrap mr-3">Our Course</h2>
-          <div class="border-top w-100 border-primary d-none d-sm-block"></div>
-          <div>
-            <a href="courses.html" class="btn btn-sm btn-outline-primary ml-sm-3 d-none d-sm-block">see all</a>
+    <div class="section-head reveal">
+      <p class="eyebrow">Campus Life</p>
+      <h2 id="campus-h">A day at Ascent is never just a timetable</h2>
+      <p>Four acres in Nehru Nagar where classrooms open onto courts, labs, stages and gardens.</p>
+    </div>
+    <div class="mosaic">
+      <div class="tile tile-wide t1 reveal">
+        <div class="tile-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+        </div>
+        <h3>Central Library</h3>
+        <p>18,000 titles, quiet reading decks and a junior storytelling nook.</p>
+      </div>
+      <div class="tile t2 reveal">
+        <div class="tile-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.5L4.5 19a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 9.5V2"/><path d="M8.5 2h7"/><path d="M7 15h10"/></svg>
+        </div>
+        <h3>Science Labs</h3>
+        <p>Physics, chemistry, bio &amp; tinkering.</p>
+      </div>
+      <div class="tile tile-tall t3 reveal">
+        <div class="tile-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 0 1 0 20"/><path d="M12 2a15 15 0 0 0 0 20"/><path d="M2 12h20"/></svg>
+        </div>
+        <h3>Sports Fields</h3>
+        <p>Full-size football ground, two basketball courts, athletics track and a yoga hall for morning practice.</p>
+      </div>
+      <div class="tile t4 reveal">
+        <div class="tile-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l12-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </div>
+        <h3>Music &amp; Theatre</h3>
+        <p>300-seat auditorium and practice rooms.</p>
+      </div>
+      <div class="tile t5 reveal">
+        <div class="tile-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 22h8"/><path d="M12 18v4"/></svg>
+        </div>
+        <h3>Smart Classrooms</h3>
+        <p>Interactive panels in every room.</p>
+      </div>
+      <div class="tile tile-wide t6 reveal">
+        <div class="tile-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13c0-4 3-6 8-11 5 5 8 7 8 11a7 7 0 0 1-7 7Z"/><path d="M12 20v-8"/></svg>
+        </div>
+        <h3>Eco Garden &amp; Kitchen Farm</h3>
+        <p>Students grow, harvest and cook — composting and rainwater projects run by the eco club.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ADMISSIONS ============ -->
+<section class="admissions" id="admissions" aria-labelledby="admissions-h">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Admissions 2026–27</p>
+      <h2 id="admissions-h">Four simple steps from enquiry to enrolment</h2>
+      <p>Most families complete the process within two weeks. Our counselors guide you at every step — no agents, no hidden fees.</p>
+    </div>
+    <ol class="stepper" style="list-style:none">
+      <li class="step reveal">
+        <div class="step-dot" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.7 8.7 0 0 1-3.8-.9L3 21l2-5.2a8.4 8.4 0 1 1 16-4.3Z"/></svg>
+        </div>
+        <p class="step-num">Step 01</p>
+        <h3>Enquire</h3>
+        <p>Share your child's age and stage through the form below or a quick call. A counselor responds within one working day.</p>
+      </li>
+      <li class="step reveal">
+        <div class="step-dot" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <p class="step-num">Step 02</p>
+        <h3>Visit the campus</h3>
+        <p>A guided walk-through with your child — classrooms, labs, sports fields — plus time with the stage coordinator.</p>
+      </li>
+      <li class="step reveal">
+        <div class="step-dot" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="m9 15 2 2 4-4"/></svg>
+        </div>
+        <p class="step-num">Step 03</p>
+        <h3>Interaction &amp; assessment</h3>
+        <p>An age-appropriate, low-pressure interaction — informal for primary years, a short written assessment from Class VI.</p>
+      </li>
+      <li class="step reveal">
+        <div class="step-dot" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="M22 4 12 14l-3-3"/></svg>
+        </div>
+        <p class="step-num">Step 04</p>
+        <h3>Enrol</h3>
+        <p>Receive the offer, complete documentation and fee formalities online, and join the orientation week in March.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ TESTIMONIALS ============ -->
+<section id="testimonials" aria-labelledby="testimonials-h">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Parent Voices</p>
+      <h2 id="testimonials-h">What families say after year one</h2>
+      <p>From our most recent parent satisfaction survey — 460+ responses, 4.8 average rating.</p>
+    </div>
+    <div class="quote-grid">
+      <article class="quote reveal">
+        <div class="quote-stars" aria-label="5 out of 5 stars" role="img">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14l1.2 7L12 17.8 5.8 21 7 14 2 9.3 9 8.5Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14l1.2 7L12 17.8 5.8 21 7 14 2 9.3 9 8.5Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14l1.2 7L12 17.8 5.8 21 7 14 2 9.3 9 8.5Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14l1.2 7L12 17.8 5.8 21 7 14 2 9.3 9 8.5Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14l1.2 7L12 17.8 5.8 21 7 14 2 9.3 9 8.5Z"/></svg>
+        </div>
+        <p>"My daughter moved here in Class III barely reading aloud. By Diwali she was narrating stories at assembly. The teachers <em>noticed her</em> — that's the difference."</p>
+        <div class="quote-person">
+          <div class="avatar av1" aria-hidden="true">RK</div>
+          <div><strong>Ritu Khanna</strong><span>Parent, Class IV · Lajpat Nagar</span></div>
+        </div>
+      </article>
+      <article class="quote reveal">
+        <div class="quote-stars" aria-label="5 out of 5 stars" role="img">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14l1.2 7L12 17.8 5.8 21 7 14 2 9.3 9 8.5Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14l1.2 7L12 17.8 5.8 21 7 14 2 9.3 9 8.5Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14l1.2 7L12 17.8 5.8 21 7 14 2 9.3 9 8.5Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14l1.2 7L12 17.8 5.8 21 7 14 2 9.3 9 8.5Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14l1.2 7L12 17.8 5.8 21 7 14 2 9.3 9 8.5Z"/></svg>
+        </div>
+        <p>"We compared five schools for Class XI Science. Ascent was the only one that showed us full board results and let us sit in on a class before deciding."</p>
+        <div class="quote-person">
+          <div class="avatar av2" aria-hidden="true">AM</div>
+          <div><strong>Arvind Malhotra</strong><span>Parent, Class XI · Kalkaji</span></div>
+        </div>
+      </article>
+      <article class="quote reveal">
+        <div class="quote-stars" aria-label="5 out of 5 stars" role="img">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14l1.2 7L12 17.8 5.8 21 7 14 2 9.3 9 8.5Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14l1.2 7L12 17.8 5.8 21 7 14 2 9.3 9 8.5Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14l1.2 7L12 17.8 5.8 21 7 14 2 9.3 9 8.5Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14l1.2 7L12 17.8 5.8 21 7 14 2 9.3 9 8.5Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14l1.2 7L12 17.8 5.8 21 7 14 2 9.3 9 8.5Z"/></svg>
+        </div>
+        <p>"Both my sons study here. What I value most: the school calls <em>before</em> a problem grows. Homework, moods, friendships — someone is always watching kindly."</p>
+        <div class="quote-person">
+          <div class="avatar av3" aria-hidden="true">SP</div>
+          <div><strong>Shalini Pillai</strong><span>Parent, Classes VI &amp; IX · Greater Kailash</span></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section class="contact" id="contact" aria-labelledby="contact-h">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Get in Touch</p>
+      <h2 id="contact-h">Start the conversation</h2>
+      <p>Tell us a little about your child and we'll call you back within one working day.</p>
+    </div>
+    <div class="contact-grid">
+      <div class="form-card reveal">
+        <form>
+          <div class="field">
+            <label for="f-name">Parent's full name</label>
+            <input id="f-name" name="name" type="text" autocomplete="name" required placeholder="e.g. Meera Sharma">
           </div>
-        </div>
-      </div>
-    </div>
-    <!-- course list -->
-<div class="row justify-content-center">
-  <!-- course item -->
-  <div class="col-lg-4 col-sm-6 mb-5">
-    <div class="card p-0 border-primary rounded-0 hover-shadow">
-      <img class="card-img-top rounded-0" src="images/courses/course-1.jpg" alt="course thumb">
-      <div class="card-body">
-        <ul class="list-inline mb-2">
-          <li class="list-inline-item"><i class="ti-calendar mr-1 text-color"></i>+91 11 4567 8800</li>
-          <li class="list-inline-item"><a class="text-color" href="course-single.html">Humanities</a></li>
-        </ul>
-        <a href="course-single.html">
-          <h4 class="card-title">Photography</h4>
-        </a>
-        <p class="card-text mb-4"> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-          incididunt ut labore et dolore magna.</p>
-        <a href="course-single.html" class="btn btn-primary btn-sm">Apply now</a>
-      </div>
-    </div>
-  </div>
-  <!-- course item -->
-  <div class="col-lg-4 col-sm-6 mb-5">
-    <div class="card p-0 border-primary rounded-0 hover-shadow">
-      <img class="card-img-top rounded-0" src="images/courses/course-2.jpg" alt="course thumb">
-      <div class="card-body">
-        <ul class="list-inline mb-2">
-          <li class="list-inline-item"><i class="ti-calendar mr-1 text-color"></i>+91 11 4567 8800</li>
-          <li class="list-inline-item"><a class="text-color" href="course-single.html">Humanities</a></li>
-        </ul>
-        <a href="course-single.html">
-          <h4 class="card-title">Programming</h4>
-        </a>
-        <p class="card-text mb-4"> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-          incididunt ut labore et dolore magna.</p>
-        <a href="course-single.html" class="btn btn-primary btn-sm">Apply now</a>
-      </div>
-    </div>
-  </div>
-  <!-- course item -->
-  <div class="col-lg-4 col-sm-6 mb-5">
-    <div class="card p-0 border-primary rounded-0 hover-shadow">
-      <img class="card-img-top rounded-0" src="images/courses/course-3.jpg" alt="course thumb">
-      <div class="card-body">
-        <ul class="list-inline mb-2">
-          <li class="list-inline-item"><i class="ti-calendar mr-1 text-color"></i>+91 11 4567 8800</li>
-          <li class="list-inline-item"><a class="text-color" href="course-single.html">Humanities</a></li>
-        </ul>
-        <a href="course-single.html">
-          <h4 class="card-title">Lifestyle Archives</h4>
-        </a>
-        <p class="card-text mb-4"> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-          incididunt ut labore et dolore magna.</p>
-        <a href="course-single.html" class="btn btn-primary btn-sm">Apply now</a>
-      </div>
-    </div>
-  </div>
-  <!-- course item -->
-  <div class="col-lg-4 col-sm-6 mb-5">
-    <div class="card p-0 border-primary rounded-0 hover-shadow">
-      <img class="card-img-top rounded-0" src="images/courses/course-4.jpg" alt="course thumb">
-      <div class="card-body">
-        <ul class="list-inline mb-2">
-          <li class="list-inline-item"><i class="ti-calendar mr-1 text-color"></i>+91 11 4567 8800</li>
-          <li class="list-inline-item"><a class="text-color" href="course-single.html">Humanities</a></li>
-        </ul>
-        <a href="course-single.html">
-          <h4 class="card-title">Complete Freelancing</h4>
-        </a>
-        <p class="card-text mb-4"> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-          incididunt ut labore et dolore magna.</p>
-        <a href="course-single.html" class="btn btn-primary btn-sm">Apply now</a>
-      </div>
-    </div>
-  </div>
-  <!-- course item -->
-  <div class="col-lg-4 col-sm-6 mb-5">
-    <div class="card p-0 border-primary rounded-0 hover-shadow">
-      <img class="card-img-top rounded-0" src="images/courses/course-5.jpg" alt="course thumb">
-      <div class="card-body">
-        <ul class="list-inline mb-2">
-          <li class="list-inline-item"><i class="ti-calendar mr-1 text-color"></i>+91 11 4567 8800</li>
-          <li class="list-inline-item"><a class="text-color" href="course-single.html">Humanities</a></li>
-        </ul>
-        <a href="course-single.html">
-          <h4 class="card-title">Branding Design</h4>
-        </a>
-        <p class="card-text mb-4"> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-          incididunt ut labore et dolore magna.</p>
-        <a href="course-single.html" class="btn btn-primary btn-sm">Apply now</a>
-      </div>
-    </div>
-  </div>
-  <!-- course item -->
-  <div class="col-lg-4 col-sm-6 mb-5">
-    <div class="card p-0 border-primary rounded-0 hover-shadow">
-      <img class="card-img-top rounded-0" src="images/courses/course-6.jpg" alt="course thumb">
-      <div class="card-body">
-        <ul class="list-inline mb-2">
-          <li class="list-inline-item"><i class="ti-calendar mr-1 text-color"></i>+91 11 4567 8800</li>
-          <li class="list-inline-item"><a class="text-color" href="course-single.html">Humanities</a></li>
-        </ul>
-        <a href="course-single.html">
-          <h4 class="card-title">Art Design</h4>
-        </a>
-        <p class="card-text mb-4"> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-          incididunt ut labore et dolore magna.</p>
-        <a href="course-single.html" class="btn btn-primary btn-sm">Apply now</a>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- /course list -->
-    <!-- mobile see all button -->
-    <div class="row">
-      <div class="col-12 text-center">
-        <a href="courses.html" class="btn btn-sm btn-outline-primary d-sm-none d-inline-block">sell all</a>
-      </div>
-    </div>
-  </div>
-</section>
-<!-- /courses -->
-
-<!-- cta -->
-<section class="section bg-primary">
-  <div class="container">
-    <div class="row">
-      <div class="col-12 text-center">
-        <h6 class="text-white font-secondary mb-0">Click to Join the Advance Workshop</h6>
-        <h2 class="section-title text-white">Training In Advannce Networking</h2>
-        <a href="contact.html" class="btn btn-light">join now</a>
-      </div>
-    </div>
-  </div>
-</section>
-<!-- /cta -->
-
-<!-- success story -->
-<section class="section bg-cover" data-background="images/backgrounds/success-story.jpg">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-6 col-sm-4 position-relative success-video">
-        <a class="play-btn venobox" href="#" data-vbtype="video">
-          <i class="ti-control-play"></i>
-        </a>
-      </div>
-      <div class="col-lg-6 col-sm-8">
-        <div class="bg-white p-5">
-          <h2 class="section-title">Success Stories</h2>
-          <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat.</p>
-          <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-<!-- /success story -->
-
-<!-- events -->
-<section class="section bg-gray">
-  <div class="container">
-    <div class="row">
-      <div class="col-12">
-        <div class="d-flex align-items-center section-title justify-content-between">
-          <h2 class="mb-0 text-nowrap mr-3">Upcoming Events</h2>
-          <div class="border-top w-100 border-primary d-none d-sm-block"></div>
-          <div>
-            <a href="events.html" class="btn btn-sm btn-outline-primary ml-sm-3 d-none d-sm-block">see all</a>
+          <div class="field">
+            <label for="f-phone">Phone number</label>
+            <input id="f-phone" name="phone" type="tel" autocomplete="tel" required placeholder="+91 98xxx xxxxx">
           </div>
-        </div>
-      </div>
-    </div>
-    <div class="row justify-content-center">
-  <!-- event -->
-  <div class="col-lg-4 col-sm-6 mb-5 mb-lg-0">
-    <div class="card border-0 rounded-0 hover-shadow">
-      <div class="card-img position-relative">
-        <img class="card-img-top rounded-0" src="images/events/event-1.jpg" alt="event thumb">
-        <div class="card-date"><span>18</span><br>December</div>
-      </div>
-      <div class="card-body">
-        <!-- location -->
-        <p><i class="ti-location-pin text-primary mr-2"></i>Dhanmondi Lake, Dhaka</p>
-        <a href="event-single.html"><h4 class="card-title">Lorem ipsum dolor amet, consectetur adipisicing.</h4></a>
-      </div>
-    </div>
-  </div>
-  <!-- event -->
-  <div class="col-lg-4 col-sm-6 mb-5 mb-lg-0">
-    <div class="card border-0 rounded-0 hover-shadow">
-      <div class="card-img position-relative">
-        <img class="card-img-top rounded-0" src="images/events/event-2.jpg" alt="event thumb">
-        <div class="card-date"><span>21</span><br>December</div>
-      </div>
-      <div class="card-body">
-        <!-- location -->
-        <p><i class="ti-location-pin text-primary mr-2"></i>Dhanmondi Lake, Dhaka</p>
-        <a href="event-single.html"><h4 class="card-title">Lorem ipsum dolor amet, consectetur adipisicing.</h4></a>
-      </div>
-    </div>
-  </div>
-  <!-- event -->
-  <div class="col-lg-4 col-sm-6 mb-5 mb-lg-0">
-    <div class="card border-0 rounded-0 hover-shadow">
-      <div class="card-img position-relative">
-        <img class="card-img-top rounded-0" src="images/events/event-3.jpg" alt="event thumb">
-        <div class="card-date"><span>23</span><br>December</div>
-      </div>
-      <div class="card-body">
-        <!-- location -->
-        <p><i class="ti-location-pin text-primary mr-2"></i>Dhanmondi Lake, Dhaka</p>
-        <a href="event-single.html"><h4 class="card-title">Lorem ipsum dolor amet, consectetur adipisicing.</h4></a>
-      </div>
-    </div>
-  </div>
-</div>
-    <!-- mobile see all button -->
-    <div class="row">
-      <div class="col-12 text-center">
-        <a href="course.html" class="btn btn-sm btn-outline-primary d-sm-none d-inline-block">sell all</a>
-      </div>
-    </div>
-  </div>
-</section>
-<!-- /events -->
-
-<!-- teachers -->
-<section class="section">
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-12">
-        <h2 class="section-title">Our Teachers</h2>
-      </div>
-      <!-- teacher -->
-      <div class="col-lg-4 col-sm-6 mb-5 mb-lg-0">
-        <div class="card border-0 rounded-0 hover-shadow">
-          <img class="card-img-top rounded-0" src="images/teachers/teacher-1.jpg" alt="teacher">
-          <div class="card-body">
-            <a href="teacher-single.html">
-              <h4 class="card-title">Jacke Masito</h4>
-            </a>
-            <p>Teacher</p>
-            <ul class="list-inline">
-              <li class="list-inline-item"><a class="text-color" href="#"><i class="ti-facebook"></i></a></li>
-              <li class="list-inline-item"><a class="text-color" href="#"><i class="ti-twitter-alt"></i></a></li>
-              <li class="list-inline-item"><a class="text-color" href="#"><i class="ti-google"></i></a></li>
-              <li class="list-inline-item"><a class="text-color" href="#"><i class="ti-linkedin"></i></a></li>
-            </ul>
+          <div class="field">
+            <label for="f-email">Email address</label>
+            <input id="f-email" name="email" type="email" autocomplete="email" placeholder="you@example.com">
           </div>
-        </div>
-      </div>
-      <!-- teacher -->
-      <div class="col-lg-4 col-sm-6 mb-5 mb-lg-0">
-        <div class="card border-0 rounded-0 hover-shadow">
-          <img class="card-img-top rounded-0" src="images/teachers/teacher-2.jpg" alt="teacher">
-          <div class="card-body">
-            <a href="teacher-single.html">
-              <h4 class="card-title">Clark Malik</h4>
-            </a>
-            <p>Teacher</p>
-            <ul class="list-inline">
-              <li class="list-inline-item"><a class="text-color" href="#"><i class="ti-facebook"></i></a></li>
-              <li class="list-inline-item"><a class="text-color" href="#"><i class="ti-twitter-alt"></i></a></li>
-              <li class="list-inline-item"><a class="text-color" href="#"><i class="ti-google"></i></a></li>
-              <li class="list-inline-item"><a class="text-color" href="#"><i class="ti-linkedin"></i></a></li>
-            </ul>
+          <div class="field">
+            <label for="f-stage">Stage of interest</label>
+            <select id="f-stage" name="stage">
+              <option>Primary Years (Nursery – V)</option>
+              <option>Middle School (VI – VIII)</option>
+              <option>Senior Secondary (IX – XII)</option>
+              <option>Not sure yet</option>
+            </select>
           </div>
-        </div>
-      </div>
-      <!-- teacher -->
-      <div class="col-lg-4 col-sm-6 mb-5 mb-lg-0">
-        <div class="card border-0 rounded-0 hover-shadow">
-          <img class="card-img-top rounded-0" src="images/teachers/teacher-3.jpg" alt="teacher">
-          <div class="card-body">
-            <a href="teacher-single.html">
-              <h4 class="card-title">John Doe</h4>
-            </a>
-            <p>Teacher</p>
-            <ul class="list-inline">
-              <li class="list-inline-item"><a class="text-color" href="#"><i class="ti-facebook"></i></a></li>
-              <li class="list-inline-item"><a class="text-color" href="#"><i class="ti-twitter-alt"></i></a></li>
-              <li class="list-inline-item"><a class="text-color" href="#"><i class="ti-google"></i></a></li>
-              <li class="list-inline-item"><a class="text-color" href="#"><i class="ti-linkedin"></i></a></li>
-            </ul>
+          <div class="field">
+            <label for="f-msg">Message</label>
+            <textarea id="f-msg" name="message" placeholder="Your child's current class, school, and anything you'd like us to know…"></textarea>
           </div>
+          <button class="btn btn-primary" type="submit" style="width:100%">
+            Request a callback
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+          <p class="form-note">We respect your privacy. Details are used only to respond to your enquiry.</p>
+        </form>
+      </div>
+      <div class="contact-info reveal">
+        <h3>Visit or call us</h3>
+        <p style="color:var(--ink-soft)">The admissions office sits just inside the main gate — walk-ins welcome on weekdays.</p>
+        <ul class="info-list">
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div>27 Nehru Nagar, New Delhi 110065<span>Nearest metro: Kailash Colony (Violet Line)</span></div>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.8.7a2 2 0 0 1 1.7 2Z"/></svg>
+            <div><a href="tel:+911145678800">+91 11 4567 8800</a><span>Admissions helpline, Mon–Sat</span></div>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+            <div><a href="mailto:admissions@ascentacademy.demo">admissions@ascentacademy.demo</a><span>Replies within one working day</span></div>
+          </li>
+        </ul>
+        <div class="hours">
+          <h3>Admissions office hours</h3>
+          <dl>
+            <dt>Mon – Fri</dt><dd>8:30 AM – 4:30 PM</dd>
+            <dt>Saturday</dt><dd>9:00 AM – 1:00 PM</dd>
+            <dt>Sunday</dt><dd>Closed</dd>
+          </dl>
         </div>
       </div>
     </div>
   </div>
 </section>
-<!-- /teachers -->
+</main>
 
-<!-- blog -->
-<section class="section pt-0">
-  <div class="container">
-    <div class="row">
-      <div class="col-12">
-        <h2 class="section-title">Latest News</h2>
-      </div>
-    </div>
-    <div class="row justify-content-center">
-  <!-- blog post -->
-  <article class="col-lg-4 col-sm-6 mb-5 mb-lg-0">
-    <div class="card rounded-0 border-bottom border-primary border-top-0 border-left-0 border-right-0 hover-shadow">
-      <img class="card-img-top rounded-0" src="images/blog/post-1.jpg" alt="Post thumb">
-      <div class="card-body">
-        <!-- post meta -->
-        <ul class="list-inline mb-3">
-          <!-- post date -->
-          <li class="list-inline-item mr-3 ml-0">August 28, 2018</li>
-          <!-- author -->
-          <li class="list-inline-item mr-3 ml-0">By Somrat Sorkar</li>
-        </ul>
-        <a href="blog-single.html">
-          <h4 class="card-title">Lorem ipsum dolor amet, adipisicing eiusmod tempor.</h4>
-        </a>
-        <p class="card-text">Lorem ipsum dolor sit amet, consectetur adipisicin</p>
-        <a href="blog-single.html" class="btn btn-primary btn-sm">read more</a>
-      </div>
-    </div>
-  </article>
-  <!-- blog post -->
-  <article class="col-lg-4 col-sm-6 mb-5 mb-lg-0">
-    <div class="card rounded-0 border-bottom border-primary border-top-0 border-left-0 border-right-0 hover-shadow">
-      <img class="card-img-top rounded-0" src="images/blog/post-2.jpg" alt="Post thumb">
-      <div class="card-body">
-        <!-- post meta -->
-        <ul class="list-inline mb-3">
-          <!-- post date -->
-          <li class="list-inline-item mr-3 ml-0">August 13, 2018</li>
-          <!-- author -->
-          <li class="list-inline-item mr-3 ml-0">By Jonathon Drew</li>
-        </ul>
-        <a href="blog-single.html">
-          <h4 class="card-title">Lorem ipsum dolor amet, adipisicing eiusmod tempor.</h4>
-        </a>
-        <p class="card-text">Lorem ipsum dolor sit amet, consectetur adipisicin</p>
-        <a href="blog-single.html" class="btn btn-primary btn-sm">read more</a>
-      </div>
-    </div>
-  </article>
-  <!-- blog post -->
-  <article class="col-lg-4 col-sm-6 mb-5 mb-lg-0">
-    <div class="card rounded-0 border-bottom border-primary border-top-0 border-left-0 border-right-0 hover-shadow">
-      <img class="card-img-top rounded-0" src="images/blog/post-3.jpg" alt="Post thumb">
-      <div class="card-body">
-        <!-- post meta -->
-        <ul class="list-inline mb-3">
-          <!-- post date -->
-          <li class="list-inline-item mr-3 ml-0">August 24, 2018</li>
-          <!-- author -->
-          <li class="list-inline-item mr-3 ml-0">By Alex Pitt</li>
-        </ul>
-        <a href="blog-single.html">
-          <h4 class="card-title">Lorem ipsum dolor amet, adipisicing eiusmod tempor.</h4>
-        </a>
-        <p class="card-text">Lorem ipsum dolor sit amet, consectetur adipisicin</p>
-        <a href="blog-single.html" class="btn btn-primary btn-sm">read more</a>
-      </div>
-    </div>
-  </article>
-</div>
-  </div>
-</section>
-<!-- /blog -->
-
-<!-- footer -->
 <footer>
-  <!-- newsletter -->
-  <div class="newsletter">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-9 ml-auto bg-primary py-5 newsletter-block">
-          <h3 class="text-white">Subscribe Now</h3>
-          <form onsubmit="event.preventDefault();this.reset();alert('Demo site — this form is illustrative and does not send anything.')">
-            <div class="input-wrapper">
-              <input type="email" class="form-control border-0" id="newsletter" name="newsletter" placeholder="Enter Your Email...">
-              <button type="submit" value="send" class="btn btn-primary">Join</button>
-            </div>
-          </form>
-        </div>
-      </div>
+  <div class="container foot-inner">
+    <div class="foot-brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+        <rect x="2" y="2" width="36" height="36" rx="10" fill="#403C99"/>
+        <path d="M12 28 20 11l8 17" stroke="#F97316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M15.5 22.5h9" stroke="#FDFBF7" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      Ascent Academy
     </div>
-  </div>
-  <!-- footer content -->
-  <div class="footer bg-footer section border-bottom">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-4 col-sm-8 mb-5 mb-lg-0">
-          <!-- logo -->
-          <a class="logo-footer" href="index.html"><img class="img-fluid mb-4" src="images/logo.png" alt="logo"></a>
-          <ul class="list-unstyled">
-            <li class="mb-2">23621 15 Mile Rd #C104, Clinton MI, 48035, New York, USA</li>
-            <li class="mb-2">+91 11 4567 8800</li>
-            <li class="mb-2">+91 11 4567 8800</li>
-            <li class="mb-2">admissions@ascentacademy.demo</li>
-          </ul>
-        </div>
-        <!-- company -->
-        <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-5 mb-md-0">
-          <h4 class="text-white mb-5">COMPANY</h4>
-          <ul class="list-unstyled">
-            <li class="mb-3"><a class="text-color" href="about.html">About Us</a></li>
-            <li class="mb-3"><a class="text-color" href="teacher.html">Our Teacher</a></li>
-            <li class="mb-3"><a class="text-color" href="contact.html">Contact</a></li>
-            <li class="mb-3"><a class="text-color" href="blog.html">Blog</a></li>
-          </ul>
-        </div>
-        <!-- links -->
-        <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-5 mb-md-0">
-          <h4 class="text-white mb-5">LINKS</h4>
-          <ul class="list-unstyled">
-            <li class="mb-3"><a class="text-color" href="courses.html">Courses</a></li>
-            <li class="mb-3"><a class="text-color" href="events.html">Events</a></li>
-            <li class="mb-3"><a class="text-color" href="notice.html">Notice</a></li>
-            <li class="mb-3"><a class="text-color" href="scholarship.html">Scholarship</a></li>
-          </ul>
-        </div>
-        <!-- support -->
-        <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-5 mb-md-0">
-          <h4 class="text-white mb-5">SUPPORT</h4>
-          <ul class="list-unstyled">
-            <li class="mb-3"><a class="text-color" href="https://themefisher.com/blog">Forums</a></li>
-            <li class="mb-3"><a class="text-color" href="#">Documentation</a></li>
-            <li class="mb-3"><a class="text-color" href="#!">Language</a></li>
-            <li class="mb-3"><a class="text-color" href="#!">Release Status</a></li>
-          </ul>
-        </div>
-        <!-- support -->
-        <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-5 mb-md-0">
-          <h4 class="text-white mb-5">RECOMMEND</h4>
-          <ul class="list-unstyled">
-            <li class="mb-3"><a class="text-color" href="https://themefisher.com/">WordPress</a></li>
-            <li class="mb-3"><a class="text-color" href="https://themefisher.com/">LearnPress</a></li>
-            <li class="mb-3"><a class="text-color" href="https://themefisher.com/">WooCommerce</a></li>
-            <li class="mb-3"><a class="text-color" href="https://themefisher.com/">bbPress</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- copyright -->
-  <div class="copyright py-4 bg-footer">
-    <div class="container">
-      <div class="row">
-        <div class="col-sm-7 text-sm-left text-center">
-          <p class="mb-0">Copyright &copy;
-            <script>
-              var CurrentYear = new Date().getFullYear()
-              document.write(CurrentYear)
-            </script> 
-            , designed & developed by <a href="https://themefisher.com/" class="text-muted">Ascent Academy</a>
-          </p>
-        </div>
-        <div class="col-sm-5 text-sm-right text-center">
-          <ul class="list-inline">
-            <li class="list-inline-item"><a class="d-inline-block p-2" href="#"><i class="ti-facebook text-primary"></i></a></li>
-            <li class="list-inline-item"><a class="d-inline-block p-2" href="#"><i class="ti-twitter-alt text-primary"></i></a></li>
-            <li class="list-inline-item"><a class="d-inline-block p-2" href="#"><i class="ti-github text-primary"></i></a></li>
-            <li class="list-inline-item"><a class="d-inline-block p-2" href="#"><i class="ti-instagram text-primary"></i></a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
+    <p class="foot-note">A fictional demonstration site built by Catalyst Solutions — Education program specification.</p>
   </div>
 </footer>
-<!-- /footer -->
 
-<!-- jQuery -->
-<script src="plugins/jQuery/jquery.min.js"></script>
-<!-- Bootstrap JS -->
-<script src="plugins/bootstrap/bootstrap.min.js"></script>
-<!-- slick slider -->
-<script src="plugins/slick/slick.min.js"></script>
-<!-- aos -->
-<script src="plugins/aos/aos.js"></script>
-<!-- venobox popup -->
-<script src="plugins/venobox/venobox.min.js"></script>
-<!-- filter -->
-<script src="plugins/filterizr/jquery.filterizr.min.js"></script>
-<!-- google map -->
+<script>
+(function(){
+  if (!window.matchMedia('(prefers-reduced-motion: no-preference)').matches) return;
+  var els = document.querySelectorAll('.reveal');
+  if (!('IntersectionObserver' in window)) { els.forEach(function(e){e.classList.add('in')}); return; }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if (entry.isIntersecting) {
+        var el = entry.target;
+        var siblings = Array.prototype.filter.call(el.parentNode.children, function(c){return c.classList && c.classList.contains('reveal')});
+        var idx = siblings.indexOf(el);
+        el.style.transitionDelay = (Math.max(idx,0) * 70) + 'ms';
+        el.classList.add('in');
+        io.unobserve(el);
+      }
+    });
+  }, {threshold:.12, rootMargin:'0px 0px -40px 0px'});
+  els.forEach(function(e){ io.observe(e); });
+})();
+</script>
 
-
-
-<!-- Main Script -->
-<script src="js/script.js"></script>
-
-<link rel="stylesheet" href="../_vendor/tier-layer.css"><script>window.__TIER_LAYER={"brand":"Ascent Academy","accent":"#DB2777","tiers":[{"label":"Tier 1 — Institution Presence","short":"T1","widgets":[]},{"label":"Tier 2 — Enrollment Engine","short":"T2","widgets":["enquiry","whatsapp","reviews"]},{"label":"Tier 3 — Admissions Growth System","short":"T3","widgets":["chat","dashboard","locations"]}],"hello":"Admissions open — scholarship entrance test this Sunday, seats capped at 30 per batch.","locations":["Main campus — Nehru Nagar","West branch"],"dashHref":"/bundles/enrollment-growth-bundle#demos","bookLabel":"Book a counseling session","bookCta":"Pick a time","chatIntro":"Namaste! Ascent admissions assistant here. Programs, fees, batch timings — or I can start your application.","chatLabel":"Ask the admission counselor","chat":[{"q":"Which program suits me?","a":"Tell me your class and target exam — engineering, medical or foundation — and I'll suggest the right batch. Honestly, including if another institute fits better."},{"q":"What are the fees?","a":"Varies by program; the two-year integrated program can be paid in three instalments. Most students who take the entrance test qualify for some scholarship."},{"q":"When do batches start?","a":"April and June, plus weekend batches year-round. Classes capped at 30 so counselors know every student by name. Shall I hold a seat?"}],"wa":[{"f":"e","t":"📥 Enquiry from the JEE program page — Sun 10:05 PM"},{"f":"b","t":"Namaste! Thanks for your interest in the JEE program. Is this for the student or a parent enquiring?"},{"f":"u","t":"Parent. My son is in class 11, we're comparing institutes"},{"f":"b","t":"Good time to compare — ask every institute for full batch results, not just toppers. Ours are published. Want a campus visit + counselor session this week?"},{"f":"u","t":"Yes, Saturday if possible"},{"f":"b","t":"Booked ✅ Saturday 11 AM with our senior counselor. I'm sending the full results sheet and fee structure now so you can compare beforehand."},{"f":"e","t":"✅ Counseling booked, results sheet sent — logged to counselor CRM"}],"reviews":[{"n":"Parent of JEE 2025 student","t":"The counselor called back in 10 minutes on a Sunday night. That decided it."},{"n":"Sneha, class 12","t":"Batch of 28. My doubts actually got answered, by name."},{"n":"Parent, foundation program","t":"They published full results, not just toppers. Only institute that did."}]}</script><script src="../_vendor/tier-layer.js" defer></script></body>
+<link rel="stylesheet" href="../_vendor/tier-layer.css">
+<script>window.__TIER_LAYER={"brand":"Ascent Academy","accent":"#DB2777","tiers":[{"label":"Tier 1 — Institution Presence","short":"T1","widgets":[]},{"label":"Tier 2 — Enrollment Engine","short":"T2","widgets":["enquiry","whatsapp","reviews"]},{"label":"Tier 3 — Admissions Growth System","short":"T3","widgets":["chat","dashboard","locations"]}],"hello":"Admissions open — scholarship entrance test this Sunday, seats capped at 30 per batch.","locations":["Main campus — Nehru Nagar","West branch"],"dashHref":"/bundles/enrollment-growth-bundle#demos","bookLabel":"Book a counseling session","bookCta":"Pick a time","chatIntro":"Namaste! Ascent admissions assistant here. Programs, fees, batch timings — or I can start your application.","chatLabel":"Ask the admission counselor","chat":[{"q":"Which program suits me?","a":"Tell me your class and target exam — engineering, medical or foundation — and I'll suggest the right batch. Honestly, including if another institute fits better."},{"q":"What are the fees?","a":"Varies by program; the two-year integrated program can be paid in three instalments. Most students who take the entrance test qualify for some scholarship."},{"q":"When do batches start?","a":"April and June, plus weekend batches year-round. Classes capped at 30 so counselors know every student by name. Shall I hold a seat?"}],"wa":[{"f":"e","t":"📥 Enquiry from the JEE program page — Sun 10:05 PM"},{"f":"b","t":"Namaste! Thanks for your interest in the JEE program. Is this for the student or a parent enquiring?"},{"f":"u","t":"Parent. My son is in class 11, we're comparing institutes"},{"f":"b","t":"Good time to compare — ask every institute for full batch results, not just toppers. Ours are published. Want a campus visit + counselor session this week?"},{"f":"u","t":"Yes, Saturday if possible"},{"f":"b","t":"Booked ✅ Saturday 11 AM with our senior counselor. I'm sending the full results sheet and fee structure now so you can compare beforehand."},{"f":"e","t":"✅ Counseling booked, results sheet sent — logged to counselor CRM"}],"reviews":[{"n":"Parent of JEE 2025 student","t":"The counselor called back in 10 minutes on a Sunday night. That decided it."},{"n":"Sneha, class 12","t":"Batch of 28. My doubts actually got answered, by name."},{"n":"Parent, foundation program","t":"They published full results, not just toppers. Only institute that did."}]}</script><script src="../_vendor/tier-layer.js" defer></script>
+</body>
 </html>

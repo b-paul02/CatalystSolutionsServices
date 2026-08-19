@@ -1,816 +1,861 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>Summit Ridge Roofing — Storm-rated roofing, 24-hour estimates</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    
-    <link href="../_vendor/gfont-1nlr27u.css" rel="stylesheet">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Summit Ridge Roofing — Storm-rated roofing, 24-hour estimates</title>
+<meta name="description" content="Roof replacement, storm damage restoration and commercial roofing across the metro. Written estimates in 24 hours.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F8FAFC;
+    --surface:#FFFFFF;
+    --ink:#0F172A;
+    --ink-soft:#334155;
+    --muted:#64748B;
+    --line:#E2E8F0;
+    --accent:#EA580C;
+    --accent-deep:#C2410C;
+    --accent-soft:#FFF1E7;
+    --dark:#0F172A;
+    --dark-2:#1E293B;
+    --dark-line:rgba(148,163,184,.18);
+    --dark-text:#CBD5E1;
+    --radius-sm:8px;
+    --radius:14px;
+    --radius-lg:20px;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.06);
+    --shadow:0 6px 20px -6px rgba(15,23,42,.12);
+    --shadow-lg:0 20px 40px -12px rgba(15,23,42,.22);
+    --font-head:"Lexend",sans-serif;
+    --font-body:"Source Sans 3",sans-serif;
+    --container:1160px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;scroll-padding-top:88px}
+  @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+  body{
+    font-family:var(--font-body);
+    background:var(--bg);
+    color:var(--ink-soft);
+    line-height:1.6;
+    font-size:1.0625rem;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:var(--font-head);color:var(--ink);line-height:1.15;letter-spacing:-.015em}
+  img,svg{max-width:100%;display:block}
+  a{color:var(--accent-deep)}
+  :focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:4px}
+  .skip-link{
+    position:absolute;left:16px;top:-60px;z-index:200;
+    background:var(--ink);color:#fff;padding:10px 18px;border-radius:0 0 10px 10px;
+    font-family:var(--font-head);font-size:.9rem;text-decoration:none;transition:top .15s ease-out;
+  }
+  .skip-link:focus{top:0}
+  .container{max-width:var(--container);margin:0 auto;padding:0 24px}
 
-    <link rel="stylesheet" href="../_vendor/stackpath.bootstrapcdn.com-font-awesome-4.7.0-css-font-awesome.min.css">
- 
-    <link rel="stylesheet" href="css/animate.css">
-    
-    <link rel="stylesheet" href="css/owl.carousel.min.css">
-    <link rel="stylesheet" href="css/owl.theme.default.min.css">
-    <link rel="stylesheet" href="css/magnific-popup.css">
+  /* ---------- Nav ---------- */
+  .nav{
+    position:sticky;top:0;z-index:100;
+    background:rgba(15,23,42,.92);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--dark-line);
+  }
+  .nav-inner{max-width:var(--container);margin:0 auto;padding:0 24px;height:72px;display:flex;align-items:center;gap:28px}
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;margin-right:auto}
+  .brand-mark{flex:none}
+  .brand-name{font-family:var(--font-head);font-weight:700;font-size:1.125rem;color:#fff;letter-spacing:-.01em}
+  .brand-name span{color:var(--accent)}
+  .nav-links{display:flex;gap:4px;list-style:none}
+  .nav-links a{
+    color:var(--dark-text);text-decoration:none;font-family:var(--font-head);font-weight:500;
+    font-size:.9rem;padding:9px 13px;border-radius:8px;transition:color .15s,background .15s;
+  }
+  .nav-links a:hover{color:#fff;background:rgba(148,163,184,.12)}
+  .nav-phone{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--accent);color:#fff;text-decoration:none;
+    font-family:var(--font-head);font-weight:600;font-size:.9rem;
+    padding:11px 18px;border-radius:10px;white-space:nowrap;
+    transition:background .15s,transform .15s;
+  }
+  .nav-phone:hover{background:var(--accent-deep)}
+  .nav-toggle{display:none;background:none;border:1px solid var(--dark-line);border-radius:8px;padding:9px;cursor:pointer;color:#fff}
+  @media (max-width:920px){
+    .nav-links{
+      display:none;position:absolute;top:72px;left:0;right:0;
+      flex-direction:column;background:var(--dark);padding:12px 20px 20px;
+      border-bottom:1px solid var(--dark-line);
+    }
+    .nav-links.open{display:flex}
+    .nav-links a{padding:13px 12px;font-size:1rem}
+    .nav-toggle{display:inline-flex}
+    .nav-phone .nav-phone-label{display:none}
+  }
 
-    <link rel="stylesheet" href="css/bootstrap-datepicker.css">
-    <link rel="stylesheet" href="css/jquery.timepicker.css">
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;overflow:hidden;color:var(--dark-text);
+    background:
+      radial-gradient(120% 90% at 78% -10%, rgba(234,88,12,.28) 0%, rgba(234,88,12,0) 55%),
+      radial-gradient(90% 70% at 15% 5%, rgba(59,130,246,.14) 0%, rgba(59,130,246,0) 60%),
+      linear-gradient(180deg,#0B1220 0%, #0F172A 55%, #16233B 100%);
+  }
+  .hero-inner{
+    max-width:var(--container);margin:0 auto;padding:clamp(56px,9vw,110px) 24px clamp(150px,17vw,220px);
+    display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.85fr);gap:48px;align-items:center;
+    position:relative;z-index:2;
+  }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:var(--font-head);font-weight:600;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);
+  }
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--accent);border-radius:2px}
+  .hero .eyebrow{color:#FDBA74}
+  .hero .eyebrow::before{background:#FDBA74}
+  .hero h1{
+    color:#fff;font-size:clamp(2.3rem,5.4vw,3.75rem);font-weight:800;margin:18px 0 20px;
+    letter-spacing:-.025em;
+  }
+  .hero h1 em{font-style:normal;color:var(--accent);position:relative;white-space:nowrap}
+  .hero-sub{font-size:clamp(1.05rem,1.6vw,1.2rem);max-width:34rem;color:#94A3B8}
+  .hero-ctas{display:flex;flex-wrap:wrap;gap:14px;margin-top:32px}
+  .btn{
+    display:inline-flex;align-items:center;gap:10px;text-decoration:none;cursor:pointer;
+    font-family:var(--font-head);font-weight:600;font-size:1rem;
+    padding:15px 26px;border-radius:12px;border:1px solid transparent;
+    transition:transform .15s ease-out,background .15s,box-shadow .15s;
+  }
+  .btn-primary{background:var(--accent);color:#fff;box-shadow:0 8px 24px -8px rgba(234,88,12,.55)}
+  .btn-primary:hover{background:var(--accent-deep);transform:translateY(-2px)}
+  .btn-ghost{background:transparent;color:#E2E8F0;border-color:rgba(148,163,184,.35)}
+  .btn-ghost:hover{border-color:#94A3B8;color:#fff;transform:translateY(-2px)}
+  .hero-trust{display:flex;flex-wrap:wrap;gap:22px;margin-top:38px}
+  .hero-trust .t{display:flex;align-items:center;gap:9px;font-size:.92rem;color:#94A3B8}
+  .hero-trust svg{color:var(--accent);flex:none}
+  /* Hero visual: estimate card stack */
+  .hero-visual{position:relative;min-height:340px}
+  .card-est{
+    background:linear-gradient(180deg,#1E293B,#182236);
+    border:1px solid var(--dark-line);border-radius:var(--radius-lg);
+    padding:26px;box-shadow:var(--shadow-lg);max-width:380px;margin-left:auto;
+  }
+  .card-est-head{display:flex;align-items:center;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--dark-line)}
+  .card-est-head .ico{
+    width:42px;height:42px;border-radius:11px;background:rgba(234,88,12,.15);
+    display:grid;place-items:center;color:var(--accent);flex:none;
+  }
+  .card-est-head strong{display:block;color:#fff;font-family:var(--font-head);font-size:.98rem}
+  .card-est-head small{color:#94A3B8;font-size:.82rem}
+  .card-est ul{list-style:none;margin:16px 0 0}
+  .card-est li{display:flex;justify-content:space-between;gap:12px;padding:9px 0;font-size:.92rem;color:#CBD5E1;border-bottom:1px dashed rgba(148,163,184,.14)}
+  .card-est li:last-child{border-bottom:none}
+  .card-est li b{color:#fff;font-family:var(--font-head);font-weight:600}
+  .card-est .stamp{
+    margin-top:14px;display:inline-flex;align-items:center;gap:8px;
+    background:rgba(22,163,74,.14);color:#4ADE80;border:1px solid rgba(74,222,128,.25);
+    font-family:var(--font-head);font-weight:600;font-size:.8rem;padding:7px 12px;border-radius:999px;
+  }
+  .chip-float{
+    position:absolute;background:#0B1220;border:1px solid var(--dark-line);border-radius:12px;
+    padding:12px 16px;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:10px;
+  }
+  .chip-float .n{font-family:var(--font-head);font-weight:800;font-size:1.25rem;color:#fff;line-height:1}
+  .chip-float .l{font-size:.75rem;color:#94A3B8;line-height:1.25}
+  .chip-float svg{color:var(--accent)}
+  .chip-a{top:-14px;left:6%}
+  .chip-b{bottom:36px;left:-4px}
+  @media (max-width:960px){
+    .hero-inner{grid-template-columns:1fr;padding-bottom:clamp(140px,20vw,190px)}
+    .hero-visual{min-height:0;margin-top:6px}
+    .card-est{margin-left:0}
+    .chip-a{top:auto;bottom:-18px;left:auto;right:8px}
+    .chip-b{bottom:-18px;left:8px}
+  }
+  /* Roofline silhouette across hero bottom */
+  .hero-roofline{position:absolute;left:0;right:0;bottom:-1px;z-index:1;pointer-events:none}
+  .hero-roofline svg{width:100%;height:auto;display:block}
 
-    <link rel="stylesheet" href="css/flaticon.css">
-    <link rel="stylesheet" href="css/style.css">
-  </head>
-  <body>
-		<div class="wrap">
-	    <div class="container">
-				<div class="row justify-content-between">
-					<div class="col-3 d-flex align-items-center">
-						<a class="navbar-brand d-flex" href="index.html"><div class="icon d-flex align-items-center justify-content-center"><span class="flaticon-roof-2"></span></div>Roofing</a>
-					</div>
-					<div class="col-3 d-flex justify-content-end align-items-center">
-						<div class="social-media">
-			    		<p class="mb-0 d-flex">
-			    			<a href="#" class="d-flex align-items-center justify-content-center"><span class="fa fa-facebook"><i class="sr-only">Facebook</i></span></a>
-			    			<a href="#" class="d-flex align-items-center justify-content-center"><span class="fa fa-twitter"><i class="sr-only">Twitter</i></span></a>
-			    			<a href="#" class="d-flex align-items-center justify-content-center"><span class="fa fa-instagram"><i class="sr-only">Instagram</i></span></a>
-			    			<a href="#" class="d-flex align-items-center justify-content-center"><span class="fa fa-dribbble"><i class="sr-only">Dribbble</i></span></a>
-			    		</p>
-		        </div>
-					</div>
-				</div>
-			</div>
-		</div>
-		
-		<section class="menu-wrap flex-md-column-reverse d-md-flex">
-			<nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
-		    <div class="container">
-		    
-		      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
-		        <span class="fa fa-bars"></span> Menu
-		      </button>
-		      <div class="collapse navbar-collapse" id="ftco-nav">
-		        <ul class="navbar-nav mr-auto">
-		        	<li class="nav-item active"><a href="index.html" class="nav-link">Home</a></li>
-		        	<li class="nav-item"><a href="about.html" class="nav-link">About</a></li>
-		        	<li class="nav-item"><a href="services.html" class="nav-link">Services</a></li>
-		        	<li class="nav-item"><a href="project.html" class="nav-link">Project</a></li>
-		        	<li class="nav-item"><a href="blog.html" class="nav-link">Blog</a></li>
-		          <li class="nav-item"><a href="contact.html" class="nav-link">Contact</a></li>
-		        </ul>
-		      </div>
-		    </div>
-		  </nav>
-	    <!-- END nav -->
-	    <div class="hero-wrap js-fullheight">
-		    <div class="home-slider js-fullheight owl-carousel">
-		      <div class="slider-item js-fullheight" style="background-image:url(images/bg_1.jpg);">
-		      	<div class="overlay"></div>
-		        <div class="container">
-		          <div class="row no-gutters slider-text js-fullheight align-items-center justify-content-center">
-			          <div class="col-md-10 text-center ftco-animate">
-			          	<div class="text w-100">
-			          		<h2>We are best Roofing Services</h2>
-				            <h1 class="mb-4">Dedicated to providing the highest quality roofing services</h1>
-				            <p><a href="#" class="btn btn-primary">Book an appointment</a></p>
-			            </div>
-			          </div>
-			        </div>
-		        </div>
-		      </div>
+  /* ---------- Sections ---------- */
+  section{padding:clamp(64px,9vw,104px) 0}
+  .sec-head{max-width:640px;margin-bottom:clamp(36px,5vw,56px)}
+  .sec-head h2{font-size:clamp(1.75rem,3.4vw,2.5rem);font-weight:700;margin:14px 0 14px}
+  .sec-head p{color:var(--muted);font-size:1.08rem}
+  .sec-head.center{margin-left:auto;margin-right:auto;text-align:center}
+  .sec-head.center .eyebrow{justify-content:center}
 
-		      <div class="slider-item js-fullheight" style="background-image:url(images/bg_2.jpg);">
-		      	<div class="overlay"></div>
-		        <div class="container">
-		          <div class="row no-gutters slider-text js-fullheight align-items-center justify-content-center">
-			          <div class="col-md-8 text-center ftco-animate">
-			          	<div class="text w-100">
-			          		<h2>We care about your home</h2>
-				            <h1 class="mb-4">Quality roofing at a affordable price</h1>
-				            <p><a href="#" class="btn btn-primary">Book an appointment</a></p>
-			            </div>
-			          </div>
-			        </div>
-		        </div>
-		      </div>
-		    </div>
-		  </div>
-		</section>
-   	
-    <section class="ftco-section ftco-no-pt ftco-no-pb bg-light ftco-appointment">
-    	<div class="container">
-    		<div class="row">
-    			<div class="col-lg-7">
-    				<div class="row justify-content-start py-5 pr-md-4">
-		          <div class="col-md-12 heading-section ftco-animate py-md-4">
-		            <h2 class="mb-4">We help more than 45 years installing your roof</h2>
-		            <p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right at the coast of the Semantics, a large language ocean. A small river named Duden flows by their place and supplies it with the necessary regelialia. It is a paradisematic country, in which roasted parts of sentences fly into your mouth.</p>
-		            <div class="tabulation-2 mt-4">
-									<ul class="nav nav-pills nav-fill d-md-flex d-block">
-									  <li class="nav-item mb-md-0 mb-2">
-									    <a class="nav-link active py-3" data-toggle="tab" href="#home1">Our Mission</a>
-									  </li>
-									  <li class="nav-item px-lg-2 mb-md-0 mb-2">
-									    <a class="nav-link py-3" data-toggle="tab" href="#home2">Our Vision</a>
-									  </li>
-									  <li class="nav-item">
-									    <a class="nav-link py-3 mb-md-0 mb-2" data-toggle="tab" href="#home3">Our Value</a>
-									  </li>
-									</ul>
-									<div class="tab-content rounded mt-2">
-									  <div class="tab-pane container p-0 active" id="home1">
-									  	<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right at the coast of the Semantics, a large language ocean.</p>
-									  </div>
-									  <div class="tab-pane container p-0 fade" id="home2">
-									  	<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right at the coast of the Semantics, a large language ocean.</p>
-									  </div>
-									  <div class="tab-pane container p-0 fade" id="home3">
-									  	<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right at the coast of the Semantics, a large language ocean.</p>
-									  </div>
-									</div>
-								</div>
-		          </div>
-		        </div>
-	        </div>
-	        <div class="col-lg-5 d-flex align-items-stretch">
-	        	<div class="bg-white">
-		        	<div class="w-100 heading-title bg-primary text-center">
-		        		<h2 class="mb-0">Get a Quote</h2>
-		        	</div>
-	    				<form class="appointment bg-white p-4 p-md-5" onsubmit="event.preventDefault();this.reset();alert('Demo site — this form is illustrative and does not send anything.')">
-	    					<div class="row">
-	    						<div class="col-md-12">
-										<div class="form-group">
-				    					<div class="form-field">
-		          					<div class="select-wrap">
-		                      <div class="icon"><span class="fa fa-chevron-down"></span></div>
-		                      <select name="" id="" class="form-control">
-		                      	<option value="">Select Services</option>
-		                        <option value="">Skylights</option>
-		                        <option value="">Waterproofing</option>
-		                        <option value="">Industrial Roofing</option>
-		                        <option value="">Residential Roofing</option>
-		                        <option value="">Gutter Cleaning</option>
-		                        <option value="">Commercial Roofing</option>
-		                      </select>
-		                    </div>
-				              </div>
-				    				</div>
-									</div>
-									<div class="col-md-6">
-										<div class="form-group">
-				              <input type="text" class="form-control" placeholder="Your Name">
-				            </div>
-									</div>
-									<div class="col-md-6">
-										<div class="form-group">
-				              <input type="text" class="form-control" placeholder="Email Address">
-				            </div>
-									</div>
-									<div class="col-md-6">
-										<div class="form-group">
-				    					<div class="input-wrap">
-				            		<div class="icon"><span class="fa fa-calendar"></span></div>
-				            		<input type="text" class="form-control appointment_date" placeholder="Date">
-			            		</div>
-				    				</div>
-									</div>
-									<div class="col-md-6">
-										<div class="form-group">
-				    					<div class="input-wrap">
-				            		<div class="icon"><span class="fa fa-clock-o"></span></div>
-				            		<input type="text" class="form-control appointment_time" placeholder="Time">
-			            		</div>
-				    				</div>
-									</div>
-									<div class="col-md-12">
-										<div class="form-group">
-				              <textarea name="" id="" cols="30" rows="7" class="form-control" placeholder="Message"></textarea>
-				            </div>
-									</div>
-									<div class="col-md-12">
-										<div class="form-group">
-				              <input type="submit" value="Send message" class="btn btn-primary py-3 px-4">
-				            </div>
-									</div>
-	    					</div>
-		          </form>
-		        </div>
-    			</div>
+  /* Badge strip */
+  .badge-strip{background:var(--surface);border-bottom:1px solid var(--line);padding:22px 0}
+  .badge-row{display:flex;flex-wrap:wrap;justify-content:center;gap:16px 40px;align-items:center}
+  .badge-item{display:flex;align-items:center;gap:10px;font-family:var(--font-head);font-weight:600;font-size:.86rem;color:var(--ink-soft);white-space:nowrap}
+  .badge-item svg{color:var(--accent);flex:none}
+  @media (max-width:720px){.badge-row{gap:12px 22px}.badge-item{font-size:.8rem}}
+
+  /* Services */
+  .svc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+  @media (max-width:1000px){.svc-grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:600px){.svc-grid{grid-template-columns:1fr}}
+  .svc-card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);
+    padding:28px 26px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;
+    display:flex;flex-direction:column;
+    transition:transform .2s ease-out,box-shadow .2s ease-out,border-color .2s;
+  }
+  .svc-card::after{
+    content:"";position:absolute;inset:auto 0 0 0;height:4px;
+    background:linear-gradient(90deg,var(--accent),#FB923C);
+    transform:scaleX(0);transform-origin:left;transition:transform .25s ease-out;
+  }
+  .svc-card:hover{transform:translateY(-5px);box-shadow:var(--shadow);border-color:#FDBA74}
+  .svc-card:hover::after{transform:scaleX(1)}
+  .svc-ico{
+    width:52px;height:52px;border-radius:14px;background:var(--accent-soft);color:var(--accent-deep);
+    display:grid;place-items:center;margin-bottom:20px;
+  }
+  .svc-card h3{font-size:1.2rem;font-weight:600;margin-bottom:10px}
+  .svc-card p{font-size:.97rem;color:var(--muted);flex:1}
+  .svc-card .svc-note{
+    margin-top:18px;padding-top:14px;border-top:1px solid var(--line);
+    font-family:var(--font-head);font-weight:600;font-size:.82rem;color:var(--accent-deep);
+    display:flex;align-items:center;gap:7px;
+  }
+
+  /* About / stats — dark angled band */
+  .about{
+    background:var(--dark);color:var(--dark-text);position:relative;
+    -webkit-clip-path:polygon(0 clamp(20px,3.5vw,48px),100% 0,100% calc(100% - clamp(20px,3.5vw,48px)),0 100%);
+    clip-path:polygon(0 clamp(20px,3.5vw,48px),100% 0,100% calc(100% - clamp(20px,3.5vw,48px)),0 100%);
+    padding:clamp(90px,12vw,140px) 0;
+  }
+  .about .sec-head h2{color:#fff}
+  .about .sec-head p{color:#94A3B8}
+  .about-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(36px,6vw,72px);align-items:center}
+  @media (max-width:900px){.about-grid{grid-template-columns:1fr}}
+  .about-points{list-style:none;display:grid;gap:16px;margin-top:26px}
+  .about-points li{display:flex;gap:13px;font-size:1rem;color:#CBD5E1}
+  .about-points svg{color:var(--accent);flex:none;margin-top:3px}
+  .about-points b{color:#fff;font-family:var(--font-head);font-weight:600}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media (max-width:480px){.stat-grid{grid-template-columns:1fr 1fr;gap:12px}}
+  .stat{
+    background:linear-gradient(180deg,#1E293B,#182236);border:1px solid var(--dark-line);
+    border-radius:var(--radius);padding:26px 24px;
+  }
+  .stat .num{
+    font-family:var(--font-head);font-weight:800;font-size:clamp(2.1rem,4vw,2.9rem);
+    color:#fff;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;
+  }
+  .stat .num span{color:var(--accent)}
+  .stat .lbl{margin-top:8px;font-size:.9rem;color:#94A3B8}
+
+  /* Estimate band */
+  .estimate-band{padding:0}
+  .estimate-card{
+    background:linear-gradient(120deg,var(--accent) 0%,#F97316 60%,#FB923C 100%);
+    border-radius:var(--radius-lg);color:#fff;box-shadow:var(--shadow-lg);
+    padding:clamp(36px,6vw,56px);display:grid;grid-template-columns:minmax(0,1.2fr) auto;gap:32px;align-items:center;
+    position:relative;overflow:hidden;
+  }
+  .estimate-card::before{
+    content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;
+    background:rgba(255,255,255,.10);
+  }
+  .estimate-card::after{
+    content:"";position:absolute;right:40px;bottom:-90px;width:200px;height:200px;border-radius:50%;
+    background:rgba(255,255,255,.08);
+  }
+  .estimate-card h2{color:#fff;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:700;margin-bottom:10px}
+  .estimate-card p{color:#FFEDD5;max-width:36rem}
+  .estimate-card .btn{background:#fff;color:var(--accent-deep);position:relative;z-index:1}
+  .estimate-card .btn:hover{background:#FFF7ED;transform:translateY(-2px)}
+  @media (max-width:760px){.estimate-card{grid-template-columns:1fr}}
+
+  /* Financing / insurance */
+  .fin-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  @media (max-width:860px){.fin-grid{grid-template-columns:1fr}}
+  .fin-card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);
+    padding:clamp(28px,4vw,40px);box-shadow:var(--shadow-sm);
+    transition:transform .2s ease-out,box-shadow .2s ease-out;
+  }
+  .fin-card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+  .fin-card .svc-ico{margin-bottom:18px}
+  .fin-card h3{font-size:1.35rem;font-weight:600;margin-bottom:12px}
+  .fin-card p{color:var(--muted)}
+  .fin-card ul{list-style:none;margin-top:18px;display:grid;gap:11px}
+  .fin-card li{display:flex;gap:10px;font-size:.97rem;color:var(--ink-soft)}
+  .fin-card li svg{color:var(--accent);flex:none;margin-top:4px}
+
+  /* Testimonials */
+  .quotes{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .quote-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  @media (max-width:900px){.quote-grid{grid-template-columns:1fr}}
+  .quote-card{
+    background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-lg);
+    padding:28px;display:flex;flex-direction:column;gap:18px;
+    transition:transform .2s ease-out,box-shadow .2s ease-out;
+  }
+  .quote-card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+  .stars{display:flex;gap:3px;color:var(--accent)}
+  .quote-card blockquote{font-size:1rem;color:var(--ink-soft);flex:1}
+  .quote-who{display:flex;align-items:center;gap:13px}
+  .avatar{
+    width:46px;height:46px;border-radius:50%;flex:none;
+    background:var(--dark);color:#fff;display:grid;place-items:center;
+    font-family:var(--font-head);font-weight:700;font-size:.92rem;letter-spacing:.02em;
+  }
+  .quote-who strong{display:block;font-family:var(--font-head);font-weight:600;font-size:.95rem;color:var(--ink)}
+  .quote-who small{color:var(--muted);font-size:.84rem}
+
+  /* Contact */
+  .contact-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(32px,5vw,60px);align-items:start}
+  @media (max-width:900px){.contact-grid{grid-template-columns:1fr}}
+  .form-card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);
+    padding:clamp(26px,4vw,38px);box-shadow:var(--shadow);
+  }
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:560px){.form-row{grid-template-columns:1fr}}
+  .field{margin-bottom:18px}
+  .field label{
+    display:block;font-family:var(--font-head);font-weight:600;font-size:.88rem;color:var(--ink);margin-bottom:7px;
+  }
+  .field input,.field select,.field textarea{
+    width:100%;min-height:48px;padding:12px 14px;font:inherit;color:var(--ink);
+    background:var(--bg);border:1px solid #CBD5E1;border-radius:10px;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  .field textarea{min-height:120px;resize:vertical}
+  .field input:focus,.field select:focus,.field textarea:focus{
+    outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(234,88,12,.18);
+  }
+  .form-card .btn{width:100%;justify-content:center;min-height:52px}
+  .contact-aside h3{font-size:1.15rem;font-weight:600;margin-bottom:6px}
+  .contact-block{
+    display:flex;gap:15px;padding:20px 0;border-bottom:1px solid var(--line);
+  }
+  .contact-block:first-of-type{padding-top:6px}
+  .contact-block .svc-ico{width:46px;height:46px;margin:0;flex:none}
+  .contact-block a{color:var(--ink-soft);text-decoration:none;font-weight:600}
+  .contact-block a:hover{color:var(--accent-deep)}
+  .contact-block p{color:var(--muted);font-size:.95rem}
+  .hours{list-style:none;margin-top:8px;font-size:.95rem;color:var(--muted)}
+  .hours li{display:flex;justify-content:space-between;gap:16px;padding:3px 0}
+  .hours b{color:var(--ink);font-weight:600}
+  .emergency-note{
+    margin-top:22px;background:var(--accent-soft);border:1px solid #FED7AA;border-radius:var(--radius);
+    padding:16px 18px;display:flex;gap:12px;font-size:.94rem;color:#7C2D12;
+  }
+  .emergency-note svg{color:var(--accent-deep);flex:none;margin-top:2px}
+
+  /* Footer */
+  footer{
+    background:var(--dark);color:#94A3B8;padding:56px 0 120px;
+    position:relative;
+  }
+  footer::before{
+    content:"";position:absolute;left:0;right:0;top:0;height:4px;
+    background:linear-gradient(90deg,var(--accent),#FB923C 45%,transparent 90%);
+  }
+  .foot-grid{display:flex;flex-wrap:wrap;gap:32px;justify-content:space-between;align-items:flex-start}
+  .foot-brand .brand-name{font-size:1.25rem}
+  .foot-brand p{max-width:30rem;margin-top:12px;font-size:.95rem}
+  .foot-links{list-style:none;display:flex;flex-wrap:wrap;gap:6px 22px}
+  .foot-links a{color:#CBD5E1;text-decoration:none;font-family:var(--font-head);font-size:.9rem;font-weight:500}
+  .foot-links a:hover{color:#fff}
+  .foot-legal{margin-top:36px;padding-top:22px;border-top:1px solid var(--dark-line);font-size:.85rem;display:grid;gap:6px}
+
+  /* Reveal on scroll */
+  @media (prefers-reduced-motion: no-preference){
+    .reveal{opacity:0;transform:translateY(22px);transition:opacity .3s ease-out,transform .3s ease-out}
+    .reveal.in{opacity:1;transform:none}
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#top" aria-label="Summit Ridge Roofing — home">
+      <svg class="brand-mark" width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true">
+        <path d="M3 20 17 7l14 13" stroke="#EA580C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M8 20v8h18v-8" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M21 11V8h3v6" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="brand-name">Summit Ridge<span> Roofing</span></span>
+    </a>
+    <nav aria-label="Primary">
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#services">Services</a></li>
+        <li><a href="#why-us">Why Us</a></li>
+        <li><a href="#financing">Financing</a></li>
+        <li><a href="#reviews">Reviews</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <a class="nav-phone" href="tel:+15550142287">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      <span class="nav-phone-label">(555) 014-2287</span>
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+  <!-- HERO -->
+  <section class="hero" id="top" aria-label="Introduction">
+    <div class="hero-inner">
+      <div>
+        <p class="eyebrow">Denver's storm-rated roofers · Since 2009</p>
+        <h1>Built for Colorado weather. <em>Backed in writing.</em></h1>
+        <p class="hero-sub">Roof replacement, storm damage restoration and commercial roofing across the Denver metro — with a written, itemised estimate in your inbox within 24 hours of inspection.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#contact">
+            Get a free estimate
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+          <a class="btn btn-ghost" href="#services">See our services</a>
         </div>
-    	</div>
-    </section>
-
-    <section class="ftco-counter" id="section-counter">
-    	<div class="container">
-				<div class="row">
-          <div class="col-md-6 col-lg-3 d-flex justify-content-center counter-wrap ftco-animate">
-            <div class="block-18 text-center">
-              <div class="text">
-              	<div class="icon"><span class="fa fa-calendar"></span></div>
-                <strong class="number" data-number="45">0</strong>
-              	<span>Years of Experienced</span>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6 col-lg-3 d-flex justify-content-center counter-wrap ftco-animate">
-            <div class="block-18 text-center">
-              <div class="text">
-              	<div class="icon"><span class="fa fa-briefcase"></span></div>
-                <strong class="number" data-number="8500">0</strong>
-              	<span>Project completed</span>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6 col-lg-3 d-flex justify-content-center counter-wrap ftco-animate">
-            <div class="block-18 text-center">
-              <div class="text">
-              	<div class="icon"><span class="fa fa-users"></span></div>
-                <strong class="number" data-number="2342">0</strong>
-              	<span>Happy Clients</span>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6 col-lg-3 d-flex justify-content-center counter-wrap ftco-animate">
-            <div class="block-18 text-center">
-              <div class="text">
-              	<div class="icon"><span class="fa fa-bar-chart"></span></div>
-                <strong class="number" data-number="30">0</strong>
-              	<span>Business Partners</span>
-              </div>
-            </div>
-          </div>
-        </div>
-    	</div>
-    </section>
-
-    <section class="ftco-section">
-    	<div class="container">
-    		<div class="row justify-content-center mb-5">
-          <div class="col-md-8 text-center heading-section ftco-animate">
-            <h2 class="mb-4">Our Best Services</h2>
-          </div>
-        </div>
-        <div class="row">
-        	<div class="col-lg-9">
-		  			<div class="row tabulation mt-4 ftco-animate">
-		  				<div class="col-md-4">
-								<ul class="nav nav-pills nav-fill d-md-flex d-block flex-column">
-								  <li class="nav-item text-left">
-								    <a class="nav-link active py-4" data-toggle="tab" href="#services-1"><span class="flaticon-roof mr-2"></span> Skylights</a>
-								  </li>
-								  <li class="nav-item text-left">
-								    <a class="nav-link py-4" data-toggle="tab" href="#services-2"><span class="flaticon-roof-1 mr-2"></span> Waterproofing</a>
-								  </li>
-								  <li class="nav-item text-left">
-								    <a class="nav-link py-4" data-toggle="tab" href="#services-3"><span class="flaticon-roof-5 mr-2"></span> Industrial Roofing</a>
-								  </li>
-								  <li class="nav-item text-left">
-								    <a class="nav-link py-4" data-toggle="tab" href="#services-4"><span class="flaticon-roof-2 mr-2"></span> Residential Roofing</a>
-								  </li>
-								  <li class="nav-item text-left">
-								    <a class="nav-link py-4" data-toggle="tab" href="#services-5"><span class="flaticon-roof-3 mr-2"></span> Gutter Cleaning</a>
-								  </li>
-								  <li class="nav-item text-left">
-								    <a class="nav-link border-bottom py-4" data-toggle="tab" href="#services-6"><span class="flaticon-roof-4 mr-2"></span> Commercial Roofing</a>
-								  </li>
-								</ul>
-							</div>
-							<div class="col-md-8 pl-md-4">
-								<div class="tab-content">
-								  <div class="tab-pane container p-0 active" id="services-1">
-								  	<h3><a href="#">Skylights</a></h3>
-								  	<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right at the coast of the Semantics, a large language ocean.</p>
-								  	<p>The Big Oxmox advised her not to do so, because there were thousands of bad Commas, wild Question Marks and devious Semikoli, but the Little Blind Text didn’t listen. She packed her seven versalia, put her initial into the belt and made herself on the way.</p>
-								  	<ul>
-								  		<li><span class="fa fa-check"></span>The Big Oxmox advised her not to do so</li>
-								  		<li><span class="fa fa-check"></span>Far far away, behind the word mountains</li>
-								  		<li><span class="fa fa-check"></span>Separated they live in Bookmarksgrove</li>
-								  		<li><span class="fa fa-check"></span>She packed her seven versalia</li>
-								  		<li><span class="fa fa-check"></span>Little Blind Text didn’t listen</li>
-								  	</ul>
-
-								  </div>
-								  <div class="tab-pane container p-0 fade" id="services-2">
-								  	<h3><a href="#">Waterproofing</a></h3>
-								  	<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right at the coast of the Semantics, a large language ocean.</p>
-								  	<p>The Big Oxmox advised her not to do so, because there were thousands of bad Commas, wild Question Marks and devious Semikoli, but the Little Blind Text didn’t listen. She packed her seven versalia, put her initial into the belt and made herself on the way.</p>
-								  	<ul>
-								  		<li><span class="fa fa-check"></span>The Big Oxmox advised her not to do so</li>
-								  		<li><span class="fa fa-check"></span>Far far away, behind the word mountains</li>
-								  		<li><span class="fa fa-check"></span>Separated they live in Bookmarksgrove</li>
-								  		<li><span class="fa fa-check"></span>She packed her seven versalia</li>
-								  		<li><span class="fa fa-check"></span>Little Blind Text didn’t listen</li>
-								  	</ul>
-								  </div>
-								  <div class="tab-pane container p-0 fade" id="services-3">
-								  	<h3><a href="#">Industrial Roofing</a></h3>
-								  	<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right at the coast of the Semantics, a large language ocean.</p>
-								  	<p>The Big Oxmox advised her not to do so, because there were thousands of bad Commas, wild Question Marks and devious Semikoli, but the Little Blind Text didn’t listen. She packed her seven versalia, put her initial into the belt and made herself on the way.</p>
-								  	<ul>
-								  		<li><span class="fa fa-check"></span>The Big Oxmox advised her not to do so</li>
-								  		<li><span class="fa fa-check"></span>Far far away, behind the word mountains</li>
-								  		<li><span class="fa fa-check"></span>Separated they live in Bookmarksgrove</li>
-								  		<li><span class="fa fa-check"></span>She packed her seven versalia</li>
-								  		<li><span class="fa fa-check"></span>Little Blind Text didn’t listen</li>
-								  	</ul>
-								  </div>
-								  <div class="tab-pane container p-0 fade" id="services-4">
-								  	<h3><a href="#">Residential Roofing</a></h3>
-								  	<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right at the coast of the Semantics, a large language ocean.</p>
-								  	<p>The Big Oxmox advised her not to do so, because there were thousands of bad Commas, wild Question Marks and devious Semikoli, but the Little Blind Text didn’t listen. She packed her seven versalia, put her initial into the belt and made herself on the way.</p>
-								  	<ul>
-								  		<li><span class="fa fa-check"></span>The Big Oxmox advised her not to do so</li>
-								  		<li><span class="fa fa-check"></span>Far far away, behind the word mountains</li>
-								  		<li><span class="fa fa-check"></span>Separated they live in Bookmarksgrove</li>
-								  		<li><span class="fa fa-check"></span>She packed her seven versalia</li>
-								  		<li><span class="fa fa-check"></span>Little Blind Text didn’t listen</li>
-								  	</ul>
-								  </div>
-								  <div class="tab-pane container p-0 fade" id="services-5">
-								  	<h3><a href="#">Gutter Cleaning</a></h3>
-								  	<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right at the coast of the Semantics, a large language ocean.</p>
-								  	<p>The Big Oxmox advised her not to do so, because there were thousands of bad Commas, wild Question Marks and devious Semikoli, but the Little Blind Text didn’t listen. She packed her seven versalia, put her initial into the belt and made herself on the way.</p>
-								  	<ul>
-								  		<li><span class="fa fa-check"></span>The Big Oxmox advised her not to do so</li>
-								  		<li><span class="fa fa-check"></span>Far far away, behind the word mountains</li>
-								  		<li><span class="fa fa-check"></span>Separated they live in Bookmarksgrove</li>
-								  		<li><span class="fa fa-check"></span>She packed her seven versalia</li>
-								  		<li><span class="fa fa-check"></span>Little Blind Text didn’t listen</li>
-								  	</ul>
-								  </div>
-								  <div class="tab-pane container p-0 fade" id="services-6">
-								  	<h3><a href="#">Commercial Roofing</a></h3>
-								  	<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right at the coast of the Semantics, a large language ocean.</p>
-								  	<p>The Big Oxmox advised her not to do so, because there were thousands of bad Commas, wild Question Marks and devious Semikoli, but the Little Blind Text didn’t listen. She packed her seven versalia, put her initial into the belt and made herself on the way.</p>
-								  	<ul>
-								  		<li><span class="fa fa-check"></span>The Big Oxmox advised her not to do so</li>
-								  		<li><span class="fa fa-check"></span>Far far away, behind the word mountains</li>
-								  		<li><span class="fa fa-check"></span>Separated they live in Bookmarksgrove</li>
-								  		<li><span class="fa fa-check"></span>She packed her seven versalia</li>
-								  		<li><span class="fa fa-check"></span>Little Blind Text didn’t listen</li>
-								  	</ul>
-								  </div>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-lg-3 d-flex align-items-stretch">
-						<div class="img" style="background-image: url(images/about.jpg);"></div>
-					</div>
-				</div>
-    	</div>
-    </section>
-
-    <section class="ftco-section ftco-no-pb ftco-no-pt">
-			<div class="container">
-				<div class="row justify-content-center pb-5 mb-3">
-          <div class="col-md-7 heading-section text-center ftco-animate">
-          	<span class="subheading">Projects</span>
-            <h2>Done Projects</h2>
-          </div>
-        </div>
-			</div>
-			<div class="container-fluid px-md-0">
-				<div class="row no-gutters">
-          <div class="col-md-3 ftco-animate">
-            <div class="work img d-flex align-items-end" style="background-image: url(images/work-1.jpg);">
-            	<a href="images/work-1.jpg" class="icon image-popup d-flex justify-content-center align-items-center">
-	    					<span class="fa fa-expand"></span>
-	    				</a>
-            	<div class="desc w-100 px-4">
-	              <div class="text w-100 mb-3">
-	              	<h2><a href="work-single.html">Pubs, Bars and Restaurants</a></h2>
-	              	<span>House</span>
-	              </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3 ftco-animate">
-            <div class="work img d-flex align-items-end" style="background-image: url(images/work-2.jpg);">
-            	<a href="images/work-2.jpg" class="icon image-popup d-flex justify-content-center align-items-center">
-	    					<span class="fa fa-expand"></span>
-	    				</a>
-            	<div class="desc w-100 px-4">
-	              <div class="text w-100 mb-3">
-	              	<h2><a href="work-single.html">Pubs, Bars and Restaurants</a></h2>
-	              	<span>House</span>
-	              </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3 ftco-animate">
-            <div class="work img d-flex align-items-end" style="background-image: url(images/work-3.jpg);">
-            	<a href="images/work-3.jpg" class="icon image-popup d-flex justify-content-center align-items-center">
-	    					<span class="fa fa-expand"></span>
-	    				</a>
-            	<div class="desc w-100 px-4">
-	              <div class="text w-100 mb-3">
-	              	<h2><a href="work-single.html">Pubs, Bars and Restaurants</a></h2>
-	              	<span>House</span>
-	              </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3 ftco-animate">
-            <div class="work img d-flex align-items-end" style="background-image: url(images/work-4.jpg);">
-            	<a href="images/work-4.jpg" class="icon image-popup d-flex justify-content-center align-items-center">
-	    					<span class="fa fa-expand"></span>
-	    				</a>
-            	<div class="desc w-100 px-4">
-	              <div class="text w-100 mb-3">
-	              	<h2><a href="work-single.html">Pubs, Bars and Restaurants</a></h2>
-	              	<span>House</span>
-	              </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-3 ftco-animate">
-            <div class="work img d-flex align-items-end" style="background-image: url(images/work-5.jpg);">
-            	<a href="images/work-5.jpg" class="icon image-popup d-flex justify-content-center align-items-center">
-	    					<span class="fa fa-expand"></span>
-	    				</a>
-            	<div class="desc w-100 px-4">
-	              <div class="text w-100 mb-3">
-	              	<h2><a href="work-single.html">Pubs, Bars and Restaurants</a></h2>
-	              	<span>House</span>
-	              </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3 ftco-animate">
-            <div class="work img d-flex align-items-end" style="background-image: url(images/work-6.jpg);">
-            	<a href="images/work-6.jpg" class="icon image-popup d-flex justify-content-center align-items-center">
-	    					<span class="fa fa-expand"></span>
-	    				</a>
-            	<div class="desc w-100 px-4">
-	              <div class="text w-100 mb-3">
-	              	<h2><a href="work-single.html">Pubs, Bars and Restaurants</a></h2>
-	              	<span>House</span>
-	              </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3 ftco-animate">
-            <div class="work img d-flex align-items-end" style="background-image: url(images/work-7.jpg);">
-            	<a href="images/work-7.jpg" class="icon image-popup d-flex justify-content-center align-items-center">
-	    					<span class="fa fa-expand"></span>
-	    				</a>
-            	<div class="desc w-100 px-4">
-	              <div class="text w-100 mb-3">
-	              	<h2><a href="work-single.html">Pubs, Bars and Restaurants</a></h2>
-	              	<span>House</span>
-	              </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-3 ftco-animate">
-            <div class="work img d-flex align-items-end" style="background-image: url(images/work-8.jpg);">
-            	<a href="images/work-8.jpg" class="icon image-popup d-flex justify-content-center align-items-center">
-	    					<span class="fa fa-expand"></span>
-	    				</a>
-            	<div class="desc w-100 px-4">
-	              <div class="text w-100 mb-3">
-	              	<h2><a href="work-single.html">Pubs, Bars and Restaurants</a></h2>
-	              	<span>House</span>
-	              </div>
-              </div>
-            </div>
-          </div>
-        </div>
-			</div>
-		</section>	
-
-    <section class="ftco-section testimony-section bg-light">
-      <div class="container">
-        <div class="row justify-content-center pb-5 mb-3">
-          <div class="col-md-7 heading-section text-center ftco-animate">
-          	<span class="subheading">Testimonies</span>
-            <h2>Happy Clients &amp; Feedbacks</h2>
-          </div>
-        </div>
-        <div class="row ftco-animate">
-          <div class="col-md-12">
-            <div class="carousel-testimony owl-carousel ftco-owl">
-              <div class="item">
-                <div class="testimony-wrap py-4">
-                	<div class="icon d-flex align-items-center justify-content-center"><span class="fa fa-quote-left"></span></div>
-                  <div class="text">
-                    <p class="mb-4">Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p>
-                    <div class="d-flex align-items-center">
-                    	<div class="user-img" style="background-image: url(images/person_1.jpg)"></div>
-                    	<div class="pl-3">
-		                    <p class="name">Roger Scott</p>
-		                    <span class="position">Marketing Manager</span>
-		                  </div>
-	                  </div>
-                  </div>
-                </div>
-              </div>
-              <div class="item">
-                <div class="testimony-wrap py-4">
-                	<div class="icon d-flex align-items-center justify-content-center"><span class="fa fa-quote-left"></span></div>
-                  <div class="text">
-                    <p class="mb-4">Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p>
-                    <div class="d-flex align-items-center">
-                    	<div class="user-img" style="background-image: url(images/person_2.jpg)"></div>
-                    	<div class="pl-3">
-		                    <p class="name">Roger Scott</p>
-		                    <span class="position">Marketing Manager</span>
-		                  </div>
-	                  </div>
-                  </div>
-                </div>
-              </div>
-              <div class="item">
-                <div class="testimony-wrap py-4">
-                	<div class="icon d-flex align-items-center justify-content-center"><span class="fa fa-quote-left"></span></div>
-                  <div class="text">
-                    <p class="mb-4">Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p>
-                    <div class="d-flex align-items-center">
-                    	<div class="user-img" style="background-image: url(images/person_3.jpg)"></div>
-                    	<div class="pl-3">
-		                    <p class="name">Roger Scott</p>
-		                    <span class="position">Marketing Manager</span>
-		                  </div>
-	                  </div>
-                  </div>
-                </div>
-              </div>
-              <div class="item">
-                <div class="testimony-wrap py-4">
-                	<div class="icon d-flex align-items-center justify-content-center"><span class="fa fa-quote-left"></span></div>
-                  <div class="text">
-                    <p class="mb-4">Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p>
-                    <div class="d-flex align-items-center">
-                    	<div class="user-img" style="background-image: url(images/person_1.jpg)"></div>
-                    	<div class="pl-3">
-		                    <p class="name">Roger Scott</p>
-		                    <span class="position">Marketing Manager</span>
-		                  </div>
-	                  </div>
-                  </div>
-                </div>
-              </div>
-              <div class="item">
-                <div class="testimony-wrap py-4">
-                	<div class="icon d-flex align-items-center justify-content-center"><span class="fa fa-quote-left"></span></div>
-                  <div class="text">
-                    <p class="mb-4">Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p>
-                    <div class="d-flex align-items-center">
-                    	<div class="user-img" style="background-image: url(images/person_2.jpg)"></div>
-                    	<div class="pl-3">
-		                    <p class="name">Roger Scott</p>
-		                    <span class="position">Marketing Manager</span>
-		                  </div>
-	                  </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="hero-trust">
+          <span class="t">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Licensed &amp; insured in Colorado
+          </span>
+          <span class="t">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            4.9&#8902; from 380+ homeowner reviews
+          </span>
+          <span class="t">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Same-day storm response
+          </span>
         </div>
       </div>
-    </section>
-		
-		<section class="ftco-section">
-      <div class="container">
-        <div class="row justify-content-center pb-5 mb-3">
-          <div class="col-md-7 heading-section text-center ftco-animate">
-          	<span class="subheading">News &amp; Blog</span>
-            <h2>Latest news from our blog</h2>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="card-est">
+          <div class="card-est-head">
+            <span class="ico">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </span>
+            <div>
+              <strong>Written Estimate — #4128</strong>
+              <small>Delivered 19 hrs after inspection</small>
+            </div>
           </div>
+          <ul>
+            <li>Tear-off &amp; disposal, 2 layers <b>Included</b></li>
+            <li>Class 4 impact-rated shingles <b>28 sq</b></li>
+            <li>Ice &amp; water shield, full eaves <b>Included</b></li>
+            <li>Ridge venting upgrade <b>Line-item</b></li>
+            <li>Workmanship warranty <b>15 yrs</b></li>
+          </ul>
+          <span class="stamp">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Price holds for 30 days
+          </span>
         </div>
-        <div class="row d-flex">
-          <div class="col-md-4 d-flex ftco-animate">
-            <div class="blog-entry align-self-stretch">
-              <a href="blog-single.html" class="block-20" style="background-image: url('images/image_1.jpg');">
-              </a>
-              <div class="text p-3">
-              	<div class="posted mb-3 d-flex">
-              		<div class="img author" style="background-image: url(images/person_2.jpg);"></div>
-              		<div class="desc pl-3">
-              			<span>Posted by John doe</span>
-              			<span>24 February 2020</span>
-              		</div>
-              	</div>
-                <h3 class="heading"><a href="#">How Roofing Charge for Their Services</a></h3>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4 d-flex ftco-animate">
-            <div class="blog-entry align-self-stretch">
-              <a href="blog-single.html" class="block-20" style="background-image: url('images/image_2.jpg');">
-              </a>
-              <div class="text p-3">
-              	<div class="posted mb-3 d-flex">
-              		<div class="img author" style="background-image: url(images/person_3.jpg);"></div>
-              		<div class="desc pl-3">
-              			<span>Posted by John doe</span>
-              			<span>24 February 2020</span>
-              		</div>
-              	</div>
-                <h3 class="heading"><a href="#">How Roofing Charge for Their Services</a></h3>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4 d-flex ftco-animate">
-            <div class="blog-entry align-self-stretch">
-              <a href="blog-single.html" class="block-20" style="background-image: url('images/image_3.jpg');">
-              </a>
-              <div class="text p-3">
-              	<div class="posted mb-3 d-flex">
-              		<div class="img author" style="background-image: url(images/person_1.jpg);"></div>
-              		<div class="desc pl-3">
-              			<span>Posted by John doe</span>
-              			<span>24 February 2020</span>
-              		</div>
-              	</div>
-                <h3 class="heading"><a href="#">How Roofing Charge for Their Services</a></h3>
-              </div>
-            </div>
-          </div>
+        <div class="chip-float chip-a">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12 12 4l9 8"/><path d="M5 10.5V20h14v-9.5"/><path d="m9.5 15 2 2 3.5-3.5"/></svg>
+          <div><span class="n">3,400+</span><br><span class="l">roofs completed</span></div>
+        </div>
+        <div class="chip-float chip-b">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          <div><span class="n">15-yr</span><br><span class="l">workmanship warranty</span></div>
         </div>
       </div>
-    </section>
+    </div>
+    <div class="hero-roofline" aria-hidden="true">
+      <svg viewBox="0 0 1440 150" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0 150V96l90-38 96 44 120-62 132 58 96-30 110 44 128-70 118 58 104-34 118 48 110-52 118 46 100-24v66z" fill="#F8FAFC" opacity=".12"/>
+        <path d="M0 150v-38l110-44 100 48 126-58 118 54 104-28 122 44 118-62 112 52 108-30 122 46 106-44 114 40 100-20v40z" fill="#F8FAFC"/>
+      </svg>
+    </div>
+  </section>
 
-    <section class="ftco-section bg-light">
-    	<div class="container">
-    		<div class="row justify-content-center pb-5 mb-3">
-          <div class="col-md-7 heading-section text-center ftco-animate">
-          	<span class="subheading">Price &amp; Plans</span>
-            <h2>Pricing</h2>
+  <!-- BADGE STRIP -->
+  <div class="badge-strip" role="region" aria-label="Certifications and credentials">
+    <div class="container badge-row">
+      <span class="badge-item">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.5 13 17 22l-5-3-5 3 1.5-9"/></svg>
+        RidgeGuard Master Elite Installer
+      </span>
+      <span class="badge-item">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+        Licensed &amp; Insured — CO #RC-208814
+      </span>
+      <span class="badge-item">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        A+ Rated, Metro Builders Bureau
+      </span>
+      <span class="badge-item">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg>
+        Certified Hail &amp; Wind Inspectors
+      </span>
+      <span class="badge-item">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+        EPA Lead-Safe Certified Firm
+      </span>
+    </div>
+  </div>
+
+  <!-- SERVICES -->
+  <section id="services" aria-label="Services">
+    <div class="container">
+      <div class="sec-head reveal">
+        <p class="eyebrow">What we do</p>
+        <h2>Four crews. Four specialities. One standard.</h2>
+        <p>Every job — from a single flashing repair to a full commercial re-roof — gets the same written scope, the same site supervisor, and the same magnetic nail sweep before we leave.</p>
+      </div>
+      <div class="svc-grid">
+        <article class="svc-card reveal">
+          <span class="svc-ico">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12 12 4l9 8"/><path d="M5 10.5V20h14v-9.5"/><path d="M9 20v-6h6v6"/></svg>
+          </span>
+          <h3>Asphalt Shingle Roofing</h3>
+          <p>Class 4 impact-rated architectural shingles installed to manufacturer spec — full tear-off, deck inspection, ice &amp; water shield and ridge venting on every replacement.</p>
+          <span class="svc-note">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Most homes done in 1–2 days
+          </span>
+        </article>
+        <article class="svc-card reveal">
+          <span class="svc-ico">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13 12 5l9 8"/><path d="M6 11v9"/><path d="M10 8v12"/><path d="M14 8v12"/><path d="M18 11v9"/></svg>
+          </span>
+          <h3>Metal &amp; Standing Seam</h3>
+          <p>Standing-seam and stone-coated steel systems rated for 140-mph wind and Colorado hail. A 40–70 year roof that sheds snow and cuts summer cooling loads.</p>
+          <span class="svc-note">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            50-yr manufacturer warranties
+          </span>
+        </article>
+        <article class="svc-card reveal">
+          <span class="svc-ico">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4.5 13.5H11l-1 8.5L18.5 10H12z"/></svg>
+          </span>
+          <h3>Storm Damage Restoration</h3>
+          <p>Same-day tarping and emergency dry-in after hail or wind. We photograph, measure and document every slope so your insurance claim is adjuster-ready.</p>
+          <span class="svc-note">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Same-day emergency response
+          </span>
+        </article>
+        <article class="svc-card reveal">
+          <span class="svc-ico">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M6 13v8"/><path d="M6 21h3"/><path d="M18 13v4"/></svg>
+          </span>
+          <h3>Gutters &amp; Drainage</h3>
+          <p>Seamless 5" and 6" aluminum gutters, run on-site to length, with leaf protection and downspout routing that moves water away from your foundation.</p>
+          <span class="svc-note">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Installed with every re-roof or solo
+          </span>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT / STATS -->
+  <section class="about" id="why-us" aria-label="Why choose Summit Ridge">
+    <div class="container">
+      <div class="about-grid">
+        <div class="reveal">
+          <div class="sec-head" style="margin-bottom:0">
+            <p class="eyebrow">Why Summit Ridge</p>
+            <h2>Seventeen years on Denver rooftops. Zero shortcuts.</h2>
+            <p>Founded in 2009 by brothers Cole and Marcus Whitfield after one hail season too many spent fixing other contractors' work. Today our four in-house crews — no subcontracted labor — put on more than 300 roofs a year across the metro.</p>
           </div>
+          <ul class="about-points">
+            <li>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              <span><b>In-house crews only.</b> The people on your roof are our employees — background-checked, harness-trained, supervised.</span>
+            </li>
+            <li>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              <span><b>Everything in writing.</b> Itemised scope, fixed price held 30 days, and a 15-year workmanship warranty on paper — not a handshake.</span>
+            </li>
+            <li>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span><b>24-hour estimates.</b> Inspection today, written estimate in your inbox tomorrow. If we're late, we take $250 off the job.</span>
+            </li>
+            <li>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+              <span><b>Clean-site guarantee.</b> Magnetic nail sweep of your lawn and driveway — twice — before the crew truck leaves.</span>
+            </li>
+          </ul>
         </div>
-    		<div class="row">
-    			<div class="col-md-6 col-lg-3 ftco-animate">
-	          <div class="block-7">
-	            <div class="text-center">
-            	<span class="excerpt d-block">Standard</span>
-	            <span class="price"><sup>$</sup> <span class="number">49</span></span>
-	            
-	            <ul class="pricing-text mb-5">
-	              <li><span class="fa fa-check mr-2"></span>1 month dedicated training</li>
-	              <li><span class="fa fa-check mr-2"></span>24/7 in touch on the phone</li>
-	              <li><span class="fa fa-check mr-2"></span>Consultation hours</li>
-	              <li><span class="fa fa-check mr-2"></span>Personal visit</li>
-	              <li><span class="fa fa-check mr-2"></span>meet &amp; greet</li>
-	            </ul>
+        <div class="stat-grid reveal">
+          <div class="stat"><p class="num">3,400<span>+</span></p><p class="lbl">Roofs completed across the Denver metro</p></div>
+          <div class="stat"><p class="num">17</p><p class="lbl">Years in business — since 2009</p></div>
+          <div class="stat"><p class="num">15<span>-yr</span></p><p class="lbl">Written workmanship warranty</p></div>
+          <div class="stat"><p class="num">4.9<span>&#8902;</span></p><p class="lbl">Average rating from 380+ reviews</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-	            <a href="#" class="btn btn-primary d-block px-2 py-3">Get Started</a>
-	            </div>
-	          </div>
-	        </div>
-	        <div class="col-md-6 col-lg-3 ftco-animate">
-	          <div class="block-7">
-	            <div class="text-center">
-            	<span class="excerpt d-block">Basic</span>
-	            <span class="price active"><sup>$</sup> <span class="number">79</span></span>
-	            
-	            <ul class="pricing-text mb-5">
-	              <li><span class="fa fa-check mr-2"></span>1 month dedicated training</li>
-	              <li><span class="fa fa-check mr-2"></span>24/7 in touch on the phone</li>
-	              <li><span class="fa fa-check mr-2"></span>Consultation hours</li>
-	              <li><span class="fa fa-check mr-2"></span>Personal visit</li>
-	              <li><span class="fa fa-check mr-2"></span>meet &amp; greet</li>
-	            </ul>
+  <!-- FREE ESTIMATE BAND -->
+  <section class="estimate-band" aria-label="Free estimate">
+    <div class="container">
+      <div class="estimate-card reveal">
+        <div>
+          <p class="eyebrow" style="color:#FFEDD5">Free 20-point inspection</p>
+          <h2>Storm season is coming. Your estimate is free — and binding.</h2>
+          <p>A certified inspector walks every slope, photographs what they find, and you get a written, line-item estimate within 24 hours. No pressure, no "today-only" pricing — it holds for 30 days.</p>
+        </div>
+        <a class="btn" href="#contact">
+          Get a free estimate
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
 
-	            <a href="#" class="btn btn-primary d-block px-2 py-3">Get Started</a>
-	            </div>
-	          </div>
-	        </div>
-	        <div class="col-md-6 col-lg-3 ftco-animate">
-	          <div class="block-7">
-	            <div class="text-center">
-            	<span class="excerpt d-block">Standard</span>
-	            <span class="price"><sup>$</sup> <span class="number">109</span></span>
-	            
-	            <ul class="pricing-text mb-5">
-	              <li><span class="fa fa-check mr-2"></span>1 month dedicated training</li>
-	              <li><span class="fa fa-check mr-2"></span>24/7 in touch on the phone</li>
-	              <li><span class="fa fa-check mr-2"></span>Consultation hours</li>
-	              <li><span class="fa fa-check mr-2"></span>Personal visit</li>
-	              <li><span class="fa fa-check mr-2"></span>meet &amp; greet</li>
-	            </ul>
+  <!-- FINANCING / INSURANCE -->
+  <section id="financing" aria-label="Financing and insurance claims">
+    <div class="container">
+      <div class="sec-head reveal">
+        <p class="eyebrow">Paying for it</p>
+        <h2>A new roof shouldn't wreck the budget — or the claim.</h2>
+        <p>Whether it's a planned replacement or hail damage the adjuster needs to see, we handle the paperwork side as carefully as the roofing side.</p>
+      </div>
+      <div class="fin-grid">
+        <article class="fin-card reveal">
+          <span class="svc-ico">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg>
+          </span>
+          <h3>Flexible Financing</h3>
+          <p>Approved in minutes through our lending partners, with plans sized to real household budgets.</p>
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>0% interest for 18 months on qualifying replacements</span></li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>Fixed monthly plans from $189/month</span></li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>Soft credit check to pre-qualify — no score impact</span></li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>No payment due until the final walkthrough is signed off</span></li>
+          </ul>
+        </article>
+        <article class="fin-card reveal">
+          <span class="svc-ico">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12h6"/><path d="M12 9v6"/></svg>
+          </span>
+          <h3>Insurance Claims Help</h3>
+          <p>Hail claims fail on documentation, not damage. We build the file your adjuster actually needs.</p>
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>Photo, measurement and line-item scope for every slope</span></li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>We meet the adjuster on-site, on your roof, on your side</span></li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>Most supported claims approved without a second visit</span></li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>You pay your deductible — never a penny more than the scope</span></li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
 
-	            <a href="#" class="btn btn-primary d-block px-2 py-3">Get Started</a>
-	            </div>
-	          </div>
-	        </div>
-	        <div class="col-md-6 col-lg-3 ftco-animate">
-	          <div class="block-7">
-	            <div class="text-center">
-            	<span class="excerpt d-block">Professional</span>
-	            <span class="price"><sup>$</sup> <span class="number">149</span></span>
-	            
-	            <ul class="pricing-text mb-5">
-	              <li><span class="fa fa-check mr-2"></span>1 month dedicated training</li>
-	              <li><span class="fa fa-check mr-2"></span>24/7 in touch on the phone</li>
-	              <li><span class="fa fa-check mr-2"></span>Consultation hours</li>
-	              <li><span class="fa fa-check mr-2"></span>Personal visit</li>
-	              <li><span class="fa fa-check mr-2"></span>meet &amp; greet</li>
-	            </ul>
+  <!-- TESTIMONIALS -->
+  <section class="quotes" id="reviews" aria-label="Homeowner reviews">
+    <div class="container">
+      <div class="sec-head center reveal">
+        <p class="eyebrow">Homeowner reviews</p>
+        <h2>The neighbors already checked us out.</h2>
+        <p>4.9&#8902; average across 380+ verified reviews from Denver-metro homeowners.</p>
+      </div>
+      <div class="quote-grid">
+        <article class="quote-card reveal">
+          <div class="stars" aria-label="5 out of 5 stars">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <blockquote>"Hail hit in June, roof was tarped that evening and replaced ten days later. They met our adjuster on the roof and the claim went through first try. The crew swept the lawn with a magnet — twice."</blockquote>
+          <div class="quote-who">
+            <span class="avatar" aria-hidden="true">DW</span>
+            <div><strong>Dana W.</strong><small>Park Hill, Denver</small></div>
+          </div>
+        </article>
+        <article class="quote-card reveal">
+          <div class="stars" aria-label="5 out of 5 stars">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <blockquote>"Three bids for our standing-seam roof; Summit Ridge was the only one with a line-item scope instead of one lump number. Estimate arrived 22 hours after the inspection, exactly as promised."</blockquote>
+          <div class="quote-who">
+            <span class="avatar" aria-hidden="true">MR</span>
+            <div><strong>Mike R.</strong><small>Wash Park, Denver</small></div>
+          </div>
+        </article>
+        <article class="quote-card reveal">
+          <div class="stars" aria-label="5 out of 5 stars">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <blockquote>"Crew showed at 7 a.m. like they said, full tear-off and new shingles done by dusk the next day. Financing was approved on the spot at 0% — we didn't touch our savings."</blockquote>
+          <div class="quote-who">
+            <span class="avatar" aria-hidden="true">CT</span>
+            <div><strong>Carla T.</strong><small>Table Mesa, Boulder</small></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
 
-	            <a href="#" class="btn btn-primary d-block px-2 py-3">Get Started</a>
-	            </div>
-	          </div>
-	        </div>
-	      </div>
-    	</div>
-    </section>
-
-    <footer class="footer ftco-section">
-      <div class="container">
-        <div class="row mb-5">
-          <div class="col-md-6 col-lg">
-            <div class="ftco-footer-widget mb-4">
-              <h2 class="logo"><a href="#"><span class="flaticon-roof-2 mr-2"></span>Roofing</a></h2>
-              <p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p>
-              <ul class="ftco-footer-social list-unstyled float-md-left float-lft mt-4">
-                <li class="ftco-animate"><a href="#"><span class="fa fa-twitter"></span></a></li>
-                <li class="ftco-animate"><a href="#"><span class="fa fa-facebook"></span></a></li>
-                <li class="ftco-animate"><a href="#"><span class="fa fa-instagram"></span></a></li>
+  <!-- CONTACT -->
+  <section id="contact" aria-label="Contact and free estimate request">
+    <div class="container">
+      <div class="sec-head reveal">
+        <p class="eyebrow">Get started</p>
+        <h2>Request your free estimate</h2>
+        <p>Tell us what's going on with your roof and we'll call within one business hour to book your free 20-point inspection.</p>
+      </div>
+      <div class="contact-grid">
+        <form class="form-card reveal" aria-label="Free estimate request form">
+          <div class="form-row">
+            <div class="field">
+              <label for="f-name">Full name</label>
+              <input id="f-name" name="name" type="text" autocomplete="name" placeholder="Jordan Avery" required>
+            </div>
+            <div class="field">
+              <label for="f-phone">Phone</label>
+              <input id="f-phone" name="phone" type="tel" autocomplete="tel" placeholder="(555) 000-0000" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="f-email">Email</label>
+              <input id="f-email" name="email" type="email" autocomplete="email" placeholder="you@example.com">
+            </div>
+            <div class="field">
+              <label for="f-service">What do you need?</label>
+              <select id="f-service" name="service">
+                <option>Free inspection / estimate</option>
+                <option>Storm or hail damage</option>
+                <option>Roof replacement</option>
+                <option>Metal / standing seam</option>
+                <option>Gutters &amp; drainage</option>
+                <option>Repair or leak</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-msg">Tell us about your roof</label>
+            <textarea id="f-msg" name="message" placeholder="e.g. Hail last week — a few dented shingles and a damp spot in the upstairs ceiling."></textarea>
+          </div>
+          <button class="btn btn-primary" type="submit">
+            Request my free estimate
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </form>
+        <aside class="contact-aside reveal">
+          <div class="contact-block">
+            <span class="svc-ico">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </span>
+            <div>
+              <h3>Call or text</h3>
+              <a href="tel:+15550142287">(555) 014-2287</a>
+              <p>Storm emergencies answered 24/7.</p>
+            </div>
+          </div>
+          <div class="contact-block">
+            <span class="svc-ico">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+            </span>
+            <div>
+              <h3>Email</h3>
+              <a href="mailto:estimates@summitridgeroofing.demo">estimates@summitridgeroofing.demo</a>
+              <p>Estimates and claim documents land here.</p>
+            </div>
+          </div>
+          <div class="contact-block">
+            <span class="svc-ico">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </span>
+            <div>
+              <h3>Office &amp; yard</h3>
+              <p>1420 Ridge Court, Denver, CO 80205<br>Serving the Denver metro &amp; Boulder County</p>
+            </div>
+          </div>
+          <div class="contact-block" style="border-bottom:none">
+            <span class="svc-ico">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </span>
+            <div>
+              <h3>Hours</h3>
+              <ul class="hours">
+                <li><b>Mon–Fri</b><span>7:00 AM – 6:00 PM</span></li>
+                <li><b>Saturday</b><span>8:00 AM – 2:00 PM</span></li>
+                <li><b>Sunday</b><span>Storm response only</span></li>
               </ul>
             </div>
           </div>
-          <div class="col-md-6 col-lg">
-            <div class="ftco-footer-widget mb-4 ml-md-5">
-              <h2 class="ftco-heading-2">Services</h2>
-              <ul class="list-unstyled">
-                <li><a href="#" class="py-1 d-block"><span class="fa fa-check mr-3"></span>Skylights</a></li>
-                <li><a href="#" class="py-1 d-block"><span class="fa fa-check mr-3"></span>Waterproofing</a></li>
-                <li><a href="#" class="py-1 d-block"><span class="fa fa-check mr-3"></span>Industrial Roofing</a></li>
-                <li><a href="#" class="py-1 d-block"><span class="fa fa-check mr-3"></span>Residential Roofing</a></li>
-                <li><a href="#" class="py-1 d-block"><span class="fa fa-check mr-3"></span>Gutter Cleaning</a></li>
-                <li><a href="#" class="py-1 d-block"><span class="fa fa-check mr-3"></span>Commercial Roofing</a></li>
-              </ul>
-            </div>
-          </div>
-          <div class="col-md-6 col-lg">
-             <div class="ftco-footer-widget mb-4">
-              <h2 class="ftco-heading-2">Business Hours</h2>
-              <div class="opening-hours">
-              	<h4>Opening Days:</h4>
-              	<p class="pl-3">
-              		<span>Monday – Friday : 9am to 20 pm</span>
-              		<span>Saturday : 9am to 17 pm</span>
-              	</p>
-              	<h4>Vacations:</h4>
-              	<p class="pl-3">
-              		<span>All Sunday Days</span>
-              		<span>All Official Holidays</span>
-              	</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6 col-lg">
-            <div class="ftco-footer-widget mb-4">
-            	<h2 class="ftco-heading-2">Contact information</h2>
-            	<div class="block-23 mb-3">
-	              <ul>
-	                <li><span class="icon fa fa-map-marker"></span><span class="text">203 Fake St. Mountain View, San Francisco, California, USA</span></li>
-	                <li><a href="#"><span class="icon fa fa-phone"></span><span class="text">(555) 014-2287</span></a></li>
-	                <li><a href="#"><span class="icon fa fa-paper-plane"></span><span class="text">estimates@summitridgeroofing.demo</span></a></li>
-	              </ul>
-	            </div>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-12 text-center">
-
-            <p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-  Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="fa fa-heart" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
-  <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p>
-          </div>
-        </div>
+          <p class="emergency-note">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span><strong>Active leak or storm damage?</strong> Call now — tarping crews run same-day across the metro, including evenings.</span>
+          </p>
+        </aside>
       </div>
-    </footer>
-    
-  
+    </div>
+  </section>
+</main>
 
-  <!-- loader -->
-  <div id="ftco-loader" class="show fullscreen"><svg class="circular" width="48px" height="48px"><circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"/><circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10" stroke="#F96D00"/></svg></div>
+<footer>
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <span class="brand-name" style="color:#fff">Summit Ridge<span style="color:var(--accent)"> Roofing</span></span>
+        <p>Storm-rated roofing for the Denver metro since 2009. Asphalt, metal, storm restoration and gutters — every job scoped in writing and backed by a 15-year workmanship warranty.</p>
+      </div>
+      <nav aria-label="Footer">
+        <ul class="foot-links">
+          <li><a href="#services">Services</a></li>
+          <li><a href="#why-us">Why Us</a></li>
+          <li><a href="#financing">Financing</a></li>
+          <li><a href="#reviews">Reviews</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="foot-legal">
+      <span>&copy; 2026 Summit Ridge Roofing · Licensed &amp; insured, CO #RC-208814</span>
+      <span>A fictional demonstration site built by Catalyst Solutions — Home Services program specification.</span>
+    </div>
+  </div>
+</footer>
 
+<script>
+  (function(){
+    var toggle=document.getElementById('navToggle');
+    var links=document.getElementById('navLinks');
+    toggle.addEventListener('click',function(){
+      var open=links.classList.toggle('open');
+      toggle.setAttribute('aria-expanded',open?'true':'false');
+      toggle.setAttribute('aria-label',open?'Close menu':'Open menu');
+    });
+    links.addEventListener('click',function(e){
+      if(e.target.tagName==='A'){links.classList.remove('open');toggle.setAttribute('aria-expanded','false');}
+    });
+    if(window.matchMedia('(prefers-reduced-motion: no-preference)').matches&&'IntersectionObserver' in window){
+      var els=document.querySelectorAll('.reveal');
+      var io=new IntersectionObserver(function(entries){
+        entries.forEach(function(en){
+          if(en.isIntersecting){
+            var el=en.target;
+            var siblings=el.parentElement?el.parentElement.querySelectorAll(':scope > .reveal'):[el];
+            var idx=Array.prototype.indexOf.call(siblings,el);
+            el.style.transitionDelay=(idx>0?Math.min(idx,4)*70:0)+'ms';
+            el.classList.add('in');
+            io.unobserve(el);
+          }
+        });
+      },{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+      els.forEach(function(el){io.observe(el);});
+    }else{
+      document.querySelectorAll('.reveal').forEach(function(el){el.classList.add('in');});
+    }
+  })();
+</script>
 
-  <script src="js/jquery.min.js"></script>
-  <script src="js/jquery-migrate-3.0.1.min.js"></script>
-  <script src="js/popper.min.js"></script>
-  <script src="js/bootstrap.min.js"></script>
-  <script src="js/jquery.easing.1.3.js"></script>
-  <script src="js/jquery.waypoints.min.js"></script>
-  <script src="js/jquery.stellar.min.js"></script>
-  <script src="js/jquery.animateNumber.min.js"></script>
-  <script src="js/bootstrap-datepicker.js"></script>
-  <script src="js/jquery.timepicker.min.js"></script>
-  <script src="js/owl.carousel.min.js"></script>
-  <script src="js/jquery.magnific-popup.min.js"></script>
-  <script src="js/scrollax.min.js"></script>
-  
-  
-  <script src="js/main.js"></script>
-    
-  <link rel="stylesheet" href="../_vendor/tier-layer.css"><script>window.__TIER_LAYER={"brand":"Summit Ridge Roofing","accent":"#EA580C","tiers":[{"label":"Tier 1 — Local Foundation","short":"T1","widgets":[]},{"label":"Tier 2 — Lead Engine","short":"T2","widgets":["enquiry","whatsapp","reviews"]},{"label":"Tier 3 — Market Leader System","short":"T3","widgets":["chat","dashboard","locations"]}],"hello":"Storm season inspection — free 20-point roof check, booked in 60 seconds.","locations":["Denver Metro","Boulder County"],"dashHref":"/bundles/local-domination-pack#demos","bookLabel":"Get a free estimate","bookCta":"Pick an inspection slot","chatIntro":"Hi! Summit Ridge assistant here. Repair, replacement, or storm damage — I can get an inspector booked right now.","chatLabel":"Ask about your roof","chat":[{"q":"How fast can someone come out?","a":"Storm damage gets same-day or next-morning slots. Standard estimates within 48 hours — and the written estimate follows within 24 hours of the visit."},{"q":"Do you handle insurance claims?","a":"Yes — we document everything the adjuster needs: photos, measurements, and a line-item scope. Most storm claims we support go through without a second visit."},{"q":"What does a new roof cost?","a":"Depends on size, pitch and material — the honest answer needs a 20-minute inspection, which is free. The estimate is written, itemised, and holds for 30 days."}],"wa":[{"f":"e","t":"📞 Missed call — Tue 6:42 PM, after hours"},{"f":"b","t":"Hi, Summit Ridge Roofing — sorry we missed your call! Repair, full replacement, or storm damage?"},{"f":"u","t":"Hail last night. Dented shingles and a wet patch on the ceiling"},{"f":"b","t":"That wet patch means we should move fast. Inspector tomorrow — morning (8–11) or afternoon (1–4)?"},{"f":"u","t":"Morning"},{"f":"b","t":"Booked ✅ 8–11 AM tomorrow. We'll bring the insurance documentation kit too. 🏠"},{"f":"e","t":"✅ Qualified & booked in 94 seconds — owner notified"}],"reviews":[{"n":"Dana W.","t":"Texted the number on the site, reply in under a minute, estimate next morning."},{"n":"Mike R.","t":"They documented everything for our insurance claim. Zero back-and-forth."},{"n":"Carla T.","t":"Crew showed at 7am like they said, cleaned up like they were never there."}]}</script><script src="../_vendor/tier-layer.js" defer></script></body>
+<link rel="stylesheet" href="../_vendor/tier-layer.css">
+<script>window.__TIER_LAYER={"brand":"Summit Ridge Roofing","accent":"#EA580C","tiers":[{"label":"Tier 1 — Local Foundation","short":"T1","widgets":[]},{"label":"Tier 2 — Lead Engine","short":"T2","widgets":["enquiry","whatsapp","reviews"]},{"label":"Tier 3 — Market Leader System","short":"T3","widgets":["chat","dashboard","locations"]}],"hello":"Storm season inspection — free 20-point roof check, booked in 60 seconds.","locations":["Denver Metro","Boulder County"],"dashHref":"/bundles/local-domination-pack#demos","bookLabel":"Get a free estimate","bookCta":"Pick an inspection slot","chatIntro":"Hi! Summit Ridge assistant here. Repair, replacement, or storm damage — I can get an inspector booked right now.","chatLabel":"Ask about your roof","chat":[{"q":"How fast can someone come out?","a":"Storm damage gets same-day or next-morning slots. Standard estimates within 48 hours — and the written estimate follows within 24 hours of the visit."},{"q":"Do you handle insurance claims?","a":"Yes — we document everything the adjuster needs: photos, measurements, and a line-item scope. Most storm claims we support go through without a second visit."},{"q":"What does a new roof cost?","a":"Depends on size, pitch and material — the honest answer needs a 20-minute inspection, which is free. The estimate is written, itemised, and holds for 30 days."}],"wa":[{"f":"e","t":"📞 Missed call — Tue 6:42 PM, after hours"},{"f":"b","t":"Hi, Summit Ridge Roofing — sorry we missed your call! Repair, full replacement, or storm damage?"},{"f":"u","t":"Hail last night. Dented shingles and a wet patch on the ceiling"},{"f":"b","t":"That wet patch means we should move fast. Inspector tomorrow — morning (8–11) or afternoon (1–4)?"},{"f":"u","t":"Morning"},{"f":"b","t":"Booked ✅ 8–11 AM tomorrow. We'll bring the insurance documentation kit too. 🏠"},{"f":"e","t":"✅ Qualified & booked in 94 seconds — owner notified"}],"reviews":[{"n":"Dana W.","t":"Texted the number on the site, reply in under a minute, estimate next morning."},{"n":"Mike R.","t":"They documented everything for our insurance claim. Zero back-and-forth."},{"n":"Carla T.","t":"Crew showed at 7am like they said, cleaned up like they were never there."}]}</script><script src="../_vendor/tier-layer.js" defer></script>
+</body>
 </html>

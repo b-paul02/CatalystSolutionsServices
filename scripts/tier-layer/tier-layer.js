@@ -28,6 +28,7 @@
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
   var root = el("div", "tl");
   root.style.setProperty("--tl-accent", C.accent);
+  document.documentElement.style.setProperty("--tl-accent", C.accent); // hello bar mounts outside .tl root
   document.body.appendChild(root);
 
   // keep tier on in-site navigation so browsing pages doesn't lose the state

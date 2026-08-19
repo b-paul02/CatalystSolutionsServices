@@ -1,1291 +1,785 @@
-<!-- =========
-
-	Template Name: Flowdesk
-	Author: Flowdesk
-	Author URI: https://uideck.com/
-	Support: https://uideck.com/support/
-	Version: 1.1
-
-========== -->
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Flowdesk — Project management that fits how your team actually works</title>
-
-    <!-- Primary Meta Tags -->
-<meta name="title" content="Flowdesk - Free Open Source HTML Bootstrap Template by Flowdesk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flowdesk — Project management that fits how your team actually works</title>
 <meta name="description" content="Plan, track and ship work in one place. Free 14-day trial, no card required.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F7F6FE;
+    --surface:#FFFFFF;
+    --ink:#1E1B4B;
+    --slate:#4B4A67;
+    --muted:#6E6D8A;
+    --indigo:#6366F1;
+    --indigo-deep:#4F46E5;
+    --indigo-ink:#4338CA;
+    --emerald:#059669;
+    --emerald-deep:#047857;
+    --line:rgba(30,27,75,.10);
+    --glass:rgba(255,255,255,.62);
+    --glass-border:rgba(255,255,255,.75);
+    --r-sm:8px; --r-md:14px; --r-lg:20px; --r-xl:28px;
+    --sh-sm:0 1px 2px rgba(30,27,75,.06),0 2px 8px rgba(30,27,75,.05);
+    --sh-md:0 2px 6px rgba(30,27,75,.06),0 12px 32px rgba(30,27,75,.10);
+    --sh-lg:0 4px 12px rgba(30,27,75,.08),0 24px 64px rgba(30,27,75,.14);
+    --container:1160px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;scroll-padding-top:88px}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.6;
+    font-size:16px;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,h4{font-family:'Sora',sans-serif;line-height:1.15;font-weight:700;letter-spacing:-.02em}
+  a{color:inherit}
+  :focus-visible{outline:3px solid var(--indigo);outline-offset:3px;border-radius:4px}
+  .skip-link{position:absolute;left:-9999px;top:0;background:var(--ink);color:#fff;padding:12px 20px;border-radius:0 0 var(--r-sm) 0;z-index:200;font-weight:600}
+  .skip-link:focus{left:0}
+  .container{max-width:var(--container);margin:0 auto;padding:0 24px}
 
-<!-- Open Graph / Facebook -->
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://uideck.com/play/">
-<meta property="og:title" content="Flowdesk - Free Open Source HTML Bootstrap Template by Flowdesk">
-<meta property="og:description" content="Flowdesk - Free Open Source HTML Bootstrap Template by Flowdesk Team">
-<meta property="og:image" content="https://uideck.com/wp-content/uploads/2021/09/play-meta-bs.jpg">
+  /* ---------- mesh blobs ---------- */
+  .mesh{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+  .blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.55}
+  .blob-a{width:520px;height:520px;background:radial-gradient(circle at 30% 30%,#C7D2FE,transparent 65%)}
+  .blob-b{width:460px;height:460px;background:radial-gradient(circle at 60% 40%,#DDD6FE,transparent 65%)}
+  .blob-c{width:420px;height:420px;background:radial-gradient(circle at 50% 50%,#A7F3D0,transparent 65%);opacity:.4}
 
-<!-- Twitter -->
-<meta property="twitter:card" content="summary_large_image">
-<meta property="twitter:url" content="https://uideck.com/play/">
-<meta property="twitter:title" content="Flowdesk - Free Open Source HTML Bootstrap Template by Flowdesk">
-<meta property="twitter:description" content="Flowdesk - Free Open Source HTML Bootstrap Template by Flowdesk Team">
-<meta property="twitter:image" content="https://uideck.com/wp-content/uploads/2021/09/play-meta-bs.jpg">
+  /* ---------- nav ---------- */
+  .nav{position:sticky;top:0;z-index:100;background:rgba(247,246,254,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;height:72px}
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:'Sora',sans-serif;font-weight:700;font-size:1.25rem;letter-spacing:-.02em}
+  .brand-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--indigo),var(--indigo-deep));display:grid;place-items:center;box-shadow:var(--sh-sm);flex:none}
+  .nav-links{display:flex;align-items:center;gap:4px;list-style:none}
+  .nav-links a{text-decoration:none;font-size:.92rem;font-weight:500;color:var(--slate);padding:10px 14px;border-radius:999px;transition:color .15s,background .15s}
+  .nav-links a:hover{color:var(--ink);background:rgba(99,102,241,.08)}
+  .nav-cta{display:flex;align-items:center;gap:10px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:'Inter',sans-serif;font-weight:600;font-size:.95rem;text-decoration:none;border-radius:999px;padding:13px 24px;border:1px solid transparent;cursor:pointer;transition:transform .15s,box-shadow .15s,background .15s;min-height:44px}
+  .btn-primary{background:var(--emerald);color:#fff;box-shadow:0 4px 14px rgba(5,150,105,.28)}
+  .btn-primary:hover{background:var(--emerald-deep);transform:translateY(-1px)}
+  .btn-ghost{background:rgba(255,255,255,.7);color:var(--ink);border-color:var(--line)}
+  .btn-ghost:hover{border-color:rgba(30,27,75,.25);transform:translateY(-1px)}
+  .btn-indigo{background:var(--indigo-deep);color:#fff;box-shadow:0 4px 14px rgba(79,70,229,.30)}
+  .btn-indigo:hover{background:var(--indigo-ink);transform:translateY(-1px)}
+  .nav-phone{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:.9rem;color:var(--slate);text-decoration:none;padding:10px 12px;border-radius:999px}
+  .nav-phone:hover{color:var(--ink)}
+  .nav-toggle{display:none;background:none;border:1px solid var(--line);border-radius:10px;width:44px;height:44px;place-items:center;cursor:pointer;color:var(--ink)}
+  @media(max-width:920px){
+    .nav-links{display:none;position:absolute;top:72px;left:0;right:0;background:rgba(247,246,254,.97);backdrop-filter:blur(14px);flex-direction:column;align-items:stretch;padding:12px 24px 20px;border-bottom:1px solid var(--line);gap:2px}
+    .nav-links.open{display:flex}
+    .nav-links a{padding:13px 14px;font-size:1rem}
+    .nav-toggle{display:grid}
+    .nav-phone{display:none}
+  }
 
-    <!--====== Favicon Icon ======-->
-    <link
-      rel="shortcut icon"
-      href="assets/images/favicon.svg"
-      type="image/svg"
-    />
+  /* ---------- hero ---------- */
+  .hero{position:relative;padding:64px 0 88px}
+  .hero .blob-a{top:-140px;left:-160px}
+  .hero .blob-b{top:120px;right:-140px}
+  .hero .blob-c{bottom:-120px;left:34%}
+  .hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:56px;align-items:center}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--indigo-ink);background:rgba(99,102,241,.10);border:1px solid rgba(99,102,241,.22);padding:7px 14px;border-radius:999px;margin-bottom:20px}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--emerald);flex:none}
+  h1{font-size:clamp(2.2rem,4.6vw,3.4rem);margin-bottom:20px}
+  .hero-sub{font-size:clamp(1rem,1.6vw,1.15rem);color:var(--slate);max-width:46ch;margin-bottom:30px}
+  .hero-ctas{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:34px}
+  .trust{display:flex;flex-wrap:wrap;gap:18px;align-items:center;font-size:.85rem;color:var(--muted)}
+  .trust-item{display:inline-flex;align-items:center;gap:7px}
+  .trust-item svg{color:var(--emerald)}
 
-    <!-- ===== All CSS files ===== -->
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="assets/css/animate.css" />
-    <link rel="stylesheet" href="assets/css/lineicons.css" />
-    <link rel="stylesheet" href="assets/css/ud-styles.css" />
-  </head>
-  <body>
-    <!-- ====== Header Start ====== -->
-    <header class="ud-header">
-      <div class="container">
-        <div class="row">
-          <div class="col-lg-12">
-            <nav class="navbar navbar-expand-lg">
-              <a class="navbar-brand" href="index.html">
-                <img src="assets/images/logo/logo.svg" alt="Logo" />
-              </a>
-              <button class="navbar-toggler">
-                <span class="toggler-icon"> </span>
-                <span class="toggler-icon"> </span>
-                <span class="toggler-icon"> </span>
-              </button>
+  /* ---------- product mockup ---------- */
+  .mockup-wrap{position:relative}
+  .mockup{
+    background:var(--glass);
+    border:1px solid var(--glass-border);
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border-radius:var(--r-lg);
+    box-shadow:var(--sh-lg);
+    overflow:hidden;
+    font-size:12px;
+  }
+  .mock-titlebar{display:flex;align-items:center;gap:8px;padding:11px 16px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.55)}
+  .mock-dot{width:10px;height:10px;border-radius:50%;background:#E2E1F0}
+  .mock-url{margin-left:10px;flex:1;max-width:250px;background:rgba(30,27,75,.05);border-radius:999px;padding:4px 14px;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden}
+  .mock-body{display:grid;grid-template-columns:148px 1fr;min-height:380px}
+  .mock-side{border-right:1px solid var(--line);background:rgba(255,255,255,.4);padding:14px 10px;display:flex;flex-direction:column;gap:2px}
+  .mock-side-brand{display:flex;align-items:center;gap:7px;font-family:'Sora',sans-serif;font-weight:700;font-size:12px;padding:4px 8px 12px}
+  .mock-side-brand span{width:18px;height:18px;border-radius:6px;background:linear-gradient(135deg,var(--indigo),var(--indigo-deep));flex:none}
+  .mock-nav-item{display:flex;align-items:center;justify-content:space-between;padding:7px 9px;border-radius:8px;color:var(--slate);font-weight:500}
+  .mock-nav-item.active{background:rgba(99,102,241,.12);color:var(--indigo-ink);font-weight:600}
+  .mock-count{font-size:10px;font-weight:600;background:rgba(30,27,75,.07);border-radius:999px;padding:1px 7px;color:var(--muted)}
+  .mock-count.warn{background:rgba(217,119,6,.14);color:#92400E}
+  .mock-side-label{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:12px 9px 4px;font-weight:600}
+  .mock-main{display:flex;flex-direction:column;background:rgba(255,255,255,.28)}
+  .mock-toolbar{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--line)}
+  .mock-toolbar strong{font-family:'Sora',sans-serif;font-size:13px}
+  .mock-chip{font-size:10px;font-weight:600;border-radius:999px;padding:3px 10px;background:rgba(99,102,241,.10);color:var(--indigo-ink)}
+  .mock-search{margin-left:auto;background:rgba(30,27,75,.05);border-radius:999px;padding:4px 12px;color:var(--muted);font-size:11px}
+  .ticket{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
+  .ticket.selected{background:rgba(99,102,241,.08);border-left:3px solid var(--indigo);padding-left:11px}
+  .t-avatar{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:10.5px;color:#fff}
+  .t-a1{background:linear-gradient(135deg,#6366F1,#8B5CF6)}
+  .t-a2{background:linear-gradient(135deg,#0EA5E9,#6366F1)}
+  .t-a3{background:linear-gradient(135deg,#059669,#0D9488)}
+  .t-a4{background:linear-gradient(135deg,#D97706,#DC2626)}
+  .t-subject{font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .t-snippet{color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .t-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+  .t-time{font-size:10px;color:var(--muted)}
+  .pill{font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2.5px 9px}
+  .pill-open{background:rgba(99,102,241,.13);color:var(--indigo-ink)}
+  .pill-urgent{background:rgba(220,38,38,.12);color:#B91C1C}
+  .pill-replied{background:rgba(5,150,105,.13);color:var(--emerald-deep)}
+  .pill-waiting{background:rgba(217,119,6,.13);color:#92400E}
+  .mock-reply{margin:12px 14px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.75);padding:11px 13px}
+  .mock-reply-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;color:var(--muted);font-size:11px}
+  .ai-chip{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;background:linear-gradient(135deg,rgba(99,102,241,.14),rgba(139,92,246,.14));color:var(--indigo-ink);border:1px solid rgba(99,102,241,.25);border-radius:999px;padding:3px 10px}
+  .mock-reply p{font-size:11.5px;color:var(--slate);line-height:1.55}
+  .mock-reply-actions{display:flex;gap:8px;margin-top:10px}
+  .mock-btn{font-size:10.5px;font-weight:600;border-radius:999px;padding:5px 14px}
+  .mock-btn.send{background:var(--emerald);color:#fff}
+  .mock-btn.edit{background:rgba(30,27,75,.06);color:var(--slate)}
+  .float-card{position:absolute;background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:14px;box-shadow:var(--sh-md);padding:12px 16px;font-size:12px;z-index:2}
+  .float-sla{top:-22px;right:-14px;display:flex;align-items:center;gap:10px}
+  .float-sla .ring{width:34px;height:34px;border-radius:50%;background:conic-gradient(var(--emerald) 0 88%,rgba(30,27,75,.08) 88% 100%);display:grid;place-items:center;flex:none}
+  .float-sla .ring i{width:24px;height:24px;border-radius:50%;background:#fff;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:8.5px;color:var(--emerald-deep)}
+  .float-csat{bottom:-20px;left:-18px;display:flex;align-items:center;gap:10px}
+  .float-csat .num{font-family:'Sora',sans-serif;font-weight:700;font-size:1.15rem;color:var(--emerald-deep)}
+  @media(max-width:960px){
+    .hero-grid{grid-template-columns:1fr;gap:44px}
+    .float-sla{right:4px}
+    .float-csat{left:4px}
+  }
+  @media(max-width:560px){
+    .mock-body{grid-template-columns:1fr}
+    .mock-side{display:none}
+  }
 
-              <div class="navbar-collapse">
-                <ul id="nav" class="navbar-nav mx-auto">
-                  <li class="nav-item">
-                    <a class="ud-menu-scroll" href="#home">Home</a>
-                  </li>
+  /* ---------- generic section ---------- */
+  section{position:relative;padding:88px 0}
+  .sec-head{max-width:640px;margin-bottom:52px}
+  .sec-head.center{margin-left:auto;margin-right:auto;text-align:center}
+  h2{font-size:clamp(1.7rem,3.2vw,2.4rem);margin:14px 0 14px}
+  .sec-head p{color:var(--slate);font-size:1.02rem}
 
-                  <li class="nav-item">
-                    <a class="ud-menu-scroll" href="#about">About</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="ud-menu-scroll" href="#pricing">Pricing</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="ud-menu-scroll" href="#team">Team</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="ud-menu-scroll" href="#contact">Contact</a>
-                  </li>
-                  <li class="nav-item nav-item-has-children">
-                    <a href="javascript:void(0)"> Pages </a>
-                    <ul class="ud-submenu">
-                      <li class="ud-submenu-item">
-                        <a href="about.html" class="ud-submenu-link">
-                          About Page
-                        </a>
-                      </li>
-                      <li class="ud-submenu-item">
-                        <a href="pricing.html" class="ud-submenu-link">
-                          Pricing Page
-                        </a>
-                      </li>
-                      <li class="ud-submenu-item">
-                        <a href="contact.html" class="ud-submenu-link">
-                          Contact Page
-                        </a>
-                      </li>
-                      <li class="ud-submenu-item">
-                        <a href="blog.html" class="ud-submenu-link">
-                          Blog Grid Page
-                        </a>
-                      </li>
-                      <li class="ud-submenu-item">
-                        <a href="blog-details.html" class="ud-submenu-link">
-                          Blog Details Page
-                        </a>
-                      </li>
-                      <li class="ud-submenu-item">
-                        <a href="login.html" class="ud-submenu-link">
-                          Sign In Page
-                        </a>
-                      </li>
-                      <li class="ud-submenu-item">
-                        <a href="404.html" class="ud-submenu-link">404 Page</a>
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-              </div>
+  /* ---------- bento ---------- */
+  .bento{display:grid;grid-template-columns:repeat(6,1fr);gap:20px;position:relative;z-index:1}
+  .bento-card{
+    background:var(--glass);border:1px solid var(--glass-border);
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    border-radius:var(--r-lg);box-shadow:var(--sh-sm);padding:30px;
+    display:flex;flex-direction:column;gap:12px;
+    transition:transform .2s ease-out,box-shadow .2s ease-out;
+  }
+  .bento-card:hover{transform:translateY(-4px);box-shadow:var(--sh-md)}
+  .b-lg{grid-column:span 4}
+  .b-md{grid-column:span 3}
+  .b-sm{grid-column:span 2}
+  .icon-tile{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:rgba(99,102,241,.12);color:var(--indigo-deep);flex:none}
+  .icon-tile.green{background:rgba(5,150,105,.12);color:var(--emerald-deep)}
+  .bento-card h3{font-size:1.15rem;font-weight:600}
+  .bento-card p{color:var(--slate);font-size:.94rem}
+  .bento-kpi{margin-top:auto;display:flex;gap:22px;padding-top:16px;border-top:1px solid var(--line)}
+  .bento-kpi div strong{font-family:'Sora',sans-serif;font-size:1.25rem;display:block;color:var(--indigo-ink)}
+  .bento-kpi div span{font-size:.78rem;color:var(--muted)}
+  .mini-bars{display:flex;align-items:flex-end;gap:6px;height:56px;margin-top:auto;padding-top:14px}
+  .mini-bars i{flex:1;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,var(--indigo),var(--indigo-deep));opacity:.85}
+  .mini-bars i:nth-child(2n){background:linear-gradient(180deg,#A5B4FC,#818CF8)}
+  @media(max-width:920px){.b-lg,.b-md,.b-sm{grid-column:span 6}}
+  @media(min-width:640px) and (max-width:920px){.b-sm{grid-column:span 3}}
 
-              <div class="navbar-btn d-none d-sm-inline-block">
-                <a href="login.html" class="ud-main-btn ud-login-btn">
-                  Sign In
-                </a>
-                <a class="ud-main-btn ud-white-btn" href="javascript:void(0)">
-                  Sign Up
-                </a>
-              </div>
-            </nav>
-          </div>
-        </div>
-      </div>
-    </header>
-    <!-- ====== Header End ====== -->
+  /* ---------- metrics ---------- */
+  .metrics{padding:0}
+  .metrics-band{
+    position:relative;overflow:hidden;
+    background:linear-gradient(120deg,#312E81,#1E1B4B 55%,#164E63);
+    border-radius:var(--r-xl);color:#fff;padding:64px 48px;box-shadow:var(--sh-lg);
+  }
+  .metrics-band::after{content:"";position:absolute;top:-120px;right:-100px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.45),transparent 70%);pointer-events:none}
+  .metrics-band .eyebrow{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.22);color:#C7D2FE}
+  .metrics-band h2{color:#fff}
+  .metrics-band .sec-head p{color:#C7C9E8}
+  .metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;position:relative;z-index:1}
+  .metric strong{font-family:'Sora',sans-serif;font-size:clamp(2rem,4vw,2.8rem);font-weight:700;display:block;font-variant-numeric:tabular-nums;background:linear-gradient(90deg,#A5B4FC,#6EE7B7);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .metric span{font-size:.9rem;color:#C7C9E8}
+  @media(max-width:860px){.metrics-grid{grid-template-columns:repeat(2,1fr)}.metrics-band{padding:48px 30px}}
 
-    <!-- ====== Hero Start ====== -->
-    <section class="ud-hero" id="home">
-      <div class="container">
-        <div class="row">
-          <div class="col-lg-12">
-            <div class="ud-hero-content wow fadeInUp" data-wow-delay=".2s">
-              <h1 class="ud-hero-title">
-                Open-Source Web Template for SaaS, Startup, Apps, and More
-              </h1>
-              <p class="ud-hero-desc">
-                Multidisciplinary Web Template Built with Your Favourite
-                Technology - HTML Bootstrap, Tailwind and React NextJS.
-              </p>
-              <ul class="ud-hero-buttons">
-                <li>
-                  <a href="#" rel="nofollow noopener" target="_blank" class="ud-main-btn ud-white-btn">
-                    Download Now
-                  </a>
-                </li>
-                <li>
-                  <a href="#" rel="nofollow noopener" target="_blank" class="ud-main-btn ud-link-btn">
-                    Learn More <i class="lni lni-arrow-right"></i>
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div
-              class="ud-hero-brands-wrapper wow fadeInUp"
-              data-wow-delay=".3s"
-            >
-              <img src="assets/images/hero/brand.svg" alt="brand" />
-            </div>
-            <div class="ud-hero-image wow fadeInUp" data-wow-delay=".25s">
-              <img src="assets/images/hero/hero-image.svg" alt="hero-image" />
-              <img
-                src="assets/images/hero/dotted-shape.svg"
-                alt="shape"
-                class="shape shape-1"
-              />
-              <img
-                src="assets/images/hero/dotted-shape.svg"
-                alt="shape"
-                class="shape shape-2"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <!-- ====== Hero End ====== -->
+  /* ---------- testimonials ---------- */
+  .quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .quote-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-sm);padding:30px;display:flex;flex-direction:column;gap:16px;transition:transform .2s ease-out,box-shadow .2s ease-out}
+  .quote-card:hover{transform:translateY(-4px);box-shadow:var(--sh-md)}
+  .stars{display:flex;gap:3px;color:#D97706}
+  .quote-card blockquote{color:var(--slate);font-size:.97rem}
+  .quote-who{display:flex;align-items:center;gap:12px;margin-top:auto}
+  .avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:.9rem;color:#fff;flex:none}
+  .quote-who strong{display:block;font-size:.92rem}
+  .quote-who span{font-size:.82rem;color:var(--muted)}
+  @media(max-width:860px){.quotes{grid-template-columns:1fr}}
 
-    <!-- ====== Features Start ====== -->
-    <section id="features" class="ud-features">
-      <div class="container">
-        <div class="row">
-          <div class="col-lg-12">
-            <div class="ud-section-title">
-              <span>Features</span>
-              <h2>Main Features of Flowdesk</h2>
-              <p>
-                There are many variations of passages of Lorem Ipsum available
-                but the majority have suffered alteration in some form.
-              </p>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-xl-3 col-lg-3 col-sm-6">
-            <div class="ud-single-feature wow fadeInUp" data-wow-delay=".1s">
-              <div class="ud-feature-icon">
-                <i class="lni lni-gift"></i>
-              </div>
-              <div class="ud-feature-content">
-                <h3 class="ud-feature-title">Free and Open-Source</h3>
-                <p class="ud-feature-desc">
-                  Lorem Ipsum is simply dummy text of the printing and industry.
-                </p>
-                <a href="javascript:void(0)" class="ud-feature-link">
-                  Learn More
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="col-xl-3 col-lg-3 col-sm-6">
-            <div class="ud-single-feature wow fadeInUp" data-wow-delay=".15s">
-              <div class="ud-feature-icon">
-                <i class="lni lni-move"></i>
-              </div>
-              <div class="ud-feature-content">
-                <h3 class="ud-feature-title">Multipurpose Template</h3>
-                <p class="ud-feature-desc">
-                  Lorem Ipsum is simply dummy text of the printing and industry.
-                </p>
-                <a href="javascript:void(0)" class="ud-feature-link">
-                  Learn More
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="col-xl-3 col-lg-3 col-sm-6">
-            <div class="ud-single-feature wow fadeInUp" data-wow-delay=".2s">
-              <div class="ud-feature-icon">
-                <i class="lni lni-layout"></i>
-              </div>
-              <div class="ud-feature-content">
-                <h3 class="ud-feature-title">High-quality Design</h3>
-                <p class="ud-feature-desc">
-                  Lorem Ipsum is simply dummy text of the printing and industry.
-                </p>
-                <a href="javascript:void(0)" class="ud-feature-link">
-                  Learn More
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="col-xl-3 col-lg-3 col-sm-6">
-            <div class="ud-single-feature wow fadeInUp" data-wow-delay=".25s">
-              <div class="ud-feature-icon">
-                <i class="lni lni-layers"></i>
-              </div>
-              <div class="ud-feature-content">
-                <h3 class="ud-feature-title">All Essential Elements</h3>
-                <p class="ud-feature-desc">
-                  Lorem Ipsum is simply dummy text of the printing and industry.
-                </p>
-                <a href="javascript:void(0)" class="ud-feature-link">
-                  Learn More
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <!-- ====== Features End ====== -->
+  /* ---------- pricing ---------- */
+  .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;position:relative;z-index:1;align-items:stretch}
+  .plan{
+    background:var(--glass);border:1px solid var(--glass-border);
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    border-radius:var(--r-lg);box-shadow:var(--sh-sm);padding:34px 30px;
+    display:flex;flex-direction:column;gap:18px;transition:transform .2s ease-out,box-shadow .2s ease-out;
+  }
+  .plan:hover{transform:translateY(-4px);box-shadow:var(--sh-md)}
+  .plan.featured{border:2px solid var(--indigo);box-shadow:var(--sh-md);position:relative}
+  .plan-flag{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--indigo-deep);color:#fff;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:5px 14px;white-space:nowrap}
+  .plan h3{font-size:1.15rem}
+  .plan .who{font-size:.88rem;color:var(--muted)}
+  .price{font-family:'Sora',sans-serif;font-weight:700;font-size:2.5rem;letter-spacing:-.03em}
+  .price small{font-family:'Inter',sans-serif;font-weight:500;font-size:.9rem;color:var(--muted);letter-spacing:0}
+  .plan ul{list-style:none;display:flex;flex-direction:column;gap:11px;font-size:.92rem;color:var(--slate)}
+  .plan ul li{display:flex;gap:10px;align-items:flex-start}
+  .plan ul svg{color:var(--emerald);flex:none;margin-top:3px}
+  .plan .btn{margin-top:auto}
+  @media(max-width:860px){.plans{grid-template-columns:1fr}}
 
-    <!-- ====== About Start ====== -->
-    <section id="about" class="ud-about">
-      <div class="container">
-        <div class="ud-about-wrapper wow fadeInUp" data-wow-delay=".2s">
-          <div class="ud-about-content-wrapper">
-            <div class="ud-about-content">
-              <span class="tag">About Us</span>
-              <h2>Brilliant Toolkit to Build Nextgen Website Faster.</h2>
-              <p>
-                The main ‘thrust’ is to focus on educating attendees on how to
-                best protect highly vulnerable business applications with
-                interactive panel discussions and roundtables led by subject
-                matter experts.
-              </p>
+  /* ---------- integrations ---------- */
+  .logo-pills{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;position:relative;z-index:1}
+  .logo-pill{display:inline-flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:12px 22px;font-weight:600;font-size:.95rem;color:var(--slate);box-shadow:var(--sh-sm);transition:transform .2s ease-out,box-shadow .2s ease-out}
+  .logo-pill:hover{transform:translateY(-3px);box-shadow:var(--sh-md)}
+  .logo-dot{width:22px;height:22px;border-radius:7px;flex:none}
 
-              <p>
-                The main ‘thrust’ is to focus on educating attendees on how to
-                best protect highly vulnerable business applications with
-                interactive panel.
-              </p>
-              <a href="javascript:void(0)" class="ud-main-btn">Learn More</a>
-            </div>
-          </div>
-          <div class="ud-about-image">
-            <img src="assets/images/about/about-image.svg" alt="about-image" />
-          </div>
-        </div>
-      </div>
-    </section>
-    <!-- ====== About End ====== -->
+  /* ---------- contact ---------- */
+  .contact-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:24px;position:relative;z-index:1;align-items:start}
+  .card{background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:var(--r-lg);box-shadow:var(--sh-sm);padding:36px}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .field{display:flex;flex-direction:column;gap:7px;margin-bottom:18px}
+  .field label{font-weight:600;font-size:.9rem}
+  .field input,.field textarea{
+    font:inherit;color:var(--ink);background:rgba(255,255,255,.85);
+    border:1px solid rgba(30,27,75,.16);border-radius:12px;padding:12px 16px;min-height:48px;width:100%;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  .field textarea{min-height:120px;resize:vertical}
+  .field input:focus,.field textarea:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 3px rgba(99,102,241,.18)}
+  .contact-info{display:flex;flex-direction:column;gap:22px}
+  .info-line{display:flex;gap:14px;align-items:flex-start}
+  .info-line .icon-tile{width:42px;height:42px;border-radius:12px}
+  .info-line strong{display:block;font-size:.92rem}
+  .info-line a,.info-line span{color:var(--slate);font-size:.92rem;text-decoration:none}
+  .info-line a:hover{color:var(--indigo-ink);text-decoration:underline}
+  .hours{border-top:1px solid var(--line);padding-top:20px;display:flex;flex-direction:column;gap:8px;font-size:.9rem;color:var(--slate)}
+  .hours div{display:flex;justify-content:space-between;gap:16px}
+  .hours span:last-child{font-variant-numeric:tabular-nums;font-weight:500;color:var(--ink)}
+  @media(max-width:920px){.contact-grid{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}}
 
-    <!-- ====== Pricing Start ====== -->
-    <section id="pricing" class="ud-pricing">
-      <div class="container">
-        <div class="row">
-          <div class="col-lg-12">
-            <div class="ud-section-title mx-auto text-center">
-              <span>Pricing</span>
-              <h2>Our Pricing Plans</h2>
-              <p>
-                There are many variations of passages of Lorem Ipsum available
-                but the majority have suffered alteration in some form.
-              </p>
-            </div>
-          </div>
-        </div>
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line);padding:44px 0 120px;background:rgba(255,255,255,.5)}
+  .foot-inner{display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:center}
+  .foot-note{font-size:.85rem;color:var(--muted);max-width:60ch}
+  .foot-links{display:flex;gap:20px;list-style:none;font-size:.9rem}
+  .foot-links a{text-decoration:none;color:var(--slate)}
+  .foot-links a:hover{color:var(--ink)}
 
-        <div class="row g-0 align-items-center justify-content-center">
-          <div class="col-lg-4 col-md-6 col-sm-10">
-            <div
-              class="ud-single-pricing first-item wow fadeInUp"
-              data-wow-delay=".15s"
-            >
-              <div class="ud-pricing-header">
-                <h3>STARTING FROM</h3>
-                <h4>$ 19.99/mo</h4>
-              </div>
-              <div class="ud-pricing-body">
-                <ul>
-                  <li>5 User</li>
-                  <li>All UI components</li>
-                  <li>Lifetime access</li>
-                  <li>Free updates</li>
-                  <li>Use on 1 (one) project</li>
-                  <li>4 Months support</li>
-                </ul>
-              </div>
-              <div class="ud-pricing-footer">
-                <a href="javascript:void(0)" class="ud-main-btn ud-border-btn">
-                  Purchase Now
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-4 col-md-6 col-sm-10">
-            <div
-              class="ud-single-pricing active wow fadeInUp"
-              data-wow-delay=".1s"
-            >
-              <span class="ud-popular-tag">POPULAR</span>
-              <div class="ud-pricing-header">
-                <h3>STARTING FROM</h3>
-                <h4>$ 30.99/mo</h4>
-              </div>
-              <div class="ud-pricing-body">
-                <ul>
-                  <li>5 User</li>
-                  <li>All UI components</li>
-                  <li>Lifetime access</li>
-                  <li>Free updates</li>
-                  <li>Use on 1 (one) project</li>
-                  <li>4 Months support</li>
-                </ul>
-              </div>
-              <div class="ud-pricing-footer">
-                <a href="javascript:void(0)" class="ud-main-btn ud-white-btn">
-                  Purchase Now
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-4 col-md-6 col-sm-10">
-            <div
-              class="ud-single-pricing last-item wow fadeInUp"
-              data-wow-delay=".15s"
-            >
-              <div class="ud-pricing-header">
-                <h3>STARTING FROM</h3>
-                <h4>$ 70.99/mo</h4>
-              </div>
-              <div class="ud-pricing-body">
-                <ul>
-                  <li>5 User</li>
-                  <li>All UI components</li>
-                  <li>Lifetime access</li>
-                  <li>Free updates</li>
-                  <li>Use on 1 (one) project</li>
-                  <li>4 Months support</li>
-                </ul>
-              </div>
-              <div class="ud-pricing-footer">
-                <a href="javascript:void(0)" class="ud-main-btn ud-border-btn">
-                  Purchase Now
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <!-- ====== Pricing End ====== -->
+  /* ---------- reveal motion ---------- */
+  @media (prefers-reduced-motion: no-preference){
+    .reveal{opacity:0;transform:translateY(22px);transition:opacity .28s ease-out,transform .28s ease-out}
+    .reveal.in{opacity:1;transform:none}
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
 
-    <!-- ====== FAQ Start ====== -->
-    <section id="faq" class="ud-faq">
-      <div class="shape">
-        <img src="assets/images/faq/shape.svg" alt="shape" />
-      </div>
-      <div class="container">
-        <div class="row">
-          <div class="col-lg-12">
-            <div class="ud-section-title text-center mx-auto">
-              <span>FAQ</span>
-              <h2>Any Questions? Answered</h2>
-              <p>
-                There are many variations of passages of Lorem Ipsum available
-                but the majority have suffered alteration in some form.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="col-lg-6">
-            <div class="ud-single-faq wow fadeInUp" data-wow-delay=".1s">
-              <div class="accordion">
-                <button
-                  class="ud-faq-btn collapsed"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseOne"
-                >
-                  <span class="icon flex-shrink-0">
-                    <i class="lni lni-chevron-down"></i>
-                  </span>
-                  <span>How to use Flowdesk?</span>
-                </button>
-                <div id="collapseOne" class="accordion-collapse collapse">
-                  <div class="ud-faq-body">
-                    Lorem Ipsum is simply dummy text of the printing and
-                    typesetting industry. Lorem Ipsum has been the industry's
-                    standard dummy text ever since the 1500s, when an unknown
-                    printer took a galley of type and scrambled it to make a
-                    type specimen book.
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="ud-single-faq wow fadeInUp" data-wow-delay=".15s">
-              <div class="accordion">
-                <button
-                  class="ud-faq-btn collapsed"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseTwo"
-                >
-                  <span class="icon flex-shrink-0">
-                    <i class="lni lni-chevron-down"></i>
-                  </span>
-                  <span>How to download icons from Lineicons?</span>
-                </button>
-                <div id="collapseTwo" class="accordion-collapse collapse">
-                  <div class="ud-faq-body">
-                    Lorem Ipsum is simply dummy text of the printing and
-                    typesetting industry. Lorem Ipsum has been the industry's
-                    standard dummy text ever since the 1500s, when an unknown
-                    printer took a galley of type and scrambled it to make a
-                    type specimen book.
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="ud-single-faq wow fadeInUp" data-wow-delay=".2s">
-              <div class="accordion">
-                <button
-                  class="ud-faq-btn collapsed"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseThree"
-                >
-                  <span class="icon flex-shrink-0">
-                    <i class="lni lni-chevron-down"></i>
-                  </span>
-                  <span>Is GrayGrids part of Flowdesk?</span>
-                </button>
-                <div id="collapseThree" class="accordion-collapse collapse">
-                  <div class="ud-faq-body">
-                    Lorem Ipsum is simply dummy text of the printing and
-                    typesetting industry. Lorem Ipsum has been the industry's
-                    standard dummy text ever since the 1500s, when an unknown
-                    printer took a galley of type and scrambled it to make a
-                    type specimen book.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-6">
-            <div class="ud-single-faq wow fadeInUp" data-wow-delay=".1s">
-              <div class="accordion">
-                <button
-                  class="ud-faq-btn collapsed"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseFour"
-                >
-                  <span class="icon flex-shrink-0">
-                    <i class="lni lni-chevron-down"></i>
-                  </span>
-                  <span>Can I use this template for commercial project?</span>
-                </button>
-                <div id="collapseFour" class="accordion-collapse collapse">
-                  <div class="ud-faq-body">
-                    Lorem Ipsum is simply dummy text of the printing and
-                    typesetting industry. Lorem Ipsum has been the industry's
-                    standard dummy text ever since the 1500s, when an unknown
-                    printer took a galley of type and scrambled it to make a
-                    type specimen book.
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="ud-single-faq wow fadeInUp" data-wow-delay=".15s">
-              <div class="accordion">
-                <button
-                  class="ud-faq-btn collapsed"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseFive"
-                >
-                  <span class="icon flex-shrink-0">
-                    <i class="lni lni-chevron-down"></i>
-                  </span>
-                  <span>Do you have plan releasing Flowdesk Pro?</span>
-                </button>
-                <div id="collapseFive" class="accordion-collapse collapse">
-                  <div class="ud-faq-body">
-                    Lorem Ipsum is simply dummy text of the printing and
-                    typesetting industry. Lorem Ipsum has been the industry's
-                    standard dummy text ever since the 1500s, when an unknown
-                    printer took a galley of type and scrambled it to make a
-                    type specimen book.
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="ud-single-faq wow fadeInUp" data-wow-delay=".2s">
-              <div class="accordion">
-                <button
-                  class="ud-faq-btn collapsed"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseSix"
-                >
-                  <span class="icon flex-shrink-0">
-                    <i class="lni lni-chevron-down"></i>
-                  </span>
-                  <span>Where and how to host this template?</span>
-                </button>
-                <div id="collapseSix" class="accordion-collapse collapse">
-                  <div class="ud-faq-body">
-                    Lorem Ipsum is simply dummy text of the printing and
-                    typesetting industry. Lorem Ipsum has been the industry's
-                    standard dummy text ever since the 1500s, when an unknown
-                    printer took a galley of type and scrambled it to make a
-                    type specimen book.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <!-- ====== FAQ End ====== -->
-
-    <!-- ====== Testimonials Start ====== -->
-    <section id="testimonials" class="ud-testimonials">
-      <div class="container">
-        <div class="row">
-          <div class="col-lg-12">
-            <div class="ud-section-title mx-auto text-center">
-              <span>Testimonials</span>
-              <h2>What our Customers Says</h2>
-              <p>
-                There are many variations of passages of Lorem Ipsum available
-                but the majority have suffered alteration in some form.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="col-lg-4 col-md-6">
-            <div
-              class="ud-single-testimonial wow fadeInUp"
-              data-wow-delay=".1s"
-            >
-              <div class="ud-testimonial-ratings">
-                <i class="lni lni-star-filled"></i>
-                <i class="lni lni-star-filled"></i>
-                <i class="lni lni-star-filled"></i>
-                <i class="lni lni-star-filled"></i>
-                <i class="lni lni-star-filled"></i>
-              </div>
-              <div class="ud-testimonial-content">
-                <p>
-                  “Our members are so impressed. It's intuitive. It's clean.
-                  It's distraction free. If you're building a community.
-                </p>
-              </div>
-              <div class="ud-testimonial-info">
-                <div class="ud-testimonial-image">
-                  <img
-                    src="assets/images/testimonials/author-01.png"
-                    alt="author"
-                  />
-                </div>
-                <div class="ud-testimonial-meta">
-                  <h4>Sabo Masties</h4>
-                  <p>Founder @Flowdesk</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-4 col-md-6">
-            <div
-              class="ud-single-testimonial wow fadeInUp"
-              data-wow-delay=".15s"
-            >
-              <div class="ud-testimonial-ratings">
-                <i class="lni lni-star-filled"></i>
-                <i class="lni lni-star-filled"></i>
-                <i class="lni lni-star-filled"></i>
-                <i class="lni lni-star-filled"></i>
-                <i class="lni lni-star-filled"></i>
-              </div>
-              <div class="ud-testimonial-content">
-                <p>
-                  “Our members are so impressed. It's intuitive. It's clean.
-                  It's distraction free. If you're building a community.
-                </p>
-              </div>
-              <div class="ud-testimonial-info">
-                <div class="ud-testimonial-image">
-                  <img
-                    src="assets/images/testimonials/author-02.png"
-                    alt="author"
-                  />
-                </div>
-                <div class="ud-testimonial-meta">
-                  <h4>Margin Gesmu</h4>
-                  <p>Founder @Lineicons</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-4 col-md-6">
-            <div
-              class="ud-single-testimonial wow fadeInUp"
-              data-wow-delay=".2s"
-            >
-              <div class="ud-testimonial-ratings">
-                <i class="lni lni-star-filled"></i>
-                <i class="lni lni-star-filled"></i>
-                <i class="lni lni-star-filled"></i>
-                <i class="lni lni-star-filled"></i>
-                <i class="lni lni-star-filled"></i>
-              </div>
-              <div class="ud-testimonial-content">
-                <p>
-                  “Our members are so impressed. It's intuitive. It's clean.
-                  It's distraction free. If you're building a community.
-                </p>
-              </div>
-              <div class="ud-testimonial-info">
-                <div class="ud-testimonial-image">
-                  <img
-                    src="assets/images/testimonials/author-03.png"
-                    alt="author"
-                  />
-                </div>
-                <div class="ud-testimonial-meta">
-                  <h4>William Smith</h4>
-                  <p>Founder @GrayGrids</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-lg-12">
-            <div class="ud-brands wow fadeInUp" data-wow-delay=".2s">
-              <div class="ud-title">
-                <h6>Trusted and Used by</h6>
-              </div>
-              <div class="ud-brands-logo">
-                <div class="ud-single-logo">
-                  <img src="assets/images/brands/ayroui.svg" alt="ayroui" />
-                </div>
-                <div class="ud-single-logo">
-                  <img src="assets/images/brands/uideck.svg" alt="uideck" />
-                </div>
-                <div class="ud-single-logo">
-                  <img
-                    src="assets/images/brands/graygrids.svg"
-                    alt="graygrids"
-                  />
-                </div>
-                <div class="ud-single-logo">
-                  <img
-                    src="assets/images/brands/lineicons.svg"
-                    alt="lineicons"
-                  />
-                </div>
-                <div class="ud-single-logo">
-                  <img
-                    src="assets/images/brands/ecommerce-html.svg"
-                    alt="ecommerce-html"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <!-- ====== Testimonials End ====== -->
-
-    <!-- ====== Team Start ====== -->
-    <section id="team" class="ud-team">
-      <div class="container">
-        <div class="row">
-          <div class="col-lg-12">
-            <div class="ud-section-title mx-auto text-center">
-              <span>Our Team</span>
-              <h2>Meet The Team</h2>
-              <p>
-                There are many variations of passages of Lorem Ipsum available
-                but the majority have suffered alteration in some form.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="col-xl-3 col-lg-3 col-sm-6">
-            <div class="ud-single-team wow fadeInUp" data-wow-delay=".1s">
-              <div class="ud-team-image-wrapper">
-                <div class="ud-team-image">
-                  <img src="assets/images/team/team-01.png" alt="team" />
-                </div>
-
-                <img
-                  src="assets/images/team/dotted-shape.svg"
-                  alt="shape"
-                  class="shape shape-1"
-                />
-                <img
-                  src="assets/images/team/shape-2.svg"
-                  alt="shape"
-                  class="shape shape-2"
-                />
-              </div>
-              <div class="ud-team-info">
-                <h5>Adveen Desuza</h5>
-                <h6>UI Designer</h6>
-              </div>
-              <ul class="ud-team-socials">
-                <li>
-                  <a href="#">
-                    <i class="lni lni-facebook-filled"></i>
-                  </a>
-                </li>
-                <li>
-                  <a href="#">
-                    <i class="lni lni-twitter-filled"></i>
-                  </a>
-                </li>
-                <li>
-                  <a href="#">
-                    <i class="lni lni-instagram-filled"></i>
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div class="col-xl-3 col-lg-3 col-sm-6">
-            <div class="ud-single-team wow fadeInUp" data-wow-delay=".15s">
-              <div class="ud-team-image-wrapper">
-                <div class="ud-team-image">
-                  <img src="assets/images/team/team-02.png" alt="team" />
-                </div>
-
-                <img
-                  src="assets/images/team/dotted-shape.svg"
-                  alt="shape"
-                  class="shape shape-1"
-                />
-                <img
-                  src="assets/images/team/shape-2.svg"
-                  alt="shape"
-                  class="shape shape-2"
-                />
-              </div>
-              <div class="ud-team-info">
-                <h5>Jezmin uniya</h5>
-                <h6>Product Designer</h6>
-              </div>
-              <ul class="ud-team-socials">
-                <li>
-                  <a href="#">
-                    <i class="lni lni-facebook-filled"></i>
-                  </a>
-                </li>
-                <li>
-                  <a href="#">
-                    <i class="lni lni-twitter-filled"></i>
-                  </a>
-                </li>
-                <li>
-                  <a href="#">
-                    <i class="lni lni-instagram-filled"></i>
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div class="col-xl-3 col-lg-3 col-sm-6">
-            <div class="ud-single-team wow fadeInUp" data-wow-delay=".2s">
-              <div class="ud-team-image-wrapper">
-                <div class="ud-team-image">
-                  <img src="assets/images/team/team-03.png" alt="team" />
-                </div>
-
-                <img
-                  src="assets/images/team/dotted-shape.svg"
-                  alt="shape"
-                  class="shape shape-1"
-                />
-                <img
-                  src="assets/images/team/shape-2.svg"
-                  alt="shape"
-                  class="shape shape-2"
-                />
-              </div>
-              <div class="ud-team-info">
-                <h5>Andrieo Gloree</h5>
-                <h6>App Developer</h6>
-              </div>
-              <ul class="ud-team-socials">
-                <li>
-                  <a href="#">
-                    <i class="lni lni-facebook-filled"></i>
-                  </a>
-                </li>
-                <li>
-                  <a href="#">
-                    <i class="lni lni-twitter-filled"></i>
-                  </a>
-                </li>
-                <li>
-                  <a href="#">
-                    <i class="lni lni-instagram-filled"></i>
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div class="col-xl-3 col-lg-3 col-sm-6">
-            <div class="ud-single-team wow fadeInUp" data-wow-delay=".25s">
-              <div class="ud-team-image-wrapper">
-                <div class="ud-team-image">
-                  <img src="assets/images/team/team-04.png" alt="team" />
-                </div>
-
-                <img
-                  src="assets/images/team/dotted-shape.svg"
-                  alt="shape"
-                  class="shape shape-1"
-                />
-                <img
-                  src="assets/images/team/shape-2.svg"
-                  alt="shape"
-                  class="shape shape-2"
-                />
-              </div>
-              <div class="ud-team-info">
-                <h5>Jackie Sanders</h5>
-                <h6>Content Writer</h6>
-              </div>
-              <ul class="ud-team-socials">
-                <li>
-                  <a href="#">
-                    <i class="lni lni-facebook-filled"></i>
-                  </a>
-                </li>
-                <li>
-                  <a href="#">
-                    <i class="lni lni-twitter-filled"></i>
-                  </a>
-                </li>
-                <li>
-                  <a href="#">
-                    <i class="lni lni-instagram-filled"></i>
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <!-- ====== Team End ====== -->
-
-    <!-- ====== Contact Start ====== -->
-    <section id="contact" class="ud-contact">
-      <div class="container">
-        <div class="row align-items-center">
-          <div class="col-xl-8 col-lg-7">
-            <div class="ud-contact-content-wrapper">
-              <div class="ud-contact-title">
-                <span>CONTACT US</span>
-                <h2>
-                  Let’s talk about <br />
-                  Love to hear from you!
-                </h2>
-              </div>
-              <div class="ud-contact-info-wrapper">
-                <div class="ud-single-info">
-                  <div class="ud-info-icon">
-                    <i class="lni lni-map-marker"></i>
-                  </div>
-                  <div class="ud-info-meta">
-                    <h5>Our Location</h5>
-                    <p>401 Broadway, 24th Floor, Orchard Cloud View, London</p>
-                  </div>
-                </div>
-                <div class="ud-single-info">
-                  <div class="ud-info-icon">
-                    <i class="lni lni-envelope"></i>
-                  </div>
-                  <div class="ud-info-meta">
-                    <h5>How Can We Help?</h5>
-                    <p>hello@flowdesk.demo</p>
-                    <p>hello@flowdesk.demo</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-xl-4 col-lg-5">
-            <div
-              class="ud-contact-form-wrapper wow fadeInUp"
-              data-wow-delay=".2s"
-            >
-              <h3 class="ud-contact-form-title">Send us a Message</h3>
-              <form class="ud-contact-form" onsubmit="event.preventDefault();this.reset();alert('Demo site — this form is illustrative and does not send anything.')">
-                <div class="ud-form-group">
-                  <label for="fullName">Full Name*</label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    placeholder="Adam Gelius"
-                  />
-                </div>
-                <div class="ud-form-group">
-                  <label for="email">Email*</label>
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="hello@flowdesk.demo"
-                  />
-                </div>
-                <div class="ud-form-group">
-                  <label for="phone">Phone*</label>
-                  <input
-                    type="text"
-                    name="phone"
-                    placeholder="(555) 031-7700"
-                  />
-                </div>
-                <div class="ud-form-group">
-                  <label for="message">Message*</label>
-                  <textarea
-                    name="message"
-                    rows="1"
-                    placeholder="type your message here"
-                  ></textarea>
-                </div>
-                <div class="ud-form-group mb-0">
-                  <button type="submit" class="ud-main-btn">
-                    Send Message
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <!-- ====== Contact End ====== -->
-
-    <!-- ====== Footer Start ====== -->
-    <footer class="ud-footer wow fadeInUp" data-wow-delay=".15s">
-      <div class="shape shape-1">
-        <img src="assets/images/footer/shape-1.svg" alt="shape" />
-      </div>
-      <div class="shape shape-2">
-        <img src="assets/images/footer/shape-2.svg" alt="shape" />
-      </div>
-      <div class="shape shape-3">
-        <img src="assets/images/footer/shape-3.svg" alt="shape" />
-      </div>
-      <div class="ud-footer-widgets">
-        <div class="container">
-          <div class="row">
-            <div class="col-xl-3 col-lg-4 col-md-6">
-              <div class="ud-widget">
-                <a href="index.html" class="ud-footer-logo">
-                  <img src="assets/images/logo/logo.svg" alt="logo" />
-                </a>
-                <p class="ud-widget-desc">
-                  We create digital experiences for brands and companies by
-                  using technology.
-                </p>
-                <ul class="ud-widget-socials">
-                  <li>
-                    <a href="#">
-                      <i class="lni lni-facebook-filled"></i>
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#">
-                      <i class="lni lni-twitter-filled"></i>
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#">
-                      <i class="lni lni-instagram-filled"></i>
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#">
-                      <i class="lni lni-linkedin-original"></i>
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div class="col-xl-2 col-lg-2 col-md-6 col-sm-6">
-              <div class="ud-widget">
-                <h5 class="ud-widget-title">About Us</h5>
-                <ul class="ud-widget-links">
-                  <li>
-                    <a href="javascript:void(0)">Home</a>
-                  </li>
-                  <li>
-                    <a href="javascript:void(0)">Features</a>
-                  </li>
-                  <li>
-                    <a href="javascript:void(0)">About</a>
-                  </li>
-                  <li>
-                    <a href="javascript:void(0)">Testimonial</a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div class="col-xl-2 col-lg-3 col-md-6 col-sm-6">
-              <div class="ud-widget">
-                <h5 class="ud-widget-title">Features</h5>
-                <ul class="ud-widget-links">
-                  <li>
-                    <a href="javascript:void(0)">How it works</a>
-                  </li>
-                  <li>
-                    <a href="javascript:void(0)">Privacy policy</a>
-                  </li>
-                  <li>
-                    <a href="javascript:void(0)">Terms of service</a>
-                  </li>
-                  <li>
-                    <a href="javascript:void(0)">Refund policy</a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div class="col-xl-2 col-lg-3 col-md-6 col-sm-6">
-              <div class="ud-widget">
-                <h5 class="ud-widget-title">Our Products</h5>
-                <ul class="ud-widget-links">
-                  <li>
-                    <a
-                      href="#"
-                      rel="nofollow noopner"
-                      target="_blank"
-                      >Lineicons
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      rel="nofollow noopner"
-                      target="_blank"
-                      >Ecommerce HTML</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      rel="nofollow noopner"
-                      target="_blank"
-                      >Ayro UI</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      rel="nofollow noopner"
-                      target="_blank"
-                      >Plain Admin</a
-                    >
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div class="col-xl-3 col-lg-6 col-md-8 col-sm-10">
-              <div class="ud-widget">
-                <h5 class="ud-widget-title">Partners</h5>
-                <ul class="ud-widget-brands">
-                  <li>
-                    <a
-                      href="#"
-                      rel="nofollow noopner"
-                      target="_blank"
-                    >
-                      <img
-                        src="assets/images/footer/brands/ayroui.svg"
-                        alt="ayroui"
-                      />
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      rel="nofollow noopner"
-                      target="_blank"
-                    >
-                      <img
-                        src="assets/images/footer/brands/ecommerce-html.svg"
-                        alt="ecommerce-html"
-                      />
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      rel="nofollow noopner"
-                      target="_blank"
-                    >
-                      <img
-                        src="assets/images/footer/brands/graygrids.svg"
-                        alt="graygrids"
-                      />
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      rel="nofollow noopner"
-                      target="_blank"
-                    >
-                      <img
-                        src="assets/images/footer/brands/lineicons.svg"
-                        alt="lineicons"
-                      />
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="https://uideck.com/"
-                      rel="nofollow noopner"
-                      target="_blank"
-                    >
-                      <img
-                        src="assets/images/footer/brands/uideck.svg"
-                        alt="uideck"
-                      />
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      rel="nofollow noopner"
-                      target="_blank"
-                    >
-                      <img
-                        src="assets/images/footer/brands/tailwindtemplates.svg"
-                        alt="tailwindtemplates"
-                      />
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="ud-footer-bottom">
-        <div class="container">
-          <div class="row">
-            <div class="col-md-8">
-              <ul class="ud-footer-bottom-left">
-                <li>
-                  <a href="javascript:void(0)">Privacy policy</a>
-                </li>
-                <li>
-                  <a href="javascript:void(0)">Support policy</a>
-                </li>
-                <li>
-                  <a href="javascript:void(0)">Terms of service</a>
-                </li>
-              </ul>
-            </div>
-            <div class="col-md-4">
-              <p class="ud-footer-bottom-right">
-                Designed and Developed by
-                <a href="https://uideck.com" rel="nofollow">Flowdesk</a>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </footer>
-    <!-- ====== Footer End ====== -->
-
-    <!-- ====== Back To Top Start ====== -->
-    <a href="javascript:void(0)" class="back-to-top">
-      <i class="lni lni-chevron-up"> </i>
+<header class="nav">
+  <div class="container nav-inner">
+    <a class="brand" href="#top" aria-label="Flowdesk home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h6"/></svg>
+      </span>
+      Flowdesk
     </a>
-    <!-- ====== Back To Top End ====== -->
+    <nav aria-label="Primary">
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#product">Product</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#results">Results</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#integrations">Integrations</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <div class="nav-cta">
+      <a class="nav-phone" href="tel:+15550317700">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        (555) 031-7700
+      </a>
+      <a class="btn btn-primary" href="#contact">Start free trial</a>
+      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navLinks" aria-label="Toggle navigation menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
 
-    <!-- ====== All Javascript Files ====== -->
-    <script src="assets/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/wow.min.js"></script>
-    <script src="assets/js/main.js"></script>
-    <script>
-      // ==== for menu scroll
-      const pageLink = document.querySelectorAll(".ud-menu-scroll");
+<main id="main">
 
-      pageLink.forEach((elem) => {
-        elem.addEventListener("click", (e) => {
-          e.preventDefault();
-          document.querySelector(elem.getAttribute("href")).scrollIntoView({
-            behavior: "smooth",
-            offsetTop: 1 - 60,
-          });
-        });
-      });
+  <!-- ================= HERO ================= -->
+  <section class="hero" id="top" aria-label="Introduction">
+    <div class="mesh" aria-hidden="true">
+      <div class="blob blob-a"></div>
+      <div class="blob blob-b"></div>
+      <div class="blob blob-c"></div>
+    </div>
+    <div class="container hero-grid">
+      <div>
+        <span class="eyebrow"><span class="dot"></span>Flowdesk 2.0 — now with outcome boards</span>
+        <h1>One inbox where your team's work actually gets finished</h1>
+        <p class="hero-sub">Flowdesk turns scattered requests, tickets and tasks into one calm, prioritised queue — with AI triage, SLA tracking and reporting your whole team can read. Live in a day, not a quarter.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#contact">Start free 14-day trial</a>
+          <a class="btn btn-ghost" href="#product">See the product</a>
+        </div>
+        <div class="trust" role="list" aria-label="Trust indicators">
+          <span class="trust-item" role="listitem">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            No card required
+          </span>
+          <span class="trust-item" role="listitem">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            Free up to 5 people
+          </span>
+          <span class="trust-item" role="listitem">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            4.8&#9733; from 1,900+ team reviews
+          </span>
+        </div>
+      </div>
 
-      // section menu active
-      function onScroll(event) {
-        const sections = document.querySelectorAll(".ud-menu-scroll");
-        const scrollPos =
-          window.pageYOffset ||
-          document.documentElement.scrollTop ||
-          document.body.scrollTop;
+      <div class="mockup-wrap" id="product" aria-label="Flowdesk product preview">
+        <div class="float-card float-sla" aria-hidden="true">
+          <span class="ring"><i>88%</i></span>
+          <div><strong style="font-family:'Sora',sans-serif;font-size:12px">SLA health</strong><br><span style="color:var(--muted)">All queues on target</span></div>
+        </div>
+        <div class="mockup" role="img" aria-label="Screenshot-style mockup of the Flowdesk shared inbox: a sidebar with queues, a list of tickets with status pills, and an AI-suggested reply ready to send">
+          <div class="mock-titlebar" aria-hidden="true">
+            <span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span>
+            <span class="mock-url">app.flowdesk.demo/inbox</span>
+          </div>
+          <div class="mock-body" aria-hidden="true">
+            <div class="mock-side">
+              <div class="mock-side-brand"><span></span>Flowdesk</div>
+              <div class="mock-nav-item active">Inbox <span class="mock-count">24</span></div>
+              <div class="mock-nav-item">Unassigned <span class="mock-count">6</span></div>
+              <div class="mock-nav-item">SLA risk <span class="mock-count warn">3</span></div>
+              <div class="mock-nav-item">Snoozed <span class="mock-count">11</span></div>
+              <div class="mock-side-label">Queues</div>
+              <div class="mock-nav-item">Billing</div>
+              <div class="mock-nav-item">Onboarding</div>
+              <div class="mock-nav-item">Product bugs</div>
+              <div class="mock-side-label">Views</div>
+              <div class="mock-nav-item">Outcome board</div>
+              <div class="mock-nav-item">Reports</div>
+            </div>
+            <div class="mock-main">
+              <div class="mock-toolbar">
+                <strong>Inbox</strong>
+                <span class="mock-chip">Priority-sorted by AI</span>
+                <span class="mock-search">Search tickets…</span>
+              </div>
+              <div class="ticket selected">
+                <span class="t-avatar t-a1">MR</span>
+                <span>
+                  <span class="t-subject">Invoice shows the old seat count after upgrade</span><br>
+                  <span class="t-snippet">Maya R. · We added 8 seats last week but the invoice still…</span>
+                </span>
+                <span class="t-meta"><span class="pill pill-urgent">Urgent</span><span class="t-time">4m</span></span>
+              </div>
+              <div class="ticket">
+                <span class="t-avatar t-a2">JT</span>
+                <span>
+                  <span class="t-subject">Can we import boards from Jira with history?</span><br>
+                  <span class="t-snippet">Jonah T. · Evaluating for a 40-person team, need the last…</span>
+                </span>
+                <span class="t-meta"><span class="pill pill-open">Open</span><span class="t-time">18m</span></span>
+              </div>
+              <div class="ticket">
+                <span class="t-avatar t-a3">AP</span>
+                <span>
+                  <span class="t-subject">SSO setup — SAML metadata question</span><br>
+                  <span class="t-snippet">Aria P. · Our IdP wants an audience URI, where do I find…</span>
+                </span>
+                <span class="t-meta"><span class="pill pill-waiting">Waiting</span><span class="t-time">1h</span></span>
+              </div>
+              <div class="ticket">
+                <span class="t-avatar t-a4">DK</span>
+                <span>
+                  <span class="t-subject">Feature request: recurring outcome check-ins</span><br>
+                  <span class="t-snippet">Dev K. · Our leadership review runs every second Thursday…</span>
+                </span>
+                <span class="t-meta"><span class="pill pill-replied">Replied</span><span class="t-time">3h</span></span>
+              </div>
+              <div class="mock-reply">
+                <div class="mock-reply-head">
+                  <span class="ai-chip">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>
+                    AI-suggested reply · 92% match
+                  </span>
+                  <span>Replying to Maya R.</span>
+                </div>
+                <p>Hi Maya — you're right, the upgrade applied mid-cycle so the new seats appear as a prorated line on your next invoice. I've attached a corrected statement showing all 20 seats…</p>
+                <div class="mock-reply-actions">
+                  <span class="mock-btn send">Send reply</span>
+                  <span class="mock-btn edit">Edit first</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="float-card float-csat" aria-hidden="true">
+          <span class="num">98%</span>
+          <div><strong style="font-family:'Sora',sans-serif;font-size:12px">CSAT this month</strong><br><span style="color:var(--muted)">312 responses</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-        for (let i = 0; i < sections.length; i++) {
-          const currLink = sections[i];
-          const val = currLink.getAttribute("href");
-          const refElement = document.querySelector(val);
-          const scrollTopMinus = scrollPos + 73;
-          if (
-            refElement.offsetTop <= scrollTopMinus &&
-            refElement.offsetTop + refElement.offsetHeight > scrollTopMinus
-          ) {
-            document
-              .querySelector(".ud-menu-scroll")
-              .classList.remove("active");
-            currLink.classList.add("active");
-          } else {
-            currLink.classList.remove("active");
+  <!-- ================= FEATURES BENTO ================= -->
+  <section id="features" aria-labelledby="features-h">
+    <div class="mesh" aria-hidden="true"><div class="blob blob-b" style="top:40%;left:-180px"></div></div>
+    <div class="container">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Everything in one place</span>
+        <h2 id="features-h">Built for teams who answer, plan and ship together</h2>
+        <p>Five capabilities, one workspace. No plug-in maze, no six-week configuration project — most teams are fully live in a day.</p>
+      </div>
+      <div class="bento">
+        <article class="bento-card b-lg reveal">
+          <span class="icon-tile" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>
+          </span>
+          <h3>AI triage that earns its keep</h3>
+          <p>Every incoming request is classified, prioritised and routed to the right queue before a human touches it. Suggested replies draw only on your own docs and past answers — reviewed by your team, never auto-sent without permission.</p>
+          <div class="bento-kpi">
+            <div><strong>92%</strong><span>routing accuracy</span></div>
+            <div><strong>6 sec</strong><span>median triage time</span></div>
+            <div><strong>0</strong><span>replies sent unreviewed</span></div>
+          </div>
+        </article>
+        <article class="bento-card b-sm reveal">
+          <span class="icon-tile green" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </span>
+          <h3>SLA tracking</h3>
+          <p>Live countdowns on every ticket, breach alerts before they happen, and business-hours calendars per queue.</p>
+        </article>
+        <article class="bento-card b-sm reveal">
+          <span class="icon-tile" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>
+          <h3>Shared inbox</h3>
+          <p>Email, chat and forms land in one queue. Collision detection means no more two people answering the same customer.</p>
+        </article>
+        <article class="bento-card b-sm reveal">
+          <span class="icon-tile" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          </span>
+          <h3>Integrations</h3>
+          <p>Two-way sync with the tools you already run — messaging, billing, docs and calendars — set up in minutes, not sprints.</p>
+        </article>
+        <article class="bento-card b-md reveal">
+          <span class="icon-tile green" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 3 5-8"/></svg>
+          </span>
+          <h3>Analytics anyone can read</h3>
+          <p>First-response time, resolution time, CSAT and outcome rollups — in plain language, without a dedicated admin. Export to your board deck in one click.</p>
+          <div class="mini-bars" aria-hidden="true">
+            <i style="height:38%"></i><i style="height:52%"></i><i style="height:46%"></i><i style="height:64%"></i><i style="height:58%"></i><i style="height:78%"></i><i style="height:72%"></i><i style="height:92%"></i>
+          </div>
+        </article>
+        <article class="bento-card b-md reveal">
+          <span class="icon-tile" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+          </span>
+          <h3>Outcome boards</h3>
+          <p>Roll day-to-day tickets and tasks up to the outcomes they serve. OKR templates included — so the weekly "what are we even building" meeting retires itself.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= METRICS ================= -->
+  <section class="metrics" id="results" aria-labelledby="results-h">
+    <div class="container">
+      <div class="metrics-band reveal">
+        <div class="sec-head">
+          <span class="eyebrow">Results, not vanity numbers</span>
+          <h2 id="results-h">What teams measure after switching</h2>
+          <p>Medians across customers in their first 90 days on Flowdesk, compared with their previous tool. Your onboarding report tracks the same four numbers.</p>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric"><strong>98%</strong><span>average CSAT across active workspaces</span></div>
+          <div class="metric"><strong>40%</strong><span>faster first replies within 90 days</span></div>
+          <div class="metric"><strong>3,200+</strong><span>teams running on Flowdesk since 2019</span></div>
+          <div class="metric"><strong>1 day</strong><span>median time from signup to fully live</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TESTIMONIALS ================= -->
+  <section id="testimonials" aria-labelledby="testimonials-h">
+    <div class="container">
+      <div class="sec-head center reveal">
+        <span class="eyebrow">From real switchers</span>
+        <h2 id="testimonials-h">Teams that moved, and stayed</h2>
+        <p>Three of the 1,900+ reviews from teams who migrated off heavier tools.</p>
+      </div>
+      <div class="quotes">
+        <article class="quote-card reveal">
+          <div class="stars" aria-label="5 out of 5 stars">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+          </div>
+          <blockquote>&ldquo;We migrated from Jira on a Tuesday. The team thanked me by Friday. Import kept our full history — 240 tasks, comments and all.&rdquo;</blockquote>
+          <div class="quote-who">
+            <span class="avatar" style="background:linear-gradient(135deg,#6366F1,#8B5CF6)" aria-hidden="true">PS</span>
+            <div><strong>Priya Shastri</strong><span>Head of Product, 40-person SaaS</span></div>
+          </div>
+        </article>
+        <article class="quote-card reveal">
+          <div class="stars" aria-label="5 out of 5 stars">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+          </div>
+          <blockquote>&ldquo;First tool where reporting did not need a dedicated admin. I pull the response-time chart straight into our Monday leadership deck.&rdquo;</blockquote>
+          <div class="quote-who">
+            <span class="avatar" style="background:linear-gradient(135deg,#0EA5E9,#6366F1)" aria-hidden="true">MO</span>
+            <div><strong>Marcus Okafor</strong><span>Engineering Lead, fintech platform</span></div>
+          </div>
+        </article>
+        <article class="quote-card reveal">
+          <div class="stars" aria-label="5 out of 5 stars">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+          </div>
+          <blockquote>&ldquo;The outcome boards ended our weekly what-are-we-even-building meeting. Tickets finally connect to the goals they serve.&rdquo;</blockquote>
+          <div class="quote-who">
+            <span class="avatar" style="background:linear-gradient(135deg,#059669,#0D9488)" aria-hidden="true">EL</span>
+            <div><strong>Elena Lindqvist</strong><span>COO, logistics marketplace</span></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PRICING ================= -->
+  <section id="pricing" aria-labelledby="pricing-h">
+    <div class="mesh" aria-hidden="true"><div class="blob blob-a" style="top:10%;right:-200px;left:auto"></div></div>
+    <div class="container">
+      <div class="sec-head center reveal">
+        <span class="eyebrow">Simple pricing</span>
+        <h2 id="pricing-h">Every feature on every plan. Pay for seats, nothing else.</h2>
+        <p>No paywalled reporting tiers, no surprise add-ons. Annual billing saves two months. Free up to 5 people, forever.</p>
+      </div>
+      <div class="plans">
+        <article class="plan reveal">
+          <h3>Starter</h3>
+          <p class="who">Small teams getting out of the group-email era.</p>
+          <p class="price">$9<small> /user /month</small></p>
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Shared inbox &amp; collision detection</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>AI triage &amp; suggested replies</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Core reports &amp; CSAT surveys</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Free up to 5 people</li>
+          </ul>
+          <a class="btn btn-ghost" href="#contact">Start free</a>
+        </article>
+        <article class="plan featured reveal">
+          <span class="plan-flag">Most popular</span>
+          <h3>Growth</h3>
+          <p class="who">Teams of 10–50 with SLAs to keep and goals to hit.</p>
+          <p class="price">$19<small> /user /month</small></p>
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Everything in Starter</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>SLA tracking with breach alerts</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Outcome boards &amp; OKR templates</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>All integrations, two-way sync</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>2-minute import from Jira</li>
+          </ul>
+          <a class="btn btn-indigo" href="#contact">Start 14-day trial</a>
+        </article>
+        <article class="plan reveal">
+          <h3>Scale</h3>
+          <p class="who">50+ seats, security reviews and custom rollouts.</p>
+          <p class="price">$35<small> /user /month</small></p>
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Everything in Growth</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>SAML SSO &amp; SCIM provisioning</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Audit log &amp; data residency options</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Dedicated onboarding specialist</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>99.9% uptime SLA</li>
+          </ul>
+          <a class="btn btn-ghost" href="#contact">Book a demo</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= INTEGRATIONS ================= -->
+  <section id="integrations" aria-labelledby="integrations-h" style="padding-top:0">
+    <div class="container">
+      <div class="sec-head center reveal">
+        <span class="eyebrow">Plays well with others</span>
+        <h2 id="integrations-h">Connects to the stack you already run</h2>
+        <p>Native two-way integrations, each one installable in under five minutes. 40+ more in the directory.</p>
+      </div>
+      <div class="logo-pills reveal" role="list" aria-label="Integration partners">
+        <span class="logo-pill" role="listitem"><span class="logo-dot" style="background:linear-gradient(135deg,#6366F1,#8B5CF6)" aria-hidden="true"></span>Slackline</span>
+        <span class="logo-pill" role="listitem"><span class="logo-dot" style="background:linear-gradient(135deg,#0EA5E9,#2563EB)" aria-hidden="true"></span>Mailrelay</span>
+        <span class="logo-pill" role="listitem"><span class="logo-dot" style="background:linear-gradient(135deg,#059669,#10B981)" aria-hidden="true"></span>Stripeform</span>
+        <span class="logo-pill" role="listitem"><span class="logo-dot" style="background:linear-gradient(135deg,#D97706,#F59E0B)" aria-hidden="true"></span>Notely</span>
+        <span class="logo-pill" role="listitem"><span class="logo-dot" style="background:linear-gradient(135deg,#DC2626,#F87171)" aria-hidden="true"></span>Zenlog</span>
+        <span class="logo-pill" role="listitem"><span class="logo-dot" style="background:linear-gradient(135deg,#7C3AED,#A78BFA)" aria-hidden="true"></span>Figloo</span>
+        <span class="logo-pill" role="listitem"><span class="logo-dot" style="background:linear-gradient(135deg,#0D9488,#2DD4BF)" aria-hidden="true"></span>Calendrix</span>
+        <span class="logo-pill" role="listitem"><span class="logo-dot" style="background:linear-gradient(135deg,#1E1B4B,#4338CA)" aria-hidden="true"></span>Gitport</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CONTACT ================= -->
+  <section id="contact" aria-labelledby="contact-h">
+    <div class="mesh" aria-hidden="true"><div class="blob blob-c" style="top:0;left:-160px"></div></div>
+    <div class="container">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Talk to us</span>
+        <h2 id="contact-h">Start a trial or book a 20-minute demo</h2>
+        <p>Tell us a little about your team and we'll reply within one business day — usually much faster.</p>
+      </div>
+      <div class="contact-grid">
+        <div class="card reveal">
+          <form>
+            <div class="form-row">
+              <div class="field">
+                <label for="f-name">Full name</label>
+                <input id="f-name" name="name" type="text" autocomplete="name" placeholder="Jordan Blake" required>
+              </div>
+              <div class="field">
+                <label for="f-company">Company</label>
+                <input id="f-company" name="company" type="text" autocomplete="organization" placeholder="Acme Labs">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label for="f-email">Work email</label>
+                <input id="f-email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required>
+              </div>
+              <div class="field">
+                <label for="f-phone">Phone</label>
+                <input id="f-phone" name="phone" type="tel" autocomplete="tel" placeholder="(555) 000-0000">
+              </div>
+            </div>
+            <div class="field">
+              <label for="f-msg">What are you working out?</label>
+              <textarea id="f-msg" name="message" placeholder="Team size, current tools, what's not working…" required></textarea>
+            </div>
+            <button class="btn btn-primary" type="submit" style="width:100%">Send message</button>
+          </form>
+        </div>
+        <div class="card contact-info reveal">
+          <div class="info-line">
+            <span class="icon-tile" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </span>
+            <div><strong>Phone</strong><a href="tel:+15550317700">(555) 031-7700</a></div>
+          </div>
+          <div class="info-line">
+            <span class="icon-tile" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+            </span>
+            <div><strong>Email</strong><a href="mailto:hello@flowdesk.demo">hello@flowdesk.demo</a></div>
+          </div>
+          <div class="info-line">
+            <span class="icon-tile" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            </span>
+            <div><strong>Office</strong><span>215 Market Street, San Francisco, CA 94105</span></div>
+          </div>
+          <div class="hours" aria-label="Support hours">
+            <div><span>Live support (Mon–Fri)</span><span>6 AM – 6 PM PT</span></div>
+            <div><span>Weekend on-call (Scale plan)</span><span>24/7</span></div>
+            <div><span>Median first reply</span><span>Under 2 hours</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container foot-inner">
+    <a class="brand" href="#top" aria-label="Flowdesk home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h6"/></svg>
+      </span>
+      Flowdesk
+    </a>
+    <ul class="foot-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#integrations">Integrations</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <p class="foot-note">A fictional demonstration site built by Catalyst Solutions — SaaS program specification.</p>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var toggle=document.getElementById('navToggle');
+    var links=document.getElementById('navLinks');
+    toggle.addEventListener('click',function(){
+      var open=links.classList.toggle('open');
+      toggle.setAttribute('aria-expanded',open?'true':'false');
+    });
+    links.addEventListener('click',function(e){
+      if(e.target.tagName==='A'){links.classList.remove('open');toggle.setAttribute('aria-expanded','false');}
+    });
+    if(window.matchMedia('(prefers-reduced-motion: no-preference)').matches && 'IntersectionObserver' in window){
+      var els=document.querySelectorAll('.reveal');
+      var io=new IntersectionObserver(function(entries){
+        entries.forEach(function(en){
+          if(en.isIntersecting){
+            var el=en.target;
+            var siblings=Array.prototype.filter.call(el.parentNode.children,function(c){return c.classList&&c.classList.contains('reveal');});
+            var idx=siblings.indexOf(el);
+            el.style.transitionDelay=(Math.max(idx,0)*70)+'ms';
+            el.classList.add('in');
+            io.unobserve(el);
           }
-        }
-      }
+        });
+      },{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+      els.forEach(function(el){io.observe(el);});
+    }else{
+      document.querySelectorAll('.reveal').forEach(function(el){el.classList.add('in');});
+    }
+  })();
+</script>
 
-      window.document.addEventListener("scroll", onScroll);
-    </script>
-  <link rel="stylesheet" href="../_vendor/tier-layer.css"><script>window.__TIER_LAYER={"brand":"Flowdesk","accent":"#7C3AED","tiers":[{"label":"Tier 1 — Launch-Ready Presence","short":"T1","widgets":[]},{"label":"Tier 2 — Demand & Conversion Engine","short":"T2","widgets":["enquiry","whatsapp","reviews"]},{"label":"Tier 3 — Full-Funnel Growth System","short":"T3","widgets":["chat","dashboard","locations"]}],"hello":"Flowdesk 2.0 is out — outcome boards and a 2-minute import from Jira.","locations":["flowdesk.demo","app.flowdesk.demo"],"dashHref":"/bundles/saas-growth-engine#demos","bookLabel":"Book a demo","bookCta":"Pick a 20-min slot","chatIntro":"Hey! Flowdesk assistant here. Plans, technical questions, or a trial — what are you working out?","chatLabel":"Ask about Flowdesk","chat":[{"q":"How is this different from Jira?","a":"Built for teams that plan in outcomes, not tickets. No sprint ceremony, no six-week config project — most teams are live in a day."},{"q":"What does it cost?","a":"Free up to 5 people, then $9/user/month with everything included. No paywalled reporting tiers. Annual saves two months."},{"q":"Start a trial","a":"14 days, no card. Or book a 20-minute demo and we'll set it up around your actual workflow — your call."}],"wa":[{"f":"e","t":"🔔 Trial signup: 12-person product team — day 3 of 14"},{"f":"b","t":"Hey! Saw your team imported 240 tasks from Jira — nice. Anything blocking you from inviting the rest of the team?"},{"f":"u","t":"Honestly — we can't tell if the reporting covers OKR rollups"},{"f":"b","t":"It does — outcome boards roll up to objectives natively. I just enabled the OKR template on your workspace. Want a 15-min walkthrough tomorrow?"},{"f":"u","t":"That would help, 10am PT"},{"f":"b","t":"Booked ✅ 10 AM PT with a product specialist. Meanwhile the template is live on your sidebar."},{"f":"e","t":"✅ PQL score 84 — routed to sales-assist, expansion flag set"}],"reviews":[{"n":"Head of Product, 40-person SaaS","t":"Migrated from Jira on a Tuesday. The team thanked me by Friday."},{"n":"Engineering lead","t":"First tool where reporting did not need a dedicated admin."},{"n":"COO","t":"The outcome boards ended our weekly what-are-we-even-building meeting."}]}</script><script src="../_vendor/tier-layer.js" defer></script></body>
+<link rel="stylesheet" href="../_vendor/tier-layer.css">
+<script>window.__TIER_LAYER={"brand":"Flowdesk","accent":"#7C3AED","tiers":[{"label":"Tier 1 — Launch-Ready Presence","short":"T1","widgets":[]},{"label":"Tier 2 — Demand & Conversion Engine","short":"T2","widgets":["enquiry","whatsapp","reviews"]},{"label":"Tier 3 — Full-Funnel Growth System","short":"T3","widgets":["chat","dashboard","locations"]}],"hello":"Flowdesk 2.0 is out — outcome boards and a 2-minute import from Jira.","locations":["flowdesk.demo","app.flowdesk.demo"],"dashHref":"/bundles/saas-growth-engine#demos","bookLabel":"Book a demo","bookCta":"Pick a 20-min slot","chatIntro":"Hey! Flowdesk assistant here. Plans, technical questions, or a trial — what are you working out?","chatLabel":"Ask about Flowdesk","chat":[{"q":"How is this different from Jira?","a":"Built for teams that plan in outcomes, not tickets. No sprint ceremony, no six-week config project — most teams are live in a day."},{"q":"What does it cost?","a":"Free up to 5 people, then $9/user/month with everything included. No paywalled reporting tiers. Annual saves two months."},{"q":"Start a trial","a":"14 days, no card. Or book a 20-minute demo and we'll set it up around your actual workflow — your call."}],"wa":[{"f":"e","t":"🔔 Trial signup: 12-person product team — day 3 of 14"},{"f":"b","t":"Hey! Saw your team imported 240 tasks from Jira — nice. Anything blocking you from inviting the rest of the team?"},{"f":"u","t":"Honestly — we can't tell if the reporting covers OKR rollups"},{"f":"b","t":"It does — outcome boards roll up to objectives natively. I just enabled the OKR template on your workspace. Want a 15-min walkthrough tomorrow?"},{"f":"u","t":"That would help, 10am PT"},{"f":"b","t":"Booked ✅ 10 AM PT with a product specialist. Meanwhile the template is live on your sidebar."},{"f":"e","t":"✅ PQL score 84 — routed to sales-assist, expansion flag set"}],"reviews":[{"n":"Head of Product, 40-person SaaS","t":"Migrated from Jira on a Tuesday. The team thanked me by Friday."},{"n":"Engineering lead","t":"First tool where reporting did not need a dedicated admin."},{"n":"COO","t":"The outcome boards ended our weekly what-are-we-even-building meeting."}]}</script><script src="../_vendor/tier-layer.js" defer></script>
+</body>
 </html>
