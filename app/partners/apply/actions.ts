@@ -76,6 +76,17 @@ export async function submitApplication(token: string, honeypot: string): Promis
   const app = await db.partnerApplication.findUnique({ where: { statusToken: token } });
   if (!app || app.deletedAt) throw new Error("Application not found.");
   if (app.submittedAt) return { token };
+
+  // Enforced here as well as in the form: the browser check is a convenience,
+  // this is the one that actually holds.
+  const missing = ([
+    ["fullName", "your name"],
+    ["email", "your email"],
+    ["phone", "a phone number"],
+    ["country", "your country"],
+    ["city", "your city"],
+  ] as const).filter(([field]) => !String(app[field] ?? "").trim());
+  if (missing.length) throw new Error(`Please complete ${missing.map(([, label]) => label).join(", ")}.`);
   // Bots fill hidden fields; humans never see this one. Accept silently so the
   // bot cannot tell it was caught, but keep the row unsubmitted.
   if (honeypot.trim()) return { token };

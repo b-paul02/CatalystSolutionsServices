@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   FAMILIES, MARKETS, QUOTE_THRESHOLD_TIERS, REASON_CODES, REASON_CODE_LABELS, REQUESTABLE_FIELDS,
 } from "@/lib/partner/application-fields";
+import CopyableMessage, { type OutboundMessageView } from "@/components/CopyableMessage";
 import { approveApplication, rejectApplication, requestInfo, setApplicationStatus } from "../actions";
 
 type Mode = null | "approve" | "reject" | "info";
@@ -23,6 +24,8 @@ export default function DecisionPanel({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  // The email the admin now has to send by hand.
+  const [outbound, setOutbound] = useState<{ title: string; message: OutboundMessageView } | null>(null);
 
   // Approve terms. The rate is entered as a percentage and stored as basis
   // points — there is no default rate baked into the code path.
@@ -44,10 +47,23 @@ export default function DecisionPanel({
   const rateValid = Number.isFinite(rateBp) && rateBp >= 0 && rateBp <= 5000;
   const needsSecond = rateBp > 3000;
 
-  async function run(fn: () => Promise<unknown>, done?: string) {
+  async function run(fn: () => Promise<unknown>, done?: string, emailTitle?: string) {
     setBusy(true); setError(null); setNotice(null);
     try {
-      await fn();
+      const result = (await fn()) as { message?: OutboundMessageView } | OutboundMessageView | undefined;
+      const message = result && "subject" in (result as OutboundMessageView)
+        ? (result as OutboundMessageView)
+        : (result as { message?: OutboundMessageView } | undefined)?.message;
+      if (message && emailTitle) {
+        // Hold the refresh: refreshing here would re-render this page into its
+        // decided state and unmount the panel — taking the one-time password
+        // with it. The refresh happens when the admin dismisses the message.
+        setOutbound({ title: emailTitle, message });
+        if (done) setNotice(done);
+        setMode(null);
+        setBusy(false);
+        return;
+      }
       if (done) setNotice(done);
       setMode(null);
       router.refresh();
@@ -65,6 +81,16 @@ export default function DecisionPanel({
       <h2 className="mb-3.5 text-[15px] font-bold text-white">Decision</h2>
 
       {error && <p role="alert" className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-[13px] text-red-300">{error}</p>}
+
+      {outbound && (
+        <div className="mb-4">
+          <CopyableMessage
+            title={outbound.title}
+            message={outbound.message}
+            onDone={() => { setOutbound(null); router.refresh(); }}
+          />
+        </div>
+      )}
       {notice && <p className="mb-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-[13px] text-emerald-300">{notice}</p>}
 
       {mode === null && (
@@ -127,7 +153,7 @@ export default function DecisionPanel({
             onConfirm={() => run(() => approveApplication(applicationId, {
               rateBp, rateReason, markets, families,
               protectionDays: Number(protectionDays), quoteThresholdTier: tier, legalName,
-            }), "Partner created and welcome email sent.")} />
+            }), "Partner created.", "Welcome email — send this to the new partner")} />
         </div>
       )}
 
@@ -143,10 +169,11 @@ export default function DecisionPanel({
             <textarea className="field resize-y" rows={3} value={internalNote} onChange={(e) => setInternalNote(e.target.value)} />
           </Field>
           <p className="text-[12px] leading-[1.5] text-[var(--color-faint)]">
-            The applicant gets a short, gracious email. It contains no reason code and no note. The record is retained.
+            You will get a short, gracious email to send. It contains no reason code and no note. The record is retained.
           </p>
           <Actions busy={busy} onCancel={() => setMode(null)} label="Reject application" disabled={!reasonCode}
-            onConfirm={() => run(() => rejectApplication(applicationId, reasonCode as never, internalNote), "Application rejected.")} />
+            onConfirm={() => run(() => rejectApplication(applicationId, reasonCode as never, internalNote),
+              "Application rejected.", "Rejection email — send this to the applicant")} />
         </div>
       )}
 
@@ -161,7 +188,8 @@ export default function DecisionPanel({
           </Field>
           <Actions busy={busy} onCancel={() => setMode(null)} label="Send request"
             disabled={fields.length === 0 || message.trim().length < 5}
-            onConfirm={() => run(() => requestInfo(applicationId, fields, message), "Information request sent.")} />
+            onConfirm={() => run(() => requestInfo(applicationId, fields, message),
+              "Information requested.", "Information request — send this to the applicant")} />
         </div>
       )}
     </div>

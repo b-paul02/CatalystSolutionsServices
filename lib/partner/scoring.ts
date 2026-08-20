@@ -15,7 +15,6 @@ export type ScoreInput = {
   hoursPerWeek?: number | null;
   expectedDealsBand?: string | null;
   linkedinUrl?: string | null;
-  companyWebsite?: string | null;
 };
 
 export type ScoreBreakdown = {
@@ -73,7 +72,8 @@ export function scoreApplication(a: ScoreInput): { total: number; breakdown: Sco
     market_fit: clamp((a.markets?.length ?? 0) * 4, 7) + clamp((a.targetFamilies?.length ?? 0) * 2.5, 8),
     // time committed vs deals promised — promising a lot on very few hours scores low
     commitment_realism: commitmentRealism(a.hoursPerWeek ?? 0, a.expectedDealsBand),
-    references: (a.linkedinUrl?.trim() ? 3 : 0) + (a.companyWebsite?.trim() ? 2 : 0),
+    // Partners are individuals: LinkedIn is the whole of this signal.
+    references: a.linkedinUrl?.trim() ? 5 : 0,
   };
   for (const k of Object.keys(breakdown) as (keyof ScoreBreakdown)[]) {
     breakdown[k] = clamp(Math.round(breakdown[k]), SCORE_MAX[k]);

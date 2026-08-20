@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/audit/db";
 import { requireAdmin, generatePassword, hashPassword } from "@/lib/partner/auth";
 import { writeAudit } from "@/lib/partner/audit";
-import { sendApplicationRejected, sendPartnerWelcome, sendInfoRequest } from "@/lib/partner/email";
+import {
+  applicationRejectedMessage, infoRequestMessage, partnerWelcomeMessage, type OutboundMessage,
+} from "@/lib/partner/email";
 import { REASON_CODES, type ReasonCode } from "@/lib/partner/application-fields";
 import { setRate } from "@/lib/partner/rates";
 
@@ -47,7 +49,9 @@ export async function addInternalNote(applicationId: string, note: string) {
  * Request more information. The applicant gets a link that can edit ONLY the
  * fields named here — nothing else on the application is writable.
  */
-export async function requestInfo(applicationId: string, fields: string[], message: string) {
+export async function requestInfo(
+  applicationId: string, fields: string[], message: string,
+): Promise<OutboundMessage> {
   const actor = await requireAdmin();
   if (fields.length === 0) throw new Error("Name at least one field to request.");
   const app = await db.partnerApplication.findUnique({ where: { id: applicationId } });
@@ -60,9 +64,9 @@ export async function requestInfo(applicationId: string, fields: string[], messa
   await writeAudit({ actor, entity: "partner_application", entityId: applicationId, action: "info_requested",
     before: { status: app.status }, after: { status: "waiting_on_applicant", fields }, reason: message });
 
-  await sendInfoRequest(app.email, app.fullName, app.statusToken, message).catch((e) =>
-    console.error("[info request email failed]", e));
   revalidatePath("/admin/partners/applications");
+  // Handed back for the admin to send themselves.
+  return infoRequestMessage({ to: app.email, name: app.fullName, token: app.statusToken, message });
 }
 
 /**
@@ -140,18 +144,25 @@ export async function approveApplication(applicationId: string, terms: {
     after: { legalName: partner.legalName, markets: terms.markets, protectionDays: terms.protectionDays },
   });
 
-  await sendPartnerWelcome(email, app.fullName, password).catch((e) =>
-    console.error("[welcome email failed]", e));
-
   revalidatePath("/admin/partners/applications");
-  return { partnerId: partner.id, needsSecondAdmin };
+  // The password is shown to the admin ONCE, here. Only its hash is stored, so
+  // it cannot be recovered later — use "Reset password" on the partner record.
+  return {
+    partnerId: partner.id,
+    needsSecondAdmin,
+    message: partnerWelcomeMessage({
+      to: email, name: app.fullName, password, rateBp: terms.rateBp, markets: terms.markets,
+    }),
+  };
 }
 
 /**
  * Reject: reason code is internal only. The applicant's email is short and
  * gracious and never carries the code. The record is retained.
  */
-export async function rejectApplication(applicationId: string, reasonCode: ReasonCode, internalNote?: string) {
+export async function rejectApplication(
+  applicationId: string, reasonCode: ReasonCode, internalNote?: string,
+): Promise<OutboundMessage> {
   const actor = await requireAdmin();
   if (!REASON_CODES.includes(reasonCode)) throw new Error("Choose a rejection reason.");
   const app = await db.partnerApplication.findUnique({ where: { id: applicationId } });
@@ -174,9 +185,8 @@ export async function rejectApplication(applicationId: string, reasonCode: Reaso
     before: { status: app.status }, after: { status: "rejected", reasonCode }, reason: internalNote,
   });
 
-  await sendApplicationRejected(app.email, app.fullName).catch((e) =>
-    console.error("[rejection email failed]", e));
   revalidatePath("/admin/partners/applications");
+  return applicationRejectedMessage({ to: app.email, name: app.fullName });
 }
 
 /** Bulk actions. Deliberately excludes approve and reject — decisions are one at a time. */

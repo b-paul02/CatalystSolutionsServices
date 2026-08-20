@@ -16,7 +16,6 @@ const strong: ScoreInput = {
   hoursPerWeek: 25,
   expectedDealsBand: EXPECTED_DEALS_BANDS[3],
   linkedinUrl: "linkedin.com/in/x",
-  companyWebsite: "example.com",
 };
 
 describe("scoreApplication", () => {
@@ -58,10 +57,10 @@ describe("scoreApplication", () => {
     expect(scoreApplication(strong)).toEqual(scoreApplication(strong));
   });
 
-  it("rewards references only when actually given", () => {
-    expect(scoreApplication({ linkedinUrl: "x" }).breakdown.references).toBe(3);
-    expect(scoreApplication({ companyWebsite: "x" }).breakdown.references).toBe(2);
-    expect(scoreApplication({ linkedinUrl: "  ", companyWebsite: "" }).breakdown.references).toBe(0);
+  it("rewards a LinkedIn profile, the only reference signal we collect", () => {
+    expect(scoreApplication({ linkedinUrl: "x" }).breakdown.references).toBe(5);
+    expect(scoreApplication({ linkedinUrl: "  " }).breakdown.references).toBe(0);
+    expect(scoreApplication({}).breakdown.references).toBe(0);
   });
 
   it("penalises ambition that the committed hours cannot support", () => {

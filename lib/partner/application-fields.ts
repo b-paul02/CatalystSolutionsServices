@@ -41,12 +41,9 @@ export const INDUSTRIES = [...new Set(programs.map((p) => p.industry))];
 export const REQUESTABLE_FIELDS: { key: string; label: string; kind: "text" | "long" | "number" }[] = [
   { key: "phone", label: "Phone", kind: "text" },
   { key: "linkedinUrl", label: "LinkedIn profile", kind: "text" },
-  { key: "companyName", label: "Company name", kind: "text" },
-  { key: "companyWebsite", label: "Company website", kind: "text" },
   { key: "country", label: "Country", kind: "text" },
   { key: "city", label: "City", kind: "text" },
   { key: "yearsExperience", label: "Years selling services", kind: "number" },
-  { key: "teamSize", label: "Team size", kind: "number" },
   { key: "hoursPerWeek", label: "Hours a week", kind: "number" },
   { key: "dealExamples", label: "Deals you closed", kind: "long" },
   { key: "whyCatalyst", label: "Why Catalyst", kind: "long" },

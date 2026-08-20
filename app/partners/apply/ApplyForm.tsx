@@ -4,18 +4,28 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
 import {
-  DEAL_SIZE_BANDS, ENTITY_TYPES, EXPECTED_DEALS_BANDS, FAMILIES, INDUSTRIES,
+  DEAL_SIZE_BANDS, EXPECTED_DEALS_BANDS, FAMILIES, INDUSTRIES,
   LEAD_SOURCES, MARKETS, PROSPECT_BANDS,
 } from "@/lib/partner/application-fields";
 import { saveStep, submitApplication, type DraftFields } from "./actions";
 
-const STEPS = ["About you", "Your business", "Track record", "Pipeline", "Fit & commitment"];
+// Partners are individuals, not companies — there is no business step.
+const STEPS = ["About you", "Track record", "Pipeline", "Fit & commitment"];
 
-export default function ApplyForm() {
+export default function ApplyForm({
+  initialToken = null, initialValues, initialStep = 0,
+}: {
+  /** Set when the applicant started in the hero form — resumes that draft. */
+  initialToken?: string | null;
+  initialValues?: DraftFields;
+  initialStep?: number;
+} = {}) {
   const router = useRouter();
-  const [step, setStep] = useState(0);
-  const [token, setToken] = useState<string | null>(null);
-  const [f, setF] = useState<DraftFields>({ industries: [], leadSources: [], markets: [], targetFamilies: [] });
+  const [step, setStep] = useState(initialStep);
+  const [token, setToken] = useState<string | null>(initialToken);
+  const [f, setF] = useState<DraftFields>({
+    industries: [], leadSources: [], markets: [], targetFamilies: [], ...initialValues,
+  });
   const [honeypot, setHoneypot] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,8 +41,11 @@ export default function ApplyForm() {
     if (step === 0) {
       if (!f.fullName?.trim()) return "Please tell us your name.";
       if (!f.email?.includes("@")) return "Please give a valid email address.";
+      if (!f.phone?.trim()) return "Please give a phone number we can reach you on.";
+      if (!f.country?.trim()) return "Please tell us which country you sell in.";
+      if (!f.city?.trim()) return "Please tell us which city you are based in.";
     }
-    if (step === 4 && (f.markets?.length ?? 0) === 0) return "Please choose at least one market.";
+    if (step === 3 && (f.markets?.length ?? 0) === 0) return "Please choose at least one market.";
     return null;
   }
 
@@ -72,34 +85,14 @@ export default function ApplyForm() {
         <Grid>
           <Field label="Full name" required><input className="field" value={f.fullName ?? ""} onChange={(e) => set("fullName", e.target.value)} autoComplete="name" /></Field>
           <Field label="Email" required><input className="field" type="email" value={f.email ?? ""} onChange={(e) => set("email", e.target.value)} autoComplete="email" /></Field>
-          <Field label="Phone"><input className="field" value={f.phone ?? ""} onChange={(e) => set("phone", e.target.value)} autoComplete="tel" /></Field>
+          <Field label="Phone" required><input className="field" value={f.phone ?? ""} onChange={(e) => set("phone", e.target.value)} autoComplete="tel" /></Field>
           <Field label="LinkedIn profile"><input className="field" value={f.linkedinUrl ?? ""} onChange={(e) => set("linkedinUrl", e.target.value)} placeholder="linkedin.com/in/…" /></Field>
-          <Field label="Country"><input className="field" value={f.country ?? ""} onChange={(e) => set("country", e.target.value)} autoComplete="country-name" /></Field>
-          <Field label="City"><input className="field" value={f.city ?? ""} onChange={(e) => set("city", e.target.value)} /></Field>
+          <Field label="Country" required><input className="field" value={f.country ?? ""} onChange={(e) => set("country", e.target.value)} autoComplete="country-name" /></Field>
+          <Field label="City" required><input className="field" value={f.city ?? ""} onChange={(e) => set("city", e.target.value)} /></Field>
         </Grid>
       )}
 
       {step === 1 && (
-        <Grid>
-          <Field label="Company name"><input className="field" value={f.companyName ?? ""} onChange={(e) => set("companyName", e.target.value)} /></Field>
-          <Field label="Company website"><input className="field" value={f.companyWebsite ?? ""} onChange={(e) => set("companyWebsite", e.target.value)} placeholder="yoursite.com" /></Field>
-          <Field label="How you operate">
-            <select className="field" value={f.entityType ?? ""} onChange={(e) => set("entityType", e.target.value)}>
-              <option value="" className="bg-[#13101f]">Select…</option>
-              {ENTITY_TYPES.map((o) => <option key={o} className="bg-[#13101f]">{o}</option>)}
-            </select>
-          </Field>
-          <Field label="Team size"><input className="field" type="number" min={0} value={f.teamSize ?? ""} onChange={(e) => set("teamSize", e.target.value === "" ? null : Number(e.target.value))} /></Field>
-          <Field label="Delivery" full>
-            <label className="flex items-center gap-2.5 text-[14px] text-[var(--color-muted)]">
-              <input type="checkbox" checked={f.hasOwnDelivery ?? false} onChange={(e) => set("hasOwnDelivery", e.target.checked)} />
-              I have my own delivery team as well as sales
-            </label>
-          </Field>
-        </Grid>
-      )}
-
-      {step === 2 && (
         <Grid>
           <Field label="Years selling services"><input className="field" type="number" min={0} value={f.yearsExperience ?? ""} onChange={(e) => set("yearsExperience", e.target.value === "" ? null : Number(e.target.value))} /></Field>
           <Field label="Typical deal size you close">
@@ -117,7 +110,7 @@ export default function ApplyForm() {
         </Grid>
       )}
 
-      {step === 3 && (
+      {step === 2 && (
         <Grid>
           <Field label="Prospects you could approach in the next 90 days">
             <select className="field" value={f.prospects90dBand ?? ""} onChange={(e) => set("prospects90dBand", e.target.value)}>
@@ -137,7 +130,7 @@ export default function ApplyForm() {
         </Grid>
       )}
 
-      {step === 4 && (
+      {step === 3 && (
         <Grid>
           <Field label="Markets you can sell in" full required>
             <Chips options={MARKETS.map((m) => m.label)} selected={(f.markets ?? []).map((v) => MARKETS.find((m) => m.value === v)?.label ?? v)}
