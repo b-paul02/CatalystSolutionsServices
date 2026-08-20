@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { currentActor } from "@/lib/partner/auth";
 import LogoutButton from "./LogoutButton";
 
@@ -7,9 +6,12 @@ export const metadata = { robots: { index: false } };
 
 export default async function PartnerLayout({ children }: { children: React.ReactNode }) {
   const actor = await currentActor();
-  // Shell-level gate for navigation only — every mutation re-checks server-side.
-  if (!actor) return <>{children}</>; // login page — no chrome
-  if (actor.role !== "partner" || !actor.partnerId) redirect("/partner/login");
+  // Chrome only, never a gate. This layout wraps /partner/login, so redirecting
+  // from here would send that page to itself — which is exactly what happened
+  // to anyone signed in as an admin in the same browser. Each page guards
+  // itself (see partnerPage), and every mutation re-checks server-side.
+  const isPartner = actor?.role === "partner" && Boolean(actor.partnerId);
+  if (!isPartner) return <>{children}</>;
 
   return (
     <>
