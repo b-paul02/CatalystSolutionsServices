@@ -3,9 +3,7 @@ import Link from "next/link";
 import Icon from "@/components/Icon";
 import Market from "@/components/Market";
 import HeroApplyForm from "./HeroApplyForm";
-import {
-  DEALS_PER_MONTH_HIGH, DEALS_PER_MONTH_LOW, earningsEstimate, inrShort, usdShort,
-} from "@/lib/partner/earnings-estimate";
+import { HEADLINE, earningsEstimate, inrShort, usdShort } from "@/lib/partner/earnings-estimate";
 
 export const metadata: Metadata = {
   title: "Become a Sales Partner",
@@ -51,12 +49,9 @@ export default async function PartnersPage() {
             <span className="badge mb-6"><span className="badge-dot" />Partner network</span>
 
             <h1 className="mb-5 text-[clamp(2.1rem,5.2vw,50px)] font-extrabold leading-[1.07] tracking-[-0.03em] text-white">
-              Earn{" "}
+              Earn up to{" "}
               <span className="bg-gradient-to-r from-[#A855F7] to-[#7C3AED] bg-clip-text text-transparent">
-                <Market
-                  in={`${inrShort(est.IN.yearLow)}–${inrShort(est.IN.yearHigh)}`}
-                  us={`${usdShort(est.US.yearLow)}–${usdShort(est.US.yearHigh)}`}
-                />
+                <Market in={HEADLINE.IN.label} us={HEADLINE.US.label} />
               </span>{" "}
               a year making introductions.
             </h1>
@@ -67,22 +62,25 @@ export default async function PartnersPage() {
               every deal you close.
             </p>
 
-            {/* The maths, in the open. An earnings claim nobody can check is worthless. */}
+            {/* The basis stays visible — the number is traceable to the price book — but
+                it is written as what a partner stands to make, not as a hedge. */}
             <div className="mb-7 max-w-[560px] rounded-xl border border-[var(--color-line)] bg-white/[0.03] px-4 py-3.5">
               <p className="text-[13.5px] leading-[1.65] text-[var(--color-muted)]">
-                That is <strong className="text-white">
+                <Market in={HEADLINE.IN.basis} us={HEADLINE.US.basis} /> earns you{" "}
+                <strong className="text-white">
+                  <Market
+                    in={`${inrShort(est.IN.topPerDeal)} a deal`}
+                    us={`${usdShort(est.US.tier3PerDeal)} a deal`}
+                  />
+                </strong>
+                . Even a mid-tier engagement pays{" "}
+                <strong className="text-white">
                   <Market in={inrShort(est.IN.perDeal)} us={usdShort(est.US.perDeal)} />
                 </strong>{" "}
-                commission on a typical mid-tier engagement (
-                <Market in={inrShort(est.IN.medianFee)} us={usdShort(est.US.medianFee)} /> onboarding), closing{" "}
-                {DEALS_PER_MONTH_LOW}–{DEALS_PER_MONTH_HIGH} deals a month. Larger packages pay up to{" "}
-                <strong className="text-white">
-                  <Market in={inrShort(est.IN.topPerDeal)} us={usdShort(est.US.topPerDeal)} />
-                </strong>{" "}
-                on a single deal.
+                — and nothing caps how many you bring.
               </p>
-              <p className="mt-2 text-[12px] leading-[1.5] text-[var(--color-faint)]">
-                An illustration from our published price book, not a guarantee — what you earn depends on what you close.
+              <p className="mt-2 text-[11.5px] leading-[1.5] text-[var(--color-faint)]">
+                Figures from our published price book at 30%. What you earn is down to what you close.
               </p>
             </div>
 
