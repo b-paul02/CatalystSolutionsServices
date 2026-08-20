@@ -3,7 +3,6 @@
 import { headers } from "next/headers";
 import { db } from "@/lib/audit/db";
 import { writeAudit } from "@/lib/partner/audit";
-import { sendApplicationReceived } from "@/lib/partner/email";
 import { rateLimit } from "@/lib/partner/ratelimit";
 import { scoreApplication } from "@/lib/partner/scoring";
 
@@ -138,8 +137,8 @@ export async function submitApplication(token: string, honeypot: string): Promis
     after: { status: updated.status, score: total }, reason: "Applicant submitted the form", ip,
   });
 
-  await sendApplicationReceived(app.email, app.fullName, app.statusToken).catch((e) =>
-    console.error("[partner application email failed]", e));
+  // No email is sent. The applicant lands on their status page, which is the
+  // link itself, and the admin sends an acknowledgement by hand.
 
   return { token: app.statusToken };
 }

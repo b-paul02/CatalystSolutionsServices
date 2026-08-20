@@ -3,6 +3,7 @@ import Link from "next/link";
 import Icon from "@/components/Icon";
 import { db } from "@/lib/audit/db";
 import { APPLICANT_STATUS_COPY } from "@/lib/partner/application-fields";
+import SaveThisLink from "./SaveThisLink";
 
 export const metadata: Metadata = { title: "Application status", robots: { index: false } };
 
@@ -50,6 +51,8 @@ export default async function StatusPage({ params }: { params: Promise<{ token: 
         Applied {app.submittedAt.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
         {app.fullName ? ` · ${app.fullName}` : ""}
       </p>
+
+      {app.status !== "rejected" && <SaveThisLink token={token} />}
     </Shell>
   );
 }

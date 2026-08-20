@@ -4,7 +4,9 @@ import { db } from "@/lib/audit/db";
 import { staffPage } from "@/lib/partner/page-guards";
 import { BAND_LABEL, SCORE_MAX, bandOf, type ScoreBreakdown } from "@/lib/partner/scoring";
 import { FAMILIES, REASON_CODE_LABELS } from "@/lib/partner/application-fields";
+import { applicationReceivedMessage } from "@/lib/partner/email";
 import DecisionPanel from "./DecisionPanel";
+import OutboundMessageCard from "./OutboundMessageCard";
 import StatusPill from "../StatusPill";
 
 export const metadata = { title: "Application", robots: { index: false } };
@@ -131,6 +133,16 @@ export default async function ApplicationDetail({ params }: { params: Promise<{ 
               The score sorts the queue. It never decides anything — approve and reject are always a person's call.
             </p>
           </Card>
+
+          {app.submittedAt && (
+            <OutboundMessageCard
+              label="Acknowledge receipt"
+              title="Acknowledgement — send this to the applicant"
+              message={applicationReceivedMessage({
+                to: app.email, name: app.fullName, token: app.statusToken,
+              })}
+            />
+          )}
 
           {decided ? (
             <Card title="Decision">

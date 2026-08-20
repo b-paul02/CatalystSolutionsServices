@@ -1,10 +1,8 @@
-// Partner emails are written here but NOT sent. The admin copies the text and
+// Partner emails are written here but NEVER sent. The admin copies the text and
 // sends it from their own mailbox, so partner onboarding stays a human contact
-// rather than an automated one.
-//
-// The one exception is the application-received confirmation: it fires at
-// submit time when no admin is present, and it carries the applicant's status
-// link. It has no credentials in it.
+// rather than an automated one. Nothing in this module talks to an email
+// provider — the applicant's status link is shown on screen at submit time so
+// it is never dependent on an email arriving.
 
 export const SITE = process.env.SITE_URL ?? "http://localhost:3000";
 
@@ -99,33 +97,23 @@ export function messageAsText(m: OutboundMessage): string {
   return `To: ${m.to}\nSubject: ${m.subject}\n\n${m.body}`;
 }
 
-// ── the one automatic email ──────────────────────────────────────────────────
-// Sent at submit time, when there is no admin in the loop to send it by hand.
+export function applicationReceivedMessage(opts: {
+  to: string; name: string; token: string;
+}): OutboundMessage {
+  return {
+    to: opts.to,
+    subject: "We have your partner application",
+    body: `Hi ${opts.name},
 
-const FROM = process.env.EMAIL_FROM ?? "Catalyst Solutions Services <reports@catalystsolutionservices.com>";
+Thanks for applying to become a Catalyst sales partner. Your application is in, and our partnerships team reviews every one by hand — usually within five working days.
 
-export async function sendApplicationReceived(to: string, name: string, token: string) {
-  const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#1a1a1a;max-width:560px;margin:0 auto;padding:24px">
-    <p>Hi ${escapeHtml(name)},</p>
-    <p>Thanks for applying to become a Catalyst sales partner. Your application is in — our partnerships team reviews every one by hand, usually within five working days.</p>
-    <p>You can check where things stand at any time:</p>
-    <p><a href="${SITE}/partners/apply/status/${token}" style="color:#7C3AED;font-weight:bold">Check your application status</a></p>
-    <p>This link is personal to you and stays live for 90 days.</p>
-    <p style="margin-top:32px;font-size:13px;color:#777">Catalyst Solutions Services · catalystsolutionservices.com</p></div>`;
+You can check where things stand at any time:
 
-  const key = process.env.RESEND_API_KEY;
-  if (!key) {
-    console.log(`[email skipped — no RESEND_API_KEY] to=${to} subject="We have your partner application"`);
-    return;
-  }
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-    body: JSON.stringify({ from: FROM, to, subject: "We have your partner application", html }),
-  });
-  if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
-}
+  ${SITE}/partners/apply/status/${opts.token}
 
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+That link is personal to you and stays live for 90 days.
+
+Best regards,
+Catalyst Solutions Services`,
+  };
 }
