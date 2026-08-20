@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
+import Link from "next/link";
 import { saveStep } from "./apply/actions";
 
 /**
@@ -69,6 +70,12 @@ export default function HeroApplyForm() {
       </button>
       <p className="mt-3 text-center text-[12px] leading-[1.5] text-[var(--color-faint)]">
         No cost to join. No minimum referrals. Your progress saves as you go.
+      </p>
+      <p className="mt-4 border-t border-[var(--color-line)] pt-3.5 text-center text-[12.5px] text-[var(--color-muted)]">
+        Already a partner?{" "}
+        <Link href="/partner/login" className="font-semibold text-[var(--color-brand-soft)] hover:underline">
+          Sign in to your dashboard
+        </Link>
       </p>
     </form>
   );

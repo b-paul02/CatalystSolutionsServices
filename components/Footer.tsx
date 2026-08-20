@@ -30,6 +30,8 @@ const cols = [
       { label: "Add-Ons & Partnerships", href: "/add-ons" },
       { label: "Free Growth Audit", href: "/growth-audit" },
       { label: "Book a Call", href: "/contact" },
+      { label: "Become a Partner", href: "/partners" },
+      { label: "Partner Login", href: "/partner/login" },
     ],
   },
 ];
