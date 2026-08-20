@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import Icon from "./Icon";
 import MarketSwitcher from "./MarketSwitcher";
 
 const cols = [
@@ -46,9 +47,27 @@ export default function Footer() {
             <p className="mb-[18px] max-w-[300px] text-[13.5px] leading-[1.65] text-[var(--color-faint)]">
               An AI-enabled digital growth partner helping businesses build, market, automate, and scale through strategy and execution.
             </p>
-            <a href="mailto:info@catalystsolutionservices.com" className="text-[13px] text-[var(--color-muted)] hover:text-white">
-              info@catalystsolutionservices.com
-            </a>
+            <div className="grid gap-2.5">
+              <a
+                href="mailto:info@catalystsolutionservices.com"
+                className="group flex items-center gap-2.5 text-[13px] text-[var(--color-muted)] hover:text-white"
+              >
+                <span className="icon-chip h-7 w-7 shrink-0 text-[15px] transition group-hover:border-[var(--color-brand-soft)]">
+                  <Icon name="mail" />
+                </span>
+                info@catalystsolutionservices.com
+              </a>
+              <address className="flex items-start gap-2.5 not-italic text-[13px] leading-[1.6] text-[var(--color-muted)]">
+                <span className="icon-chip h-7 w-7 shrink-0 text-[15px]">
+                  <Icon name="location_on" />
+                </span>
+                <span>
+                  1309 Coffeen Avenue STE 1200
+                  <br />
+                  Sheridan, Wyoming 82801
+                </span>
+              </address>
+            </div>
           </div>
           {cols.map((c) => (
             <div key={c.title}>
