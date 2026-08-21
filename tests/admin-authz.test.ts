@@ -46,6 +46,7 @@ const { createPartnerSession, ForbiddenError } = await import("@/lib/partner/aut
 const actions = await import("@/app/admin/partners/applications/actions");
 const rateActions = await import("@/app/admin/partners/[id]/rate-actions");
 const ledgerActions = await import("@/app/admin/partners/commissions/actions");
+const statusActions = await import("@/app/admin/partners/[id]/status-actions");
 const { GET: exportCsv } = await import("@/app/api/admin/partners/commissions/export/route");
 
 function signInAs(id: string, role: string, partnerId: string | null) {
@@ -78,6 +79,8 @@ const MUTATIONS: [string, () => Promise<unknown>][] = [
   ["markPaidAction", () => ledgerActions.markPaidAction("c1", "NEFT-1")],
   ["createAdjustmentAction", () => ledgerActions.createAdjustmentAction("c1", "refund", "a good long reason", "")],
   ["voidCommissionsAction", () => ledgerActions.voidCommissionsAction("d1", "a good long reason")],
+  // A partner must not be able to reactivate or suspend themselves.
+  ["changePartnerStatus", () => statusActions.changePartnerStatus("p1", "active", "a good long reason")],
 ];
 
 describe("admin mutations reject a partner with 403", () => {

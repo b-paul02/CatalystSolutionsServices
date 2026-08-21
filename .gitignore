@@ -14,3 +14,6 @@ production-env.txt
 
 # Internal commercial reference — never publish (public repo)
 CATALYST_COMMERCIAL_SYSTEM.md
+
+# Business documents kept local — not for the public repo
+docs/

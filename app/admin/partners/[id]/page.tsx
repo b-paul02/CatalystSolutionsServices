@@ -6,6 +6,7 @@ import { currentRate, rateHistory } from "@/lib/partner/rates";
 import { FAMILIES } from "@/lib/partner/application-fields";
 import CommissionCard, { type RateRow } from "./CommissionCard";
 import PasswordCard from "./PasswordCard";
+import StatusCard from "./StatusCard";
 
 export const metadata = { title: "Partner", robots: { index: false } };
 
@@ -61,6 +62,8 @@ export default async function PartnerRecord({ params }: { params: Promise<{ id: 
           <Row label="Quote threshold" value={partner.quoteThresholdTier} />
           <Row label="Login" value={partner.user.email} />
         </div>
+
+        <StatusCard partnerId={partner.id} status={partner.status} />
 
         <PasswordCard partnerId={partner.id} loginEmail={partner.user.email} />
 

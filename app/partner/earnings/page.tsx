@@ -45,9 +45,16 @@ export default async function EarningsPage() {
         )}
       </div>
 
-      {partner?.status !== "active" && (
+      {partner?.status === "pending_agreement" && (
         <p className="mt-4 max-w-[520px] text-[13px] leading-[1.6] text-[var(--color-faint)]">
-          Your partner account is {partner?.status.replace(/_/g, " ")}.
+          Your partner agreement is still being finalised — your Catalyst contact will confirm once it is signed.
+          You can register and work deals in the meantime.
+        </p>
+      )}
+      {(partner?.status === "suspended" || partner?.status === "terminated") && (
+        <p className="mt-4 max-w-[520px] rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-[13px] leading-[1.6] text-amber-300">
+          Your account is paused, so new deals cannot be registered. Talk to your Catalyst contact if you think this
+          is a mistake.
         </p>
       )}
     </section>
