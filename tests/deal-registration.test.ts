@@ -225,3 +225,46 @@ describe("logging activity", () => {
       .rejects.toThrow("Deal not found.");
   });
 });
+
+describe("businesses with no website", () => {
+  const noSite = { ...base, website: "", noWebsite: true };
+
+  it("registers by phone and protects the deal", async () => {
+    const r = await registerDeal({ ...noSite, actor: ALICE, contactPhone: "+91 98765 43210" });
+    expect(r.ok).toBe(true);
+    expect(clients[0].domainNormalised).toBe("phone:9876543210");
+  });
+
+  it("rejects the second partner however they format the same number", async () => {
+    await registerDeal({ ...noSite, actor: ALICE, contactPhone: "+91 98765 43210" });
+    const second = await registerDeal({ ...noSite, actor: BOB, contactPhone: "098765 43210" });
+    expect(second).toMatchObject({ ok: false, reason: "already_registered", message: "This account is already registered." });
+    expect(deals).toHaveLength(1);
+  });
+
+  it("requires a usable phone when there is no website", async () => {
+    expect(await registerDeal({ ...noSite, actor: ALICE })).toMatchObject({ ok: false, reason: "invalid" });
+    expect(await registerDeal({ ...noSite, actor: ALICE, contactPhone: "123" })).toMatchObject({ ok: false, reason: "invalid" });
+    expect(deals).toHaveLength(0);
+  });
+
+  it("phone-keyed and domain-keyed clients never collide", async () => {
+    await registerDeal({ ...noSite, actor: ALICE, contactPhone: "+91 98765 43210" });
+    const r = await registerDeal({ ...base, actor: BOB, website: "acme.co.in" });
+    expect(r.ok).toBe(true);
+    expect(clients.map((c) => c.domainNormalised).sort()).toEqual(["acme.co.in", "phone:9876543210"]);
+  });
+
+  it("ignores the website field entirely when noWebsite is set", async () => {
+    // A stale value left in the hidden field must not become the identity.
+    const r = await registerDeal({ ...noSite, actor: ALICE, website: "acme.co.in", contactPhone: "+91 98765 43210" });
+    expect(r.ok).toBe(true);
+    expect(clients[0].domainNormalised).toBe("phone:9876543210");
+  });
+
+  it("a phone-identified house account is still refused", async () => {
+    clients.push({ id: "c9", legalName: "Acme", domainNormalised: "phone:9876543210", isHouseAccount: true, existingClientSince: null });
+    const r = await registerDeal({ ...noSite, actor: ALICE, contactPhone: "98765 43210" });
+    expect(r).toMatchObject({ ok: false, reason: "house_account" });
+  });
+});

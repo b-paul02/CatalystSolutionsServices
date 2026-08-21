@@ -3,6 +3,7 @@ import Icon from "@/components/Icon";
 import { db } from "@/lib/audit/db";
 import { partnerPage } from "@/lib/partner/page-guards";
 import { CURRENCY_OF, formatMoney, type Market } from "@/lib/partner/money";
+import { displayIdentity } from "@/lib/partner/domain";
 
 export const metadata = { title: "Deals", robots: { index: false } };
 
@@ -54,7 +55,7 @@ export default async function DealsList() {
                   <tr key={d.id} className="border-t border-[var(--color-line)] hover:bg-white/[0.02]">
                     <td className="px-4 py-3">
                       <div className="font-medium text-white">{d.client.legalName}</div>
-                      <div className="text-[12.5px] text-[var(--color-faint)]">{d.client.domainNormalised}</div>
+                      <div className="text-[12.5px] text-[var(--color-faint)]">{displayIdentity(d.client.domainNormalised)}</div>
                     </td>
                     <td className="px-4 py-3 text-[var(--color-muted)]">{d.stage.replace(/_/g, " ")}</td>
                     <td className="px-4 py-3 text-[var(--color-muted)]">{d.market}</td>

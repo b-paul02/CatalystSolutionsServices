@@ -11,6 +11,7 @@ import { toMinor } from "@/lib/partner/money";
 export async function registerDealAction(form: {
   clientLegalName: string;
   website: string;
+  noWebsite: boolean;
   contactName: string;
   contactEmail: string;
   contactPhone: string;
@@ -32,6 +33,7 @@ export async function registerDealAction(form: {
     actor,
     clientLegalName: form.clientLegalName,
     website: form.website,
+    noWebsite: form.noWebsite,
     contactName: form.contactName,
     contactEmail: form.contactEmail,
     contactPhone: form.contactPhone,

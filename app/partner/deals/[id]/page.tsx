@@ -4,6 +4,7 @@ import { db } from "@/lib/audit/db";
 import { partnerPage } from "@/lib/partner/page-guards";
 import { CURRENCY_OF, formatMoney, type Market } from "@/lib/partner/money";
 import { FAMILIES } from "@/lib/partner/application-fields";
+import { displayIdentity } from "@/lib/partner/domain";
 import ActivityPanel from "./ActivityPanel";
 import StagePanel from "./StagePanel";
 
@@ -57,7 +58,7 @@ export default async function DealDetail({
 
       <h1 className="mt-3 text-[26px] font-bold text-white">{deal.client.legalName}</h1>
       <p className="mt-1 mb-6 text-[13.5px] text-[var(--color-muted)]">
-        {deal.client.domainNormalised} · {deal.market} · {deal.stage.replace(/_/g, " ")}
+        {displayIdentity(deal.client.domainNormalised)} · {deal.market} · {deal.stage.replace(/_/g, " ")}
       </p>
 
       <div className="grid gap-6 lg:grid-cols-[1.15fr_1fr]">

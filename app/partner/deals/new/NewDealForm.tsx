@@ -16,14 +16,14 @@ export default function NewDealForm({
 }) {
   const router = useRouter();
   const [f, setF] = useState({
-    clientLegalName: "", website: "", contactName: "", contactEmail: "", contactPhone: "",
+    clientLegalName: "", website: "", noWebsite: false, contactName: "", contactEmail: "", contactPhone: "",
     market: markets[0]?.value ?? "IN", family: "", estimatedTier: "", estimatedValue: "",
     expectedCloseDate: "", howYouKnowThem: "", notes: "",
   });
   const [busy, setBusy] = useState(false);
   const [rejection, setRejection] = useState<string | null>(null);
 
-  const set = (k: keyof typeof f, v: string) => setF((p) => ({ ...p, [k]: v }));
+  const set = (k: keyof typeof f, v: string | boolean) => setF((p) => ({ ...p, [k]: v }));
 
   async function submit() {
     setBusy(true); setRejection(null);
@@ -56,16 +56,34 @@ export default function NewDealForm({
           <input className="field" value={f.clientLegalName} onChange={(e) => set("clientLegalName", e.target.value)} />
         </Field>
 
-        <Field label="Website" required full>
-          <input className="field" value={f.website} onChange={(e) => set("website", e.target.value)} placeholder="acme.co.in" />
-          <p className="mt-1.5 text-[12px] text-[var(--color-faint)]">
-            The website is how we tell accounts apart, so it decides who has the deal. Get it right.
-          </p>
+        {!f.noWebsite && (
+          <Field label="Website or online profile" required full>
+            <input className="field" value={f.website} onChange={(e) => set("website", e.target.value)}
+                   placeholder="acme.co.in — or an Instagram, Facebook or Google Business page" />
+            <p className="mt-1.5 text-[12px] text-[var(--color-faint)]">
+              This is how we tell accounts apart, so it decides who has the deal. Get it right.
+            </p>
+          </Field>
+        )}
+
+        <Field label=" " full>
+          <label className="flex items-center gap-2.5 text-[13.5px] text-[var(--color-muted)]">
+            <input type="checkbox" checked={f.noWebsite}
+                   onChange={(e) => set("noWebsite", e.target.checked)} />
+            This business has no website or online profile
+          </label>
+          {f.noWebsite && (
+            <p className="mt-1.5 text-[12px] text-amber-300">
+              We will identify this business by its phone number instead — so the contact phone below must be right.
+            </p>
+          )}
         </Field>
 
         <Field label="Contact name"><input className="field" value={f.contactName} onChange={(e) => set("contactName", e.target.value)} /></Field>
         <Field label="Contact email"><input className="field" type="email" value={f.contactEmail} onChange={(e) => set("contactEmail", e.target.value)} /></Field>
-        <Field label="Contact phone"><input className="field" value={f.contactPhone} onChange={(e) => set("contactPhone", e.target.value)} /></Field>
+        <Field label="Contact phone" required={f.noWebsite}>
+          <input className="field" value={f.contactPhone} onChange={(e) => set("contactPhone", e.target.value)} />
+        </Field>
 
         <Field label="Market" required>
           <select className="field" value={f.market} onChange={(e) => set("market", e.target.value)}>
@@ -108,7 +126,8 @@ export default function NewDealForm({
         </Field>
       </div>
 
-      <button onClick={submit} disabled={busy || !f.clientLegalName.trim() || !f.website.trim()}
+      <button onClick={submit}
+              disabled={busy || !f.clientLegalName.trim() || (f.noWebsite ? !f.contactPhone.trim() : !f.website.trim())}
               className="btn-primary mt-6 w-full justify-center disabled:opacity-50">
         {busy ? "Checking…" : "Register deal"} <Icon name="arrow_forward" className="text-[19px]" />
       </button>

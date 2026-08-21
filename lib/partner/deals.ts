@@ -1,6 +1,6 @@
 import { db } from "@/lib/audit/db";
 import { writeAudit } from "./audit";
-import { normaliseDomain } from "./domain";
+import { normaliseDomain, phoneIdentityKey } from "./domain";
 import type { Actor } from "./auth";
 
 export const OPEN_STAGES = ["registered", "qualified", "demo_given", "proposal_sent", "negotiation"];
@@ -32,6 +32,8 @@ export async function registerDeal(input: {
   actor: Actor & { partnerId: string };
   clientLegalName: string;
   website: string;
+  /** The business has no website or online profile; identify it by phone instead. */
+  noWebsite?: boolean;
   contactName?: string;
   contactEmail?: string;
   contactPhone?: string;
@@ -45,8 +47,21 @@ export async function registerDeal(input: {
   now?: Date;
 }): Promise<RegistrationOutcome> {
   const now = input.now ?? new Date();
-  const domain = normaliseDomain(input.website);
-  if (!domain) return { ok: false, reason: "invalid", message: "Enter the client's website." };
+
+  // Identity key: the website/profile domain when there is one, otherwise the
+  // normalised phone number as a prefixed synthetic key in the same column —
+  // so the unique index, house-account check and protection matrix all apply
+  // unchanged to businesses with no online presence.
+  let domain: string;
+  if (input.noWebsite) {
+    domain = phoneIdentityKey(input.contactPhone ?? "");
+    if (!domain) {
+      return { ok: false, reason: "invalid", message: "With no website, a valid contact phone number is required — it is how we tell this business apart." };
+    }
+  } else {
+    domain = normaliseDomain(input.website);
+    if (!domain) return { ok: false, reason: "invalid", message: "Enter the client's website or online profile." };
+  }
   if (!input.clientLegalName.trim()) return { ok: false, reason: "invalid", message: "Enter the client's legal name." };
 
   const partner = await db.partner.findUnique({
