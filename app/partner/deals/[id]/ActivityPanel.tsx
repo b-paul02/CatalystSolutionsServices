@@ -10,6 +10,7 @@ const TYPES = [
   { value: "email", label: "Email" },
   { value: "demo_given", label: "Demo given" },
   { value: "proposal_discussed", label: "Proposal discussed" },
+  { value: "custom_pricing_requested", label: "Requested custom pricing" },
   { value: "note", label: "Note" },
 ];
 

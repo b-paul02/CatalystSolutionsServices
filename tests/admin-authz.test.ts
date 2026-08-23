@@ -46,6 +46,7 @@ const { createPartnerSession, ForbiddenError } = await import("@/lib/partner/aut
 const actions = await import("@/app/admin/partners/applications/actions");
 const rateActions = await import("@/app/admin/partners/[id]/rate-actions");
 const ledgerActions = await import("@/app/admin/partners/commissions/actions");
+const dealActions = await import("@/app/admin/partners/deals/actions");
 const statusActions = await import("@/app/admin/partners/[id]/status-actions");
 const { GET: exportCsv } = await import("@/app/api/admin/partners/commissions/export/route");
 

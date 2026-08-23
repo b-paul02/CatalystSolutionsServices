@@ -25,7 +25,7 @@ export default async function DealDetail({
   const deal = await db.deal.findUnique({
     where: { id },
     select: {
-      id: true, partnerId: true, stage: true, market: true, family: true, estimatedTier: true,
+      id: true, partnerId: true, stage: true, market: true, family: true, estimatedTier: true, priceBookId: true,
       estimatedValue: true, onboardingFee: true, expectedCloseDate: true, howYouKnowThem: true, notes: true,
       registeredAt: true, protectedUntil: true, proposalSentAt: true, lastActivityAt: true,
       client: { select: { legalName: true, domainNormalised: true, contactName: true, contactEmail: true, contactPhone: true } },
@@ -80,7 +80,7 @@ export default async function DealDetail({
             <h2 className="mb-3.5 text-[15px] font-bold text-white">Deal</h2>
             <Row label="Family" value={FAMILIES.find((f) => f.value === deal.family)?.label ?? deal.family} />
             <Row label="Estimated tier" value={deal.estimatedTier} />
-            <Row label={deal.onboardingFee ? "Onboarding fee" : "Your estimate"}
+            <Row label={deal.onboardingFee ? (deal.priceBookId === null ? "Onboarding fee (custom price)" : "Onboarding fee") : "Your estimate"}
                  value={(deal.onboardingFee ?? deal.estimatedValue) ? formatMoney((deal.onboardingFee ?? deal.estimatedValue)!, currency) : null} />
             <Row label="Expected close" value={deal.expectedCloseDate ? longDate(deal.expectedCloseDate) : null} />
             <Row label="How you know them" value={deal.howYouKnowThem} />

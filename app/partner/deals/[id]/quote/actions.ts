@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/audit/db";
 import { requirePartner } from "@/lib/partner/auth";
 import { writeAudit } from "@/lib/partner/audit";
+import { requestCustomPrice } from "@/lib/partner/deals";
+import { toMinor } from "@/lib/partner/money";
 
 /**
  * Attaches a price book package to a deal.
@@ -24,6 +26,11 @@ export async function selectPackage(dealId: string, priceBookId: string) {
   });
   if (!deal || deal.partnerId !== actor.partnerId) throw new Error("Deal not found.");
   if (["won", "lost", "lapsed"].includes(deal.stage)) throw new Error("This deal is closed.");
+  // A staff-set custom price outranks the picker — a partner must not be able
+  // to swap it back to a price-book fee themselves.
+  if (deal.priceBookId === null && deal.onboardingFee !== null) {
+    throw new Error("This deal has custom pricing set by Catalyst. Talk to your Catalyst contact if it should change.");
+  }
 
   const pkg = await db.priceBook.findUnique({
     where: { id: priceBookId },
@@ -55,4 +62,14 @@ export async function selectPackage(dealId: string, priceBookId: string) {
   revalidatePath(`/partner/deals/${deal.id}`);
   revalidatePath("/partner");
   return { ok: true as const };
+}
+
+/** A partner proposes a price. Recorded only — no money moves until staff approve. */
+export async function requestCustomPriceAction(dealId: string, amountMajor: string, note: string) {
+  const actor = await requirePartner();
+  const cleaned = amountMajor.replace(/[,\s]/g, "");
+  if (!cleaned || !Number.isFinite(Number(cleaned)) || Number(cleaned) <= 0) throw new Error("Enter a valid amount.");
+  await requestCustomPrice({ actor, dealId, amount: toMinor(Number(cleaned)), note });
+  revalidatePath(`/partner/deals/${dealId}`);
+  revalidatePath(`/partner/deals/${dealId}/quote`);
 }

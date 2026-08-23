@@ -1,6 +1,7 @@
 import { db } from "@/lib/audit/db";
 import { writeAudit } from "./audit";
 import { normaliseDomain, phoneIdentityKey } from "./domain";
+import { CURRENCY_OF, formatMoney, type Market } from "./money";
 import type { Actor } from "./auth";
 
 export const OPEN_STAGES = ["registered", "qualified", "demo_given", "proposal_sent", "negotiation"];
@@ -201,4 +202,146 @@ export async function logActivity(input: {
   });
 
   return { protectedUntil };
+}
+
+/** priceBookId null with a fee set IS the marker for a staff-set custom price. */
+export function isCustomPriced(deal: { priceBookId: string | null; onboardingFee: bigint | null }): boolean {
+  return deal.priceBookId === null && deal.onboardingFee !== null;
+}
+
+/**
+ * Staff set a custom onboarding fee on a deal that closes off the price book.
+ *
+ * This is the ONLY path to a non-price-book fee, and it is never reachable by
+ * a partner — the caller enforces the role, and the partner UI keeps no price
+ * input. Locked once the deal is won: the commission base freezes at the win,
+ * exactly like the rate.
+ */
+export async function setCustomPrice(input: {
+  actor: Actor;
+  dealId: string;
+  amount: bigint; // minor units
+  reason: string;
+}) {
+  if (input.amount <= 0n) throw new Error("A custom price must be a positive amount.");
+  if (input.reason.trim().length < 10) throw new Error("Give a reason of at least 10 characters.");
+
+  const deal = await db.deal.findUnique({
+    where: { id: input.dealId },
+    select: { id: true, stage: true, priceBookId: true, onboardingFee: true, market: true },
+  });
+  if (!deal) throw new Error("Deal not found.");
+  if (["won", "lost", "lapsed"].includes(deal.stage)) {
+    throw new Error("This deal is closed — its commission base can no longer change.");
+  }
+
+  await db.deal.update({
+    where: { id: deal.id },
+    data: { priceBookId: null, onboardingFee: input.amount },
+  });
+  await writeAudit({
+    actor: input.actor, entity: "deal", entityId: deal.id, action: "custom_price_set",
+    before: { priceBookId: deal.priceBookId, onboardingFee: deal.onboardingFee },
+    after: { priceBookId: null, onboardingFee: input.amount },
+    reason: input.reason.trim(),
+  });
+}
+
+/**
+ * A partner PROPOSES a custom price. Nothing about the deal's money changes
+ * here — the fee, the commission base and the price-book link are untouched
+ * until staff approve, and approval goes through setCustomPrice with its own
+ * audit. The proposal is just a recorded ask.
+ */
+export async function requestCustomPrice(input: {
+  actor: Actor & { partnerId: string };
+  dealId: string;
+  amount: bigint; // minor units
+  note: string;
+}) {
+  if (input.amount <= 0n) throw new Error("A proposed price must be a positive amount.");
+  if (input.note.trim().length < 10) throw new Error("Tell us why in at least 10 characters — it is what the reviewer reads.");
+
+  const deal = await db.deal.findUnique({
+    where: { id: input.dealId },
+    select: { id: true, partnerId: true, stage: true, market: true, priceBookId: true, onboardingFee: true, customPriceRequested: true },
+  });
+  // Someone else's deal is indistinguishable from no deal.
+  if (!deal || deal.partnerId !== input.actor.partnerId) throw new Error("Deal not found.");
+  if (["won", "lost", "lapsed"].includes(deal.stage)) throw new Error("This deal is closed.");
+  if (isCustomPriced(deal)) throw new Error("This deal already has custom pricing set by Catalyst.");
+
+  await db.deal.update({
+    where: { id: deal.id },
+    data: { customPriceRequested: input.amount, customPriceRequestNote: input.note.trim() },
+  });
+  const pretty = formatMoney(input.amount, CURRENCY_OF[deal.market as Market]);
+  await db.activity.create({
+    data: {
+      dealId: deal.id, partnerId: input.actor.partnerId, type: "custom_price_requested",
+      notes: `Proposed ${pretty} — ${input.note.trim()}`,
+    },
+  });
+  await writeAudit({
+    actor: input.actor, entity: "deal", entityId: deal.id, action: "custom_price_requested",
+    before: { customPriceRequested: deal.customPriceRequested },
+    after: { customPriceRequested: input.amount },
+    reason: input.note.trim(),
+  });
+}
+
+/**
+ * Staff resolve a partner's proposal. Approving reads the amount from the
+ * database — never from the client — and routes through setCustomPrice, so the
+ * money path has exactly one door. Declining clears the proposal and tells the
+ * partner why through the deal's activity feed.
+ */
+export async function resolveCustomPriceRequest(input: {
+  actor: Actor;
+  dealId: string;
+  approve: boolean;
+  /** Required when declining; appended to the audit either way. */
+  reason?: string;
+}) {
+  const deal = await db.deal.findUnique({
+    where: { id: input.dealId },
+    select: { id: true, partnerId: true, stage: true, market: true, customPriceRequested: true, customPriceRequestNote: true },
+  });
+  if (!deal) throw new Error("Deal not found.");
+  if (deal.customPriceRequested === null) throw new Error("There is no pending custom price request on this deal.");
+
+  const pretty = formatMoney(deal.customPriceRequested, CURRENCY_OF[deal.market as Market]);
+
+  if (input.approve) {
+    await setCustomPrice({
+      actor: input.actor,
+      dealId: deal.id,
+      amount: deal.customPriceRequested,
+      reason: `Approved partner request: ${deal.customPriceRequestNote ?? "(no note)"}`,
+    });
+    await db.deal.update({
+      where: { id: deal.id },
+      data: { customPriceRequested: null, customPriceRequestNote: null },
+    });
+    await db.activity.create({
+      data: { dealId: deal.id, partnerId: deal.partnerId, type: "custom_price_approved", notes: `Catalyst approved ${pretty}.` },
+    });
+    return { approved: true as const };
+  }
+
+  const why = input.reason?.trim();
+  if (!why || why.length < 10) throw new Error("Give the partner a reason of at least 10 characters.");
+  await db.deal.update({
+    where: { id: deal.id },
+    data: { customPriceRequested: null, customPriceRequestNote: null },
+  });
+  await db.activity.create({
+    data: { dealId: deal.id, partnerId: deal.partnerId, type: "custom_price_declined", notes: `Catalyst declined ${pretty}: ${why}` },
+  });
+  await writeAudit({
+    actor: input.actor, entity: "deal", entityId: deal.id, action: "custom_price_declined",
+    before: { customPriceRequested: deal.customPriceRequested }, after: { customPriceRequested: null },
+    reason: why,
+  });
+  return { approved: false as const };
 }

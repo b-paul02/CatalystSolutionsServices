@@ -263,6 +263,10 @@ model Deal {
   lostReason  String?
   // the partner's rate at the moment the deal was won — commissions read THIS
   commissionRateBpLocked Int?
+  // A partner's PROPOSED custom price — no effect on any money until staff
+  // approve it, which routes through the same audited setCustomPrice path.
+  customPriceRequested   BigInt?
+  customPriceRequestNote String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
