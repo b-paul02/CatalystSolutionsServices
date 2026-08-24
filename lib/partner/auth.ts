@@ -72,17 +72,32 @@ export async function currentActor(): Promise<Actor | null> {
     }
   }
 
-  const adminEmail = await verifyAdminSession(jar.get(ADMIN_COOKIE)?.value);
-  if (adminEmail) {
-    const user = await db.user.upsert({
-      where: { email: adminEmail },
-      update: {},
-      create: { email: adminEmail, role: "admin" },
-    });
-    return { userId: user.id, email: user.email, role: user.role as Role, partnerId: null };
-  }
+  return adminActor();
+}
 
-  return null;
+/** The env-account admin session alone, mapped to its User row. */
+async function adminActor(): Promise<Actor | null> {
+  const jar = await cookies();
+  const adminEmail = await verifyAdminSession(jar.get(ADMIN_COOKIE)?.value);
+  if (!adminEmail) return null;
+  const user = await db.user.upsert({
+    where: { email: adminEmail },
+    update: {},
+    create: { email: adminEmail, role: "admin" },
+  });
+  return { userId: user.id, email: user.email, role: user.role as Role, partnerId: null };
+}
+
+/**
+ * The first session whose role is allowed: partner cookie first, then the
+ * admin cookie — so a stale partner_session from testing the portal never
+ * shadows a valid admin session on staff surfaces.
+ */
+export async function actorForRoles(...allowed: Role[]): Promise<Actor | null> {
+  const actor = await currentActor();
+  if (actor && allowed.includes(actor.role)) return actor;
+  const admin = await adminActor();
+  return admin && allowed.includes(admin.role) ? admin : null;
 }
 
 // ── guards ───────────────────────────────────────────────────────────────────
@@ -98,9 +113,8 @@ export class ForbiddenError extends Error {
 }
 
 export async function requireRole(...allowed: Role[]): Promise<Actor> {
-  const actor = await currentActor();
-  if (!actor) throw new ForbiddenError("Not signed in.");
-  if (!allowed.includes(actor.role)) throw new ForbiddenError("Forbidden");
+  const actor = await actorForRoles(...allowed);
+  if (!actor) throw new ForbiddenError("Forbidden");
   return actor;
 }
 

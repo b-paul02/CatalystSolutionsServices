@@ -2,11 +2,22 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 // The guards read the session from cookies and the user from the DB; both are
 // stubbed so these tests exercise the authorization logic itself.
-const jar = { value: undefined as string | undefined };
+const jar = { value: undefined as string | undefined, admin: undefined as string | undefined };
 const users = new Map<string, { id: string; email: string; role: string; disabledAt: Date | null; partner: { id: string } | null }>();
 
 vi.mock("next/headers", () => ({
-  cookies: async () => ({ get: (name: string) => (name === "partner_session" && jar.value ? { value: jar.value } : undefined) }),
+  cookies: async () => ({
+    get: (name: string) => {
+      if (name === "partner_session" && jar.value) return { value: jar.value };
+      if (name === "admin_session" && jar.admin) return { value: jar.admin };
+      return undefined;
+    },
+  }),
+}));
+
+vi.mock("@/lib/audit/adminAuth", () => ({
+  SESSION_COOKIE: "admin_session",
+  verifySession: async (c: string | undefined) => (c === "valid-admin-session" ? "boss@catalyst.test" : null),
 }));
 
 vi.mock("@/lib/audit/db", () => ({
@@ -31,7 +42,7 @@ function signInAs(id: string, role: string, partnerId: string | null) {
   jar.value = createPartnerSession(id);
 }
 
-beforeEach(() => { users.clear(); jar.value = undefined; });
+beforeEach(() => { users.clear(); jar.value = undefined; jar.admin = undefined; });
 
 describe("role guards", () => {
   it("denies a partner on admin surfaces with a 403", async () => {
@@ -77,6 +88,20 @@ describe("role guards", () => {
   it("denies deal_desk the admin surface", async () => {
     signInAs("u4", "deal_desk", null);
     await expect(requireRole("admin", "super_admin")).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
+  it("a stale partner cookie does not shadow a valid admin session", async () => {
+    signInAs("u1", "partner", "p1");
+    jar.admin = "valid-admin-session";
+    await expect(requireAdmin()).resolves.toMatchObject({ role: "admin", email: "boss@catalyst.test" });
+    // and the partner surface still sees the partner, not the admin
+    await expect(requirePartner()).resolves.toMatchObject({ role: "partner", partnerId: "p1" });
+  });
+
+  it("an admin cookie alone does not grant partner surfaces", async () => {
+    jar.admin = "valid-admin-session";
+    await expect(requirePartner()).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(requireAdmin()).resolves.toMatchObject({ role: "admin" });
   });
 
   it("denies a partner without a partner record", async () => {
