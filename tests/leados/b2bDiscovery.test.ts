@@ -49,8 +49,8 @@ afterAll(async () => {
 
 describe("b2b discovery", () => {
   it("searches with filters and masks unrevealed contacts", async () => {
-    const hits = await searchPeople(orgId, { title: "founder" });
-    const ravi = hits.find((h) => h.firstName === "Ravi");
+    const hits = await searchPeople(orgId, { title: "founder" }, 100);
+    const ravi = hits.find((h) => h.firstName === "Ravi" && h.companyDomain === "acmehomes.in");
     expect(ravi).toBeDefined();
     expect(ravi!.lastNameInitial).toBe("K.");
     expect(ravi!.revealed).toBeNull();
@@ -66,7 +66,8 @@ describe("b2b discovery", () => {
 
   it("reveal debits once, creates the lead, and is idempotent", async () => {
     const hits = await searchPeople(orgId, { title: "founder" });
-    const recordId = hits[0].recordId;
+    const mine = hits.find((h) => h.companyDomain === "acmehomes.in")!;
+    const recordId = mine.recordId;
     const preview = await revealCostPreview(orgId, [recordId]);
     expect(preview.total).toBeGreaterThan(0);
     const before = await tokenBalance(orgId);
@@ -82,7 +83,7 @@ describe("b2b discovery", () => {
     expect(await tokenBalance(orgId)).toBe(after); // no double charge
 
     const again = await searchPeople(orgId, { title: "founder" });
-    expect(again[0].revealed?.email).toContain("acmehomes.in");
+    expect(again.find((h) => h.recordId === recordId)?.revealed?.email).toContain("acmehomes.in");
   });
 
   it("insufficient balance blocks the reveal without a partial debit", async () => {
