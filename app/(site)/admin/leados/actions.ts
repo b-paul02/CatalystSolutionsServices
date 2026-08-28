@@ -146,10 +146,18 @@ export async function decideReview(_prev: FormState, form: FormData): Promise<Fo
   const note = String(form.get("note") ?? "").trim().slice(0, 1000);
   if (!["approved", "rejected", "quarantined"].includes(status)) return { error: "Pick a decision." };
   if (status !== "approved" && !note) return { error: "Rejections and quarantines need a reason." };
+  const review = await db.losComplianceReview.findUnique({ where: { id } });
   await db.losComplianceReview.updateMany({
     where: { id, status: "pending" },
     data: { status, note: note || null, reviewedById: admin.userId ?? admin.email },
   });
+  // Campaign reviews drive the campaign state machine.
+  if (review?.subjectKind === "campaign" && review.status === "pending") {
+    await db.losCampaign.updateMany({
+      where: { id: review.subjectId, status: "in_review" },
+      data: { status: status === "approved" ? "approved" : "rejected", reviewNote: note || null },
+    });
+  }
   await logLosAudit({ actorType: "platform_admin", actorUserId: admin.userId, action: `compliance.review_${status}`, entity: "LosComplianceReview", entityId: id });
   revalidatePath("/admin/leados/reviews");
   return { ok: "Decision recorded." };

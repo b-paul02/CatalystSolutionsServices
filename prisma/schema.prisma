@@ -923,6 +923,124 @@ model LosTokenRate {
   @@index([leadType, industry, effectiveFrom])
 }
 
+// ── LeadOS B2C campaign generation ───────────────────────────────────────────
+
+model LosCampaign {
+  id        String   @id @default(cuid())
+  orgId     String
+  name      String
+  // hosted_page | embedded_form | meta_ads | google_ads | whatsapp | qr_offline | referral
+  type      String   @default("hosted_page")
+  // generate_inquiries | book_consultations | request_quotes | collect_registrations | build_waitlist | request_demos
+  objective String   @default("generate_inquiries")
+  // draft | in_review | approved | scheduled | active | paused | completed | rejected
+  status    String   @default("draft")
+  publicId  String   @unique @default(cuid())
+  // {product, description, geography, language, startDate, endDate, budget, expectedVolume}
+  offer     String?
+  // {fields: FormField[], qualifying: FormField[], otpVerify: bool, emailVerify: bool,
+  //  consentPurposes: string[], consentChannels: string[], doubleOptIn: bool}
+  formSpec  String?
+  // {template, headline, body, cta, brandColor, thankYouMessage, thankYouRedirect, whatsappNumber, calendarUrl}
+  pageSpec  String?
+  // {mode: round_robin|fixed, userIds: string[], slaMinutes, ackEmail: bool, ackTemplate}
+  distribution String?
+  noticeVersion String @default("v1")
+  reviewNote   String?
+  launchedAt   DateTime?
+  demo      Boolean  @default(false)
+  createdById String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  versions    LosCampaignVersion[]
+  submissions LosFormSubmission[]
+  trackingLinks LosTrackingLink[]
+
+  @@index([orgId, status])
+}
+
+// Published snapshots — the live hosted page renders the latest version, so
+// edits to a draft never change what's already public until re-publish.
+model LosCampaignVersion {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   LosCampaign @relation(fields: [campaignId], references: [id])
+  version    Int
+  formSpec   String
+  pageSpec   String
+  publishedAt DateTime @default(now())
+
+  @@unique([campaignId, version])
+}
+
+model LosFormSubmission {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   LosCampaign @relation(fields: [campaignId], references: [id])
+  orgId      String
+  data       String // JSON of submitted fields (validated)
+  // {purposes: string[], channels: string[], noticeVersion, textShown}
+  consent    String?
+  utm        String? // JSON utm/tracking params
+  trackingCode String?
+  ip         String?
+  // accepted | duplicate_updated | invalid | spam | pending_verification
+  status     String
+  leadId     String?
+  createdAt  DateTime @default(now())
+
+  @@index([campaignId, createdAt])
+  @@index([orgId])
+}
+
+model LosTrackingLink {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   LosCampaign @relation(fields: [campaignId], references: [id])
+  code       String   @unique
+  label      String
+  createdAt  DateTime @default(now())
+}
+
+model LosAttributionEvent {
+  id         String   @id @default(cuid())
+  campaignId String
+  // view | submit
+  kind       String
+  trackingCode String?
+  utm        String?
+  createdAt  DateTime @default(now())
+
+  @@index([campaignId, kind, createdAt])
+}
+
+// External ad-platform connections (Meta / Google). Tokens AES-encrypted.
+model LosAdConnection {
+  id       String   @id @default(cuid())
+  orgId    String
+  // meta | google
+  provider String
+  // pending | connected | error | revoked
+  status   String   @default("pending")
+  configEnc String? // encrypted JSON: tokens, page/form ids
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([orgId, provider])
+}
+
+model LosExternalCampaign {
+  id         String   @id @default(cuid())
+  campaignId String
+  provider   String
+  externalId String
+  status     String @default("linked")
+  createdAt  DateTime @default(now())
+
+  @@unique([provider, externalId])
+}
+
 // ── LeadOS consent & governance ──────────────────────────────────────────────
 
 // APPEND-ONLY consent/permission ledger (blueprint §6.2). Never UPDATE/DELETE.
