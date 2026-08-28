@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySession, SESSION_COOKIE } from "@/lib/audit/adminAuth";
-import { isLeadosHost, leadosRewritePath } from "@/lib/leados/hosts";
+import { isLeadosHost, leadosCanonicalPath } from "@/lib/leados/hosts";
 
 // 1. Host routing: app.catalystsolutionservices.com serves the LeadOS app
 //    (the /app route group) — the marketing site never renders on that host.
@@ -10,11 +10,11 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (isLeadosHost(req.headers.get("host"))) {
-    const target = leadosRewritePath(pathname);
+    const target = leadosCanonicalPath(pathname);
     if (target) {
       const url = req.nextUrl.clone();
       url.pathname = target;
-      return NextResponse.rewrite(url);
+      return NextResponse.redirect(url, 308);
     }
     return NextResponse.next();
   }

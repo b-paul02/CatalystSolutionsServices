@@ -1,6 +1,8 @@
-// LeadOS lives at app.catalystsolutionservices.com, served from this same
-// Next.js app via a host-based rewrite onto the /app route group.
-// Pure functions so middleware behavior is unit-testable.
+// LeadOS lives at app.catalystsolutionservices.com, served by the /app route
+// group. Canonical URLs KEEP the /app prefix; on the LeadOS host, middleware
+// REDIRECTS bare paths (/login → /app/login). We deliberately do not use
+// rewrites: hiding the prefix breaks App Router client navigation after
+// server-action redirects (URL path and router state tree disagree → 404).
 
 /** True when the request host is the LeadOS app subdomain (prod or local dev). */
 export function isLeadosHost(host: string | null): boolean {
@@ -10,10 +12,10 @@ export function isLeadosHost(host: string | null): boolean {
 }
 
 /**
- * Maps a request path on the LeadOS host to its internal /app route.
- * Returns null when no rewrite is needed (assets, api, already-prefixed).
+ * Canonical /app path for a bare path on the LeadOS host, or null when the
+ * request should pass through untouched (already canonical, api, assets).
  */
-export function leadosRewritePath(pathname: string): string | null {
+export function leadosCanonicalPath(pathname: string): string | null {
   if (
     pathname.startsWith("/app") ||
     pathname.startsWith("/api") ||

@@ -374,6 +374,153 @@ model LosJob {
   @@index([status, runAt])
 }
 
+// ── LeadOS identity & tenancy ────────────────────────────────────────────────
+
+model LosUser {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String?
+  name            String?
+  emailVerifiedAt DateTime?
+  // TOTP secret, AES-256-GCM encrypted at rest (lib/leados/crypto.ts)
+  mfaSecretEnc    String?
+  mfaEnabledAt    DateTime?
+  // Platform-side role, null for ordinary customers:
+  // super_admin | compliance_admin | inventory_admin | campaign_admin | support_admin | auditor
+  platformRole    String?
+  disabledAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  // synthetic/demo data flag — one-command wipe
+  demo            Boolean   @default(false)
+
+  memberships LosMembership[]
+  sessions    LosSession[]
+}
+
+model LosOrg {
+  id            String    @id @default(cuid())
+  name          String
+  // b2b | b2c | both
+  intendedUse   String    @default("both")
+  // IN | US — billing market, fixed at onboarding
+  market        String    @default("IN")
+  jurisdiction  String?
+  industry      String?
+  website       String?
+  // versioned acceptance captured at onboarding
+  termsVersion  String?
+  termsAcceptedAt DateTime?
+  dpaAcceptedAt DateTime?
+  prohibitedUseAcceptedAt DateTime?
+  // active | suspended
+  status        String    @default("active")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  demo          Boolean   @default(false)
+
+  memberships LosMembership[]
+  invitations LosInvitation[]
+  apiKeys     LosApiKey[]
+}
+
+model LosMembership {
+  id        String   @id @default(cuid())
+  orgId     String
+  org       LosOrg   @relation(fields: [orgId], references: [id])
+  userId    String
+  user      LosUser  @relation(fields: [userId], references: [id])
+  // owner | admin | campaign_manager | sales_manager | sales_rep | analyst
+  role      String
+  createdAt DateTime @default(now())
+
+  @@unique([orgId, userId])
+  @@index([userId])
+}
+
+model LosInvitation {
+  id           String    @id @default(cuid())
+  orgId        String
+  org          LosOrg    @relation(fields: [orgId], references: [id])
+  email        String
+  role         String
+  tokenHash    String    @unique
+  invitedById  String
+  expiresAt    DateTime
+  acceptedAt   DateTime?
+  revokedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([orgId])
+}
+
+model LosSession {
+  id         String    @id @default(cuid())
+  userId     String
+  user       LosUser   @relation(fields: [userId], references: [id])
+  tokenHash  String    @unique
+  ip         String?
+  userAgent  String?
+  // true until the user passes TOTP (only when MFA is enabled)
+  mfaPending Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  lastSeenAt DateTime  @default(now())
+  expiresAt  DateTime
+  revokedAt  DateTime?
+
+  @@index([userId])
+}
+
+// Email verification / password reset links. Single-use, hashed at rest.
+model LosEmailToken {
+  id        String    @id @default(cuid())
+  email     String
+  userId    String?
+  // verify_email | reset_password
+  purpose   String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email, purpose])
+}
+
+model LosApiKey {
+  id          String    @id @default(cuid())
+  orgId       String
+  org         LosOrg    @relation(fields: [orgId], references: [id])
+  name        String
+  // display prefix ("los_ab12…") + hash of the full secret
+  prefix      String
+  keyHash     String    @unique
+  createdById String
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([orgId])
+}
+
+// APPEND-ONLY. Every specified mutation writes one. Never UPDATE or DELETE.
+model LosAuditEvent {
+  id          String   @id @default(cuid())
+  orgId       String?
+  actorUserId String?
+  // user | platform_admin | api_key | system
+  actorType   String
+  action      String
+  entity      String
+  entityId    String?
+  // JSON context — never raw personal data or secrets
+  data        String?
+  ip          String?
+  createdAt   DateTime @default(now())
+
+  @@index([orgId, createdAt])
+  @@index([entity, entityId])
+}
+
 model AuditLog {
   id        String   @id @default(cuid())
   actorId   String?
