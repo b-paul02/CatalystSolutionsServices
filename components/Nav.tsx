@@ -20,7 +20,7 @@ const links = [
 function Logo() {
   return (
     <Link href="/" className="flex items-center" aria-label="Catalyst Solutions Services home">
-      <Image src="/logo.png" alt="Catalyst Solutions Services" width={1462} height={425} priority className="h-14 w-auto" />
+      <Image src="/logo.png" alt="Catalyst Solutions Services" width={1462} height={425} priority className="h-16 w-auto" />
     </Link>
   );
 }
@@ -29,6 +29,10 @@ export default function Nav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  // On the partner-program pages, the header carries the page's own CTA.
+  const cta = pathname.startsWith("/partners")
+    ? { label: "Apply as a Partner", href: "/partners/apply" }
+    : { label: "Book a Call", href: "/contact" };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[rgba(168,85,247,0.12)] bg-[rgba(5,5,9,0.72)] backdrop-blur-[18px]">
@@ -51,8 +55,8 @@ export default function Nav() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link href="/contact" className="hidden items-center gap-1.5 rounded-[9px] border border-white/15 bg-gradient-to-br from-[#7C3AED] to-[#A855F7] px-[18px] py-2.5 text-[13.5px] font-semibold text-white shadow-[0_0_22px_rgba(124,58,237,0.45)] transition-shadow hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] sm:inline-flex">
-            Book a Call <Icon name="arrow_forward" className="text-[17px]" />
+          <Link href={cta.href} className="hidden items-center gap-1.5 rounded-[9px] border border-white/15 bg-gradient-to-br from-[#7C3AED] to-[#A855F7] px-[18px] py-2.5 text-[13.5px] font-semibold text-white shadow-[0_0_22px_rgba(124,58,237,0.45)] transition-shadow hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] sm:inline-flex">
+            {cta.label} <Icon name="arrow_forward" className="text-[17px]" />
           </Link>
           <button
             type="button"
@@ -80,8 +84,8 @@ export default function Nav() {
               {l.label}
             </Link>
           ))}
-          <Link href="/contact" onClick={() => setOpen(false)} className="btn-primary mt-4 w-full">
-            Book a Call <Icon name="arrow_forward" className="text-[18px]" />
+          <Link href={cta.href} onClick={() => setOpen(false)} className="btn-primary mt-4 w-full">
+            {cta.label} <Icon name="arrow_forward" className="text-[18px]" />
           </Link>
         </nav>
       )}

@@ -77,6 +77,8 @@
     box-shadow: 0 0 32px rgba(124, 58, 237, 0.55);
   }
   .btn-primary:hover { box-shadow: 0 0 46px rgba(168, 85, 247, 0.85); }
+  /* Tones the primary button's glow down for pages that want a quieter B2B look. */
+  .glow-quiet, .glow-quiet:hover { box-shadow: 0 0 14px rgba(124, 58, 237, 0.25); }
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-[22px] py-[15px] text-[15px] font-medium text-[var(--color-fg)] transition-colors;
     background: rgba(255, 255, 255, 0.04);

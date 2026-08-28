@@ -46,6 +46,7 @@ export type MarketEstimate = {
   yearLow: bigint;      // one deal a month
   yearHigh: bigint;     // two deals a month
   medianFee: bigint;    // the mid-tier onboarding fee it is based on
+  topFee: bigint;       // the largest package's onboarding fee
   topPerDeal: bigint;   // commission on the largest package
   tier3PerDeal: bigint; // commission on an average Tier 3 package
   /** What the price book actually supports for this market's headline scenario. */
@@ -80,6 +81,7 @@ async function forMarket(market: Market): Promise<MarketEstimate> {
     yearLow: perDeal * BigInt(DEALS_PER_MONTH_LOW * 12),
     yearHigh: perDeal * BigInt(DEALS_PER_MONTH_HIGH * 12),
     medianFee,
+    topFee: top,
     topPerDeal,
     tier3PerDeal,
     // India's headline is built on the largest package, the US on Tier 3 —

@@ -34,9 +34,10 @@ export default function HeroApplyForm() {
 
   return (
     <form onSubmit={submit} className="card w-full max-w-[440px]">
-      <h2 className="text-[20px] font-bold text-white">Join the partner network</h2>
-      <p className="mb-5 mt-1.5 text-[13px] leading-[1.55] text-[var(--color-muted)]">
-        Start here — we carry these over. Four short steps, about eight minutes in all.
+      <h2 className="text-[20px] font-bold text-white">Apply to the Sales Partner Program</h2>
+      <p className="mb-5 mt-1.5 text-[13.5px] leading-[1.55] text-[#c2c6d1]">
+        Start here — we carry these over. The application takes approximately eight minutes and covers your sales
+        experience, target market, and current business network.
       </p>
 
       <div className="grid gap-3.5">
@@ -46,7 +47,7 @@ export default function HeroApplyForm() {
                  value={fullName} onChange={(e) => setFullName(e.target.value)} />
         </div>
         <div className="flex flex-col gap-[7px]">
-          <label htmlFor="hero-email" className="label">Your work email</label>
+          <label htmlFor="hero-email" className="label">Email address</label>
           <input id="hero-email" className="field" type="email" required autoComplete="email"
                  value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" />
         </div>
@@ -65,11 +66,16 @@ export default function HeroApplyForm() {
         </p>
       )}
 
-      <button type="submit" disabled={busy} className="btn-primary mt-5 w-full justify-center disabled:opacity-60">
-        {busy ? "Starting…" : "Start my application"} <Icon name="arrow_forward" className="text-[19px]" />
+      <button type="submit" disabled={busy} className="btn-primary glow-quiet mt-5 w-full justify-center disabled:opacity-60">
+        {busy ? "Starting…" : "Continue partner application"} <Icon name="arrow_forward" className="text-[19px]" />
       </button>
-      <p className="mt-3 text-center text-[12px] leading-[1.5] text-[var(--color-faint)]">
-        No cost to join. No minimum referrals. Your progress saves as you go.
+      <p className="mt-3 text-center text-[12px] leading-[1.5] text-[#9a9aac]">
+        By continuing, you agree to the{" "}
+        <Link href="/partners/terms" className="underline hover:text-white">Partner Program Terms</Link> and{" "}
+        <Link href="/privacy" className="underline hover:text-white">Privacy Policy</Link>.
+      </p>
+      <p className="mt-2 text-center text-[12px] leading-[1.5] text-[#9a9aac]">
+        No cost to join. Your progress saves as you go.
       </p>
       <p className="mt-4 border-t border-[var(--color-line)] pt-3.5 text-center text-[12.5px] text-[var(--color-muted)]">
         Already a partner?{" "}
