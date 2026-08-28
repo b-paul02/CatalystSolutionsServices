@@ -118,3 +118,37 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   LeadOS (app.catalystsolutionservices.com) — light, neutral app theme in the
+   Attio/Linear direction. Scoped under [data-leados] so the dark marketing
+   theme is untouched. Semantic --los-* tokens only; components read these.
+   ──────────────────────────────────────────────────────────────────────────── */
+[data-leados] {
+  --los-bg: #f8f9fb;          /* page ground */
+  --los-surface: #ffffff;     /* cards, panels, table rows */
+  --los-surface-2: #f1f2f5;   /* subtle fills, hovers, table header */
+  --los-fg: #17181c;          /* primary text */
+  --los-muted: #5c5f6a;       /* secondary text */
+  --los-faint: #9a9daa;       /* tertiary text, placeholders */
+  --los-line: #e4e5ea;        /* borders */
+  --los-brand: #6d28d9;       /* Catalyst violet, toned for light bg */
+  --los-brand-soft: #ede9fe;  /* brand tint fills */
+  --los-success: #047857;
+  --los-success-soft: #d1fae5;
+  --los-warn: #b45309;
+  --los-warn-soft: #fef3c7;
+  --los-danger: #b91c1c;
+  --los-danger-soft: #fee2e2;
+
+  color-scheme: light;
+  background: var(--los-bg);
+  color: var(--los-fg);
+}
+[data-leados] ::selection { background: var(--los-brand-soft); color: var(--los-fg); }
+[data-leados] select option { background: var(--los-surface); color: var(--los-fg); }
+[data-leados] :where(a, button, input, textarea, select):focus-visible {
+  outline: 2px solid var(--los-brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}

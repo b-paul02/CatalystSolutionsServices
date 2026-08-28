@@ -348,6 +348,32 @@ model Activity {
   notes      String?
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// LeadOS (app.catalystsolutionservices.com). All LeadOS tables are prefixed
+// Los* to stay clearly separated from the marketing-site / partner-portal
+// tables above. Tenant-owned tables always carry orgId.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Background job queue on Postgres (SKIP LOCKED claim) — no Redis needed.
+// ponytail: swap to BullMQ only if job volume ever outgrows a table.
+model LosJob {
+  id             String    @id @default(cuid())
+  type           String
+  payload        String? // JSON
+  idempotencyKey String?   @unique
+  // pending | running | done | failed | dead
+  status         String    @default("pending")
+  attempts       Int       @default(0)
+  maxAttempts    Int       @default(5)
+  runAt          DateTime  @default(now())
+  lockedAt       DateTime?
+  lastError      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status, runAt])
+}
+
 model AuditLog {
   id        String   @id @default(cuid())
   actorId   String?

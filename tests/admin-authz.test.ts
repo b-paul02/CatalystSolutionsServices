@@ -43,11 +43,11 @@ vi.mock("@/lib/partner/email", () => ({
 }));
 
 const { createPartnerSession, ForbiddenError } = await import("@/lib/partner/auth");
-const actions = await import("@/app/admin/partners/applications/actions");
-const rateActions = await import("@/app/admin/partners/[id]/rate-actions");
-const ledgerActions = await import("@/app/admin/partners/commissions/actions");
-const dealActions = await import("@/app/admin/partners/deals/actions");
-const statusActions = await import("@/app/admin/partners/[id]/status-actions");
+const actions = await import("@/app/(site)/admin/partners/applications/actions");
+const rateActions = await import("@/app/(site)/admin/partners/[id]/rate-actions");
+const ledgerActions = await import("@/app/(site)/admin/partners/commissions/actions");
+const dealActions = await import("@/app/(site)/admin/partners/deals/actions");
+const statusActions = await import("@/app/(site)/admin/partners/[id]/status-actions");
 const { GET: exportCsv } = await import("@/app/api/admin/partners/commissions/export/route");
 
 function signInAs(id: string, role: string, partnerId: string | null) {

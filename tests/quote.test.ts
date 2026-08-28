@@ -41,7 +41,7 @@ vi.mock("@/lib/audit/db", () => ({
 }));
 
 const { createPartnerSession, ForbiddenError } = await import("@/lib/partner/auth");
-const { selectPackage } = await import("@/app/partner/deals/[id]/quote/actions");
+const { selectPackage } = await import("@/app/(site)/partner/deals/[id]/quote/actions");
 
 const IN_T1: Pkg = { id: "pb-in-1", market: "IN", onboardingFee: 8_500_000n, growthPlanMonthly: 999_900n, program: "Patient Pipeline", tier: "Tier 1", family: "patient-pipeline-bundle", activeTo: null };
 const IN_T2: Pkg = { id: "pb-in-2", market: "IN", onboardingFee: 17_500_000n, growthPlanMonthly: 2_499_900n, program: "Patient Pipeline", tier: "Tier 2", family: "patient-pipeline-bundle", activeTo: null };

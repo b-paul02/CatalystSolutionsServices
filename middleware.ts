@@ -1,15 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySession, SESSION_COOKIE } from "@/lib/audit/adminAuth";
+import { isLeadosHost, leadosRewritePath } from "@/lib/leados/hosts";
 
-// Cookie-session auth for the admin area. Accounts in env ADMIN_ACCOUNTS.
+// 1. Host routing: app.catalystsolutionservices.com serves the LeadOS app
+//    (the /app route group) — the marketing site never renders on that host.
+// 2. Cookie-session auth for the marketing-site admin area (env ADMIN_ACCOUNTS).
+//    LeadOS has its own auth inside its route handlers, not here.
 export async function middleware(req: NextRequest) {
-  if (req.nextUrl.pathname === "/admin/login") return NextResponse.next();
-  const email = await verifySession(req.cookies.get(SESSION_COOKIE)?.value);
-  if (!email) {
-    const login = new URL("/admin/login", req.url);
-    return NextResponse.redirect(login);
+  const { pathname } = req.nextUrl;
+
+  if (isLeadosHost(req.headers.get("host"))) {
+    const target = leadosRewritePath(pathname);
+    if (target) {
+      const url = req.nextUrl.clone();
+      url.pathname = target;
+      return NextResponse.rewrite(url);
+    }
+    return NextResponse.next();
   }
+
+  if (pathname.startsWith("/admin")) {
+    if (pathname === "/admin/login") return NextResponse.next();
+    const email = await verifySession(req.cookies.get(SESSION_COOKIE)?.value);
+    if (!email) return NextResponse.redirect(new URL("/admin/login", req.url));
+  }
+
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/admin/:path*"] };
+export const config = {
+  // Everything except Next internals and static files — host routing needs it.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+};

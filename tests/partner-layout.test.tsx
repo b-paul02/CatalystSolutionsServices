@@ -40,7 +40,7 @@ vi.mock("@/lib/audit/adminAuth", () => ({
 }));
 
 const { createPartnerSession } = await import("@/lib/partner/auth");
-const PartnerLayout = (await import("@/app/partner/layout")).default;
+const PartnerLayout = (await import("@/app/(site)/partner/layout")).default;
 
 function signInPartner(partnerId: string | null) {
   users.set("u1", { id: "u1", email: "p@x.com", role: "partner", disabledAt: null, partner: partnerId ? { id: partnerId } : null });

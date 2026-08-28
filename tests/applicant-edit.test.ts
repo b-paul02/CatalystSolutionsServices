@@ -21,7 +21,7 @@ vi.mock("@/lib/audit/db", () => ({
   },
 }));
 
-const { submitRequestedInfo } = await import("@/app/partners/apply/edit/[token]/actions");
+const { submitRequestedInfo } = await import("@/app/(site)/partners/apply/edit/[token]/actions");
 
 beforeEach(() => {
   updates.length = 0;
