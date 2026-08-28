@@ -32,6 +32,10 @@ export default async function LeadosAdminPage() {
         ))}
       </div>
       <nav className="flex flex-wrap gap-4 text-[14px]">
+        <Link className="text-[var(--color-brand-soft)] hover:text-white" href="/admin/leados/datasets">Datasets</Link>
+        <Link className="text-[var(--color-brand-soft)] hover:text-white" href="/admin/leados/inventory">Inventory</Link>
+        <Link className="text-[var(--color-brand-soft)] hover:text-white" href="/admin/leados/plans">Lead plans</Link>
+        <Link className="text-[var(--color-brand-soft)] hover:text-white" href="/admin/leados/tokens">Tokens</Link>
         <Link className="text-[var(--color-brand-soft)] hover:text-white" href="/admin/leados/reviews">Compliance reviews</Link>
         <Link className="text-[var(--color-brand-soft)] hover:text-white" href="/admin/leados/privacy-requests">Privacy requests</Link>
         <Link className="text-[var(--color-brand-soft)] hover:text-white" href="/admin/leados/suppressions">Suppression list</Link>

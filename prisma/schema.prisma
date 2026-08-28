@@ -714,6 +714,215 @@ model LosImport {
   @@index([orgId, createdAt])
 }
 
+// ── LeadOS inventory, plans, allocation, tokens ──────────────────────────────
+
+model LosDataSource {
+  id        String   @id @default(cuid())
+  name      String
+  // supplier | internal | client_owned
+  kind      String   @default("supplier")
+  contact   String?
+  // contract / permission evidence summary
+  contractEvidence String?
+  demo      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  datasets LosDataset[]
+}
+
+model LosDataset {
+  id        String   @id @default(cuid())
+  sourceId  String
+  source    LosDataSource @relation(fields: [sourceId], references: [id])
+  name      String
+  leadType  String // b2b | b2c
+  // draft | validating | compliance_review | approved | rejected | quarantined
+  status    String   @default("draft")
+  headers   String // JSON string[]
+  rows      String // JSON string[][] until approval materializes inventory
+  mapping   String? // JSON {header: field}
+  // b2c lawful use: {purposes, channels, evidenceNote, noticeVersion, retentionDays}
+  lawfulUse String?
+  // targeting restrictions on where these records may be used
+  geographyRestriction String? // JSON {countries?: [], states?: []}
+  purposeRestriction   String? // JSON string[] — campaign purposes allowed
+  // exclusive | shared
+  exclusivity String @default("exclusive")
+  maxShare    Int    @default(1)
+  coolingDays Int    @default(0)
+  expiryDays  Int?   // records expire this many days after approval
+  report    String? // JSON validation/materialization report
+  createdById String?
+  demo      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  records LosInventoryRecord[]
+
+  @@index([status])
+}
+
+model LosInventoryRecord {
+  id        String   @id @default(cuid())
+  datasetId String
+  dataset   LosDataset @relation(fields: [datasetId], references: [id])
+  leadType  String
+  fields    String // JSON LeadInput
+  normalizedEmail String?
+  normalizedPhone String?
+  city      String?
+  state     String?
+  country   String?
+  qualityScore Int  @default(50)
+  // available | reserved | allocated | suppressed | expired | quarantined | deleted
+  status    String   @default("available")
+  allocationCount Int @default(0)
+  maxAllocations  Int @default(1)
+  reservedForOrgId String?
+  lastAllocatedAt DateTime?
+  expiresAt  DateTime?
+  demo      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  allocations LosAllocation[]
+
+  @@index([status, leadType, country])
+  @@index([datasetId])
+  @@index([normalizedEmail])
+  @@index([normalizedPhone])
+}
+
+model LosLeadPlan {
+  id        String   @id @default(cuid())
+  orgId     String
+  name      String
+  leadType  String // b2b | b2c
+  dailyQuota Int
+  startDate DateTime
+  endDate   DateTime?
+  // JSON int[] ISO weekday numbers 1(Mon)..7(Sun)
+  workingDays String @default("[1,2,3,4,5]")
+  // JSON "YYYY-MM-DD"[] holidays skipped
+  holidays  String @default("[]")
+  deliveryTimezone String @default("Asia/Kolkata")
+  deliveryHour     Int    @default(9)
+  // campaign purpose for the compliance engine
+  purpose   String @default("sales_contact")
+  targeting String? // JSON {countries?: [], states?: [], cities?: []}
+  minQuality Int   @default(0)
+  // exclusive | shared
+  exclusivity String @default("exclusive")
+  // none | week | campaign_end | approval
+  rolloverPolicy String @default("none")
+  // dashboard | webhook
+  deliveryMethod String @default("dashboard")
+  webhookUrl String?
+  priority  Int      @default(0)
+  // active | paused | ended
+  status    String   @default("active")
+  demo      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  runs        LosAllocationRun[]
+  allocations LosAllocation[]
+
+  @@index([status, orgId])
+}
+
+model LosAllocationRun {
+  id        String   @id @default(cuid())
+  planId    String
+  plan      LosLeadPlan @relation(fields: [planId], references: [id])
+  runDate   String // "YYYY-MM-DD" in the plan's delivery timezone
+  // executed | failed
+  status    String
+  due       Int
+  allocated Int
+  shortage  Int
+  // JSON: {reasons: {reason: count}, rollover: n}
+  detail    String?
+  createdAt DateTime @default(now())
+
+  allocations LosAllocation[]
+
+  @@unique([planId, runDate])
+}
+
+// IMMUTABLE after creation. State moves forward only; money/token corrections
+// happen via compensating ledger entries, never by editing these rows.
+model LosAllocation {
+  id        String   @id @default(cuid())
+  runId     String
+  run       LosAllocationRun @relation(fields: [runId], references: [id])
+  planId    String
+  plan      LosLeadPlan @relation(fields: [planId], references: [id])
+  orgId     String
+  inventoryRecordId String
+  inventoryRecord   LosInventoryRecord @relation(fields: [inventoryRecordId], references: [id])
+  leadId    String? // the LosLead created in the client org
+  // delivered | accepted | replacement_requested | replaced | rejected
+  state     String   @default("delivered")
+  tokensCharged Int
+  rateSnapshot  String? // JSON of the rate math at debit time
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  replacement LosLeadReplacement?
+
+  @@unique([inventoryRecordId, orgId]) // one org never gets the same record twice
+  @@index([orgId, createdAt])
+  @@index([planId])
+}
+
+model LosLeadReplacement {
+  id           String   @id @default(cuid())
+  allocationId String   @unique
+  allocation   LosAllocation @relation(fields: [allocationId], references: [id])
+  reason       String
+  // requested | approved | rejected
+  status       String   @default("requested")
+  decisionNote String?
+  decidedById  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([status])
+}
+
+// APPEND-ONLY token ledger. Balance = SUM(delta). Never UPDATE or DELETE.
+model LosTokenLedger {
+  id     String @id @default(cuid())
+  orgId  String
+  delta  Int // + credit, - debit
+  // purchase | grant | adjustment | allocation_debit | replacement_credit |
+  // reveal_debit | enrichment_debit
+  kind   String
+  refId  String? // allocation id, stripe payment id, …
+  note   String?
+  createdById String?
+  createdAt DateTime @default(now())
+
+  @@index([orgId, createdAt])
+}
+
+// Effective-dated token rate card. Latest row with effectiveFrom <= now wins
+// per (leadType, industry); industry null = default. APPEND-ONLY.
+model LosTokenRate {
+  id        String   @id @default(cuid())
+  leadType  String // b2b | b2c
+  industry  String? // normalized industry label; null = default
+  exclusiveTokens Int
+  sharedTokens    Int
+  verifiedBonusPct Int @default(50) // % surcharge when phone/email verified
+  effectiveFrom DateTime @default(now())
+  createdById   String?
+  createdAt DateTime @default(now())
+
+  @@index([leadType, industry, effectiveFrom])
+}
+
 // ── LeadOS consent & governance ──────────────────────────────────────────────
 
 // APPEND-ONLY consent/permission ledger (blueprint §6.2). Never UPDATE/DELETE.
