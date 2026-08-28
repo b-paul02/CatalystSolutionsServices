@@ -4,6 +4,7 @@
 import { db } from "@/lib/audit/db";
 import { normalizeDomain, normalizeEmail, normalizePhone } from "./leads";
 import { verifyEmail, verifyPhone } from "./verify";
+import { contactHashes, isSuppressed } from "./suppression";
 
 export type LeadInput = {
   firstName?: string;
@@ -60,6 +61,12 @@ export async function createLead(opts: {
   }
   if (leadType === "b2c" && (!opts.lawfulUse || opts.lawfulUse.purposes.length === 0)) {
     return { outcome: "invalid", problem: "B2C leads require lawful-use metadata (permitted purposes)." };
+  }
+
+  // Suppressed contacts are never (re)acquired as B2C leads.
+  if (leadType === "b2c") {
+    const suppressed = await isSuppressed(contactHashes(normalizedEmail, normalizedPhone), orgId);
+    if (suppressed) return { outcome: "invalid", problem: "This contact is on the suppression list." };
   }
 
   // Dedupe: one normalized contact point per org+type scope.
@@ -173,6 +180,21 @@ export async function createLead(opts: {
           }),
     },
   });
+
+  // B2C: record the lawful-use evidence in the append-only consent ledger.
+  if (leadType === "b2c" && lu) {
+    for (const contactHash of contactHashes(normalizedEmail, normalizedPhone)) {
+      await db.losConsentEvent.create({
+        data: {
+          contactHash, orgId, leadId: lead.id, kind: "import_evidence",
+          purpose: lu.purposes.join(","), channel: lu.channels.join(","),
+          noticeVersion: lu.noticeVersion ?? null,
+          sourceApp: opts.sourceRef ?? opts.source,
+          evidenceRef: lu.evidenceNote ?? null,
+        },
+      });
+    }
+  }
 
   // Tags
   const tagNames = (input.tags ?? "")

@@ -714,6 +714,108 @@ model LosImport {
   @@index([orgId, createdAt])
 }
 
+// ── LeadOS consent & governance ──────────────────────────────────────────────
+
+// APPEND-ONLY consent/permission ledger (blueprint §6.2). Never UPDATE/DELETE.
+model LosConsentEvent {
+  id        String   @id @default(cuid())
+  orgId     String?  // null = platform-scope (admin-supplied inventory)
+  leadId    String?
+  // hash of the normalized contact point — survives lead deletion
+  contactHash String
+  // notice_presented | consent_given | consent_refused | withdrawal | objection |
+  // suppression | access | correction | deletion | import_evidence
+  kind      String
+  purpose   String?  // purpose code the event applies to
+  channel   String?  // channel code the event applies to
+  noticeVersion String?
+  language  String?
+  sourceApp String?  // campaign/form/import id
+  evidenceRef String? // free-text or storage pointer
+  data      String?  // JSON extras — never raw personal data
+  createdAt DateTime @default(now())
+
+  @@index([contactHash])
+  @@index([leadId])
+  @@index([orgId, createdAt])
+}
+
+// Suppression list. scope "org" (one tenant) or "global" (platform-wide).
+model LosSuppressionEntry {
+  id          String   @id @default(cuid())
+  contactHash String
+  // org | global
+  scope       String   @default("org")
+  orgId       String?  // required when scope=org
+  // withdrawal | complaint | privacy_request | admin | bounce
+  reason      String
+  note        String?
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@unique([contactHash, scope, orgId])
+  @@index([contactHash])
+}
+
+// Data-subject requests (blueprint §6.4).
+model LosPrivacyRequest {
+  id        String   @id @default(cuid())
+  // access | correction | deletion | objection
+  kind      String
+  email     String?
+  phone     String?
+  contactHashes String // JSON string[] of normalized contact hashes
+  details   String?
+  // received | identity_verification | in_progress | completed | rejected
+  status    String   @default("received")
+  identityVerifiedAt DateTime?
+  verifyTokenHash    String?  @unique
+  resolutionNote String?
+  resultPackage  String? // JSON access package (for access requests)
+  dueAt     DateTime
+  completedAt DateTime?
+  handledById String?
+  demo      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, dueAt])
+}
+
+// Generic compliance review queue: datasets, campaigns, imports.
+model LosComplianceReview {
+  id         String   @id @default(cuid())
+  // dataset | campaign | import
+  subjectKind String
+  subjectId   String
+  orgId       String?
+  // pending | approved | rejected | quarantined
+  status      String   @default("pending")
+  submittedById String?
+  reviewedById  String?
+  note        String?
+  evidence    String? // JSON summary shown to the reviewer
+  demo        Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([subjectKind, subjectId])
+}
+
+// Versioned privacy notices (used by hosted forms in the campaign phase).
+model LosPrivacyNotice {
+  id        String   @id @default(cuid())
+  orgId     String?  // null = platform default
+  version   String
+  language  String   @default("en")
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+
+  @@unique([orgId, version, language])
+}
+
 // APPEND-ONLY. Every specified mutation writes one. Never UPDATE or DELETE.
 model LosAuditEvent {
   id          String   @id @default(cuid())

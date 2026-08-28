@@ -50,6 +50,17 @@ export async function runImportCommit(payload: unknown): Promise<void> {
     where: { id: importId },
     data: { status: "done", report: JSON.stringify({ accepted, duplicates, invalid, errors }) },
   });
+  // Visibility row in the compliance queue. Self-serve customer imports are
+  // auto-approved; platform datasets (Phase 4) require a real review gate.
+  if (imp.leadType === "b2c") {
+    await db.losComplianceReview.create({
+      data: {
+        subjectKind: "import", subjectId: imp.id, orgId: imp.orgId,
+        status: "approved", note: "Auto-approved: customer-supplied dataset with declared evidence.",
+        evidence: imp.lawfulUse, demo: imp.demo,
+      },
+    });
+  }
   await logLosAudit({
     orgId: imp.orgId, actorUserId: imp.createdById, actorType: "system",
     action: "leads.import_committed", entity: "LosImport", entityId: imp.id,
