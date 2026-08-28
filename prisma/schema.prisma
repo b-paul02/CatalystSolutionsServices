@@ -422,6 +422,7 @@ model LosOrg {
   memberships LosMembership[]
   invitations LosInvitation[]
   apiKeys     LosApiKey[]
+  leads       LosLead[]
 }
 
 model LosMembership {
@@ -500,6 +501,217 @@ model LosApiKey {
   createdAt   DateTime  @default(now())
 
   @@index([orgId])
+}
+
+// ── LeadOS leads & companies ─────────────────────────────────────────────────
+// Contact-point uniqueness (one normalized email/phone per org+type scope) is
+// enforced in the lead-write paths (create/import/merge) — Prisma has no
+// partial unique indexes under db push; indexes below keep the checks fast.
+
+model LosLead {
+  id        String  @id @default(cuid())
+  orgId     String
+  org       LosOrg  @relation(fields: [orgId], references: [id])
+  // b2b | b2c
+  leadType  String
+  // manual | import | api | webhook | form | allocation | enrichment
+  source    String  @default("manual")
+  sourceRef String? // import id, form id, allocation id…
+
+  firstName String?
+  lastName  String?
+  email     String?
+  // unverified | valid | risky | invalid
+  emailStatus String @default("unverified")
+  normalizedEmail String?
+  phone     String?
+  phoneStatus String @default("unverified")
+  normalizedPhone String?
+  city      String?
+  state     String?
+  country   String?
+  timezone  String?
+  language  String?
+
+  // pipeline
+  // new | assigned | contacted | engaged | qualified | converted | lost
+  status    String   @default("new")
+  ownerId   String?  // LosUser id of the assigned rep
+  lostReason String?
+  conversionValue BigInt? // minor units in the org's market currency
+
+  qualityScore Int?
+  intentScore  Int?
+
+  companyId String?
+  company   LosCompany? @relation(fields: [companyId], references: [id])
+
+  customFields String? // JSON {defId: value} — defs in LosCustomFieldDef
+  enrichment   String? // JSON field-level {field: {value, source, confidence, at}}
+
+  demo      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  verifiedAt  DateTime?
+  contactedAt DateTime?
+  convertedAt DateTime?
+  deletedAt   DateTime? // soft delete (privacy erasure hard-deletes)
+
+  b2b  LosLeadB2b?
+  b2c  LosLeadB2c?
+  tags LosLeadTag[]
+
+  @@index([orgId, status])
+  @@index([orgId, normalizedEmail])
+  @@index([orgId, normalizedPhone])
+  @@index([orgId, createdAt])
+  @@index([orgId, ownerId])
+}
+
+model LosLeadB2b {
+  id       String  @id @default(cuid())
+  leadId   String  @unique
+  lead     LosLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  jobTitle String?
+  department String?
+  seniority  String?
+  workEmail  String?
+  directDial String?
+  profileUrl String?
+  employmentVerifiedAt DateTime?
+}
+
+model LosLeadB2c {
+  id       String  @id @default(cuid())
+  leadId   String  @unique
+  lead     LosLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  interests String? // JSON string[] — explicitly collected campaign interests
+  productInterest String?
+  budgetBand      String?
+  purchaseTimeline String?
+  preferredChannel String? // whatsapp | sms | email | call
+  preferredTime    String?
+  // Consent/permission summary — the full evidence trail lives in the Phase 3
+  // consent ledger; these are the enforcement columns read at allocation/send.
+  permittedPurposes String? // JSON string[]
+  permittedChannels String? // JSON string[]
+  consentRef        String? // evidence reference (ledger event id / import evidence)
+  noticeVersion     String?
+  retentionExpiresAt DateTime?
+  withdrawnAt        DateTime?
+  suppressedAt       DateTime?
+}
+
+model LosCompany {
+  id     String @id @default(cuid())
+  orgId  String
+  name   String
+  domain String? // normalized, no www
+  industry String?
+  employeeBand String?
+  revenueBand  String?
+  city    String?
+  country String?
+  techAttributes String? // JSON string[]
+  demo    Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leads LosLead[]
+
+  @@index([orgId, domain])
+}
+
+model LosTag {
+  id    String @id @default(cuid())
+  orgId String
+  name  String
+  leads LosLeadTag[]
+
+  @@unique([orgId, name])
+}
+
+model LosLeadTag {
+  leadId String
+  lead   LosLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  tagId  String
+  tag    LosTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([leadId, tagId])
+}
+
+model LosCustomFieldDef {
+  id    String @id @default(cuid())
+  orgId String
+  key   String
+  label String
+  // text | number | select | date | boolean
+  kind  String @default("text")
+  options String? // JSON string[] for select
+  createdAt DateTime @default(now())
+
+  @@unique([orgId, key])
+}
+
+// One row per inbound record: provenance for every lead write from outside.
+model LosLeadSourceRecord {
+  id       String   @id @default(cuid())
+  orgId    String
+  leadId   String?
+  // import | api | webhook | form
+  kind     String
+  ref      String? // import id / api key id / form id
+  raw      String? // JSON of the inbound row (no secrets)
+  createdAt DateTime @default(now())
+
+  @@index([orgId, leadId])
+}
+
+model LosVerificationEvent {
+  id      String   @id @default(cuid())
+  orgId   String
+  leadId  String
+  // email | phone
+  channel String
+  provider String // basic-mx | manual | <paid provider>
+  result  String // valid | risky | invalid | unknown
+  detail  String? // JSON
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+}
+
+model LosLeadMergeEvent {
+  id           String   @id @default(cuid())
+  orgId        String
+  keptLeadId   String
+  mergedLeadId String
+  mergedData   String? // JSON snapshot of the merged (removed) record
+  actorUserId  String?
+  createdAt    DateTime @default(now())
+
+  @@index([orgId, keptLeadId])
+}
+
+model LosImport {
+  id       String  @id @default(cuid())
+  orgId    String
+  createdById String
+  fileName String
+  leadType String // b2b | b2c
+  // mapping | previewed | committing | done | failed
+  status   String  @default("mapping")
+  headers  String  // JSON string[]
+  rows     String  // JSON string[][] (capped at MAX_IMPORT_ROWS)
+  mapping  String? // JSON {header: field}
+  // B2C lawful-use metadata captured at import time
+  lawfulUse String? // JSON {purposes, channels, evidenceNote, noticeVersion, retentionDays}
+  report   String? // JSON {accepted, skippedDuplicates, invalid, errors[]}
+  demo     Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId, createdAt])
 }
 
 // APPEND-ONLY. Every specified mutation writes one. Never UPDATE or DELETE.
