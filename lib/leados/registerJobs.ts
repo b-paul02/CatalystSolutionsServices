@@ -3,5 +3,6 @@
 import "./importJob";
 import "./allocationJob";
 import "./sequenceJob";
+import "./alertJob";
 
 export {};

@@ -12,8 +12,10 @@ export async function GET(req: NextRequest) {
   }
   const { enqueueDueAllocations } = await import("@/lib/leados/allocationJob");
   const { enqueueSequenceTick } = await import("@/lib/leados/sequenceJob");
+  const { enqueueSearchAlerts } = await import("@/lib/leados/alertJob");
   const enqueued = await enqueueDueAllocations();
   await enqueueSequenceTick();
+  await enqueueSearchAlerts();
   let total = 0;
   // Drain in batches until quiet or ~4 min elapsed (Vercel limit headroom).
   const deadline = Date.now() + 4 * 60_000;

@@ -23,6 +23,7 @@ export default async function ShellLayout({ children }: { children: React.ReactN
   const nav = [
     { href: "/app/dashboard", label: "Dashboard", icon: "space_dashboard" },
     { href: "/app/leads", label: "Leads", icon: "group" },
+    { href: "/app/discover", label: "Discover", icon: "person_search" },
     { href: "/app/pipeline", label: "Pipeline", icon: "view_kanban" },
     { href: "/app/tasks", label: "My day", icon: "checklist" },
     { href: "/app/outreach", label: "Outreach", icon: "send" },

@@ -923,6 +923,72 @@ model LosTokenRate {
   @@index([leadType, industry, effectiveFrom])
 }
 
+// ── LeadOS B2B discovery ─────────────────────────────────────────────────────
+
+model LosSavedSearch {
+  id      String  @id @default(cuid())
+  orgId   String
+  name    String
+  // people | companies
+  kind    String  @default("people")
+  filters String // JSON B2bSearchFilters
+  alert   Boolean @default(false)
+  lastCount Int?
+  lastAlertAt DateTime?
+  createdById String
+  createdAt DateTime @default(now())
+
+  @@index([orgId])
+}
+
+model LosList {
+  id     String @id @default(cuid())
+  orgId  String
+  name   String
+  // leads | companies
+  kind   String @default("leads")
+  createdById String
+  createdAt DateTime @default(now())
+
+  members LosListMember[]
+
+  @@index([orgId])
+}
+
+model LosListMember {
+  listId String
+  list   LosList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  // LosLead id or LosInventoryRecord id depending on list kind
+  refId  String
+  addedAt DateTime @default(now())
+
+  @@id([listId, refId])
+}
+
+// Domains an org never wants to see in discovery (their clients, competitors…).
+model LosExclusion {
+  id     String @id @default(cuid())
+  orgId  String
+  domain String
+  createdAt DateTime @default(now())
+
+  @@unique([orgId, domain])
+}
+
+// One reveal per org+record: pay once, see it forever.
+model LosReveal {
+  id       String @id @default(cuid())
+  orgId    String
+  recordId String
+  leadId   String?
+  tokensCharged Int
+  revealedById String
+  createdAt DateTime @default(now())
+
+  @@unique([orgId, recordId])
+  @@index([orgId, createdAt])
+}
+
 // ── LeadOS sales workflow: pipeline, tasks, outreach, scoring ────────────────
 
 // Custom pipeline stages per org. System defaults seeded on first read.
