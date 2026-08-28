@@ -231,5 +231,15 @@ export async function createLead(opts: {
       data: { orgId, leadId: lead.id, channel: "phone", provider: (phoneDetail as { provider: string }).provider, result: phoneStatus, detail: JSON.stringify(phoneDetail) },
     });
   }
+  // Integrations: outbound webhooks + Slack ping (fire-and-forget).
+  import("./webhooksOut").then(({ dispatchWebhookEvent, notifySlack }) => {
+    dispatchWebhookEvent(orgId, "lead.created", {
+      id: lead.id, leadType, source: opts.source,
+      firstName: lead.firstName, lastName: lead.lastName,
+      email: lead.email, phone: lead.phone, city: lead.city,
+    }).catch(() => {});
+    notifySlack(orgId, `New ${leadType.toUpperCase()} lead: ${[lead.firstName, lead.lastName].filter(Boolean).join(" ") || lead.email || lead.phone} (${opts.source})`).catch(() => {});
+  }).catch(() => {});
+
   return { outcome: "created", leadId: lead.id };
 }

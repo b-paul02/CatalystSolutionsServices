@@ -4,5 +4,7 @@ import "./importJob";
 import "./allocationJob";
 import "./sequenceJob";
 import "./alertJob";
+import "./metrics";
+import "./webhooksOut";
 
 export {};
