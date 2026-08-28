@@ -18,8 +18,8 @@ async function makeRecords(n: number, opts?: { maxAllocations?: number; startPho
     const phone = `+91${start + i}`;
     return {
       datasetId, leadType: "b2c", demo: true,
-      fields: JSON.stringify({ firstName: `Rec${i}`, phone, city: "Mumbai", country: "India" }),
-      normalizedPhone: phone, city: "Mumbai", country: "India",
+      fields: JSON.stringify({ firstName: `Rec${i}`, phone, city: tag, country: "India" }),
+      normalizedPhone: phone, city: tag, country: "India",
       qualityScore: 60, maxAllocations: opts?.maxAllocations ?? 1,
     };
   });
@@ -32,6 +32,7 @@ async function makePlan(orgId: string, quota: number, extra?: Record<string, unk
       orgId, name: `${tag}-plan`, leadType: "b2c", dailyQuota: quota,
       startDate: new Date("2026-08-01"), deliveryTimezone: "Asia/Kolkata",
       purpose: "sales_contact", exclusivity: "exclusive", demo: true,
+      targeting: JSON.stringify({ cities: [tag] }),
       ...(extra ?? {}),
     },
   });
@@ -122,8 +123,8 @@ describe("allocation engine", () => {
     await db.losInventoryRecord.create({
       data: {
         datasetId, leadType: "b2c", demo: true,
-        fields: JSON.stringify({ firstName: "Sup", phone }),
-        normalizedPhone: phone, qualityScore: 99, maxAllocations: 1,
+        fields: JSON.stringify({ firstName: "Sup", phone, city: tag }),
+        normalizedPhone: phone, city: tag, qualityScore: 99, maxAllocations: 1,
       },
     });
     await suppressContact({ phone, scope: "global", reason: "complaint", note: tag });
@@ -141,6 +142,7 @@ describe("allocation engine", () => {
       data: {
         orgId: poorOrg, name: `${tag}-plan`, leadType: "b2c", dailyQuota: 3,
         startDate: new Date("2026-08-01"), purpose: "sales_contact", exclusivity: "exclusive", demo: true,
+        targeting: JSON.stringify({ cities: [tag] }),
       },
     });
     const run = await allocatePlan(plan.id, { execute: true, runDate: RUN_DATE });
@@ -158,8 +160,8 @@ describe("allocation engine", () => {
     const rec = await db.losInventoryRecord.create({
       data: {
         datasetId, leadType: "b2c", demo: true,
-        fields: JSON.stringify({ firstName: "Race", phone }),
-        normalizedPhone: phone, qualityScore: 95, maxAllocations: 1,
+        fields: JSON.stringify({ firstName: "Race", phone, city: tag }),
+        normalizedPhone: phone, city: tag, qualityScore: 95, maxAllocations: 1,
       },
     });
     const planA = await makePlan(orgA, 1, { minQuality: 94 });

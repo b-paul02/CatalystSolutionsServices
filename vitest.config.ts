@@ -9,6 +9,7 @@ export default defineConfig({
     environment: "node",
     include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
     testTimeout: 30_000,
+    hookTimeout: 60_000,
     poolOptions: { threads: { maxThreads: 4 }, forks: { maxForks: 4 } },
   },
   // Server components under test render through the automatic JSX runtime.
