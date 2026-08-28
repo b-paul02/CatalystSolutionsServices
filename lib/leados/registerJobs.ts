@@ -2,5 +2,6 @@
 // Imported for side effects by the cron route, actions that enqueue, and tests.
 import "./importJob";
 import "./allocationJob";
+import "./sequenceJob";
 
 export {};

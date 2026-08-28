@@ -11,7 +11,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { enqueueDueAllocations } = await import("@/lib/leados/allocationJob");
+  const { enqueueSequenceTick } = await import("@/lib/leados/sequenceJob");
   const enqueued = await enqueueDueAllocations();
+  await enqueueSequenceTick();
   let total = 0;
   // Drain in batches until quiet or ~4 min elapsed (Vercel limit headroom).
   const deadline = Date.now() + 4 * 60_000;

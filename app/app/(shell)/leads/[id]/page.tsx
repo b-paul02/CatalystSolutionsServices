@@ -5,6 +5,7 @@ import { can } from "@/lib/leados/rbac";
 import { db } from "@/lib/audit/db";
 import { Badge, Card } from "@/components/leados/ui";
 import LeadControls from "./LeadControls";
+import LeadWorkspace from "./LeadWorkspace";
 
 export const metadata = { title: "Lead" };
 
@@ -19,11 +20,22 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
     },
   });
   if (!lead) notFound();
-  const [sources, verifications, members] = await Promise.all([
+  const [sources, verifications, members, activities, notes, tasks, messages, templates, sequences, enrollment] = await Promise.all([
     db.losLeadSourceRecord.findMany({ where: { leadId: lead.id, orgId: actor.orgId }, orderBy: { createdAt: "desc" }, take: 5 }),
     db.losVerificationEvent.findMany({ where: { leadId: lead.id, orgId: actor.orgId }, orderBy: { createdAt: "desc" }, take: 10 }),
     db.losMembership.findMany({ where: { orgId: actor.orgId }, include: { user: { select: { id: true, name: true, email: true } } } }),
+    db.losActivity.findMany({ where: { leadId: lead.id, orgId: actor.orgId }, orderBy: { createdAt: "desc" }, take: 30 }),
+    db.losNote.findMany({ where: { leadId: lead.id, orgId: actor.orgId }, orderBy: { createdAt: "desc" }, take: 20 }),
+    db.losTask.findMany({ where: { leadId: lead.id, orgId: actor.orgId }, orderBy: [{ doneAt: "asc" }, { dueAt: "asc" }], take: 20 }),
+    db.losOutboundMessage.findMany({ where: { leadId: lead.id, orgId: actor.orgId }, orderBy: { createdAt: "desc" }, take: 20, include: { events: true } }),
+    db.losMessageTemplate.findMany({ where: { orgId: actor.orgId }, orderBy: { name: "asc" } }),
+    db.losSequence.findMany({ where: { orgId: actor.orgId, status: "active" }, select: { id: true, name: true } }),
+    db.losSequenceEnrollment.findFirst({ where: { leadId: lead.id, orgId: actor.orgId }, include: { sequence: { select: { name: true } } }, orderBy: { createdAt: "desc" } }),
   ]);
+  const memberLabel = (id: string | null) => {
+    const m = members.find((x) => x.userId === id);
+    return m ? (m.user.name ?? m.user.email) : "system";
+  };
   const name = [lead.firstName, lead.lastName].filter(Boolean).join(" ") || lead.email || lead.phone || "Lead";
   const b2c = lead.b2c;
   const parse = (s: string | null | undefined): string[] => { try { return s ? JSON.parse(s) : []; } catch { return []; } };
@@ -109,6 +121,29 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
           members={members.map((m) => ({ userId: m.userId, label: m.user.name ?? m.user.email }))}
         />
       </div>
+
+      <LeadWorkspace
+        leadId={lead.id}
+        canContact={can(actor.role, "leads.contact")}
+        canEdit={can(actor.role, "leads.edit")}
+        activities={activities.map((a) => ({
+          id: a.id, kind: a.kind, at: a.createdAt.toISOString().slice(0, 16).replace("T", " "),
+          actor: a.actorId ? memberLabel(a.actorId) : null,
+          data: a.data ? JSON.parse(a.data) : {},
+        }))}
+        notes={notes.map((n) => ({ id: n.id, body: n.body, author: memberLabel(n.authorId), at: n.createdAt.toISOString().slice(0, 16).replace("T", " ") }))}
+        tasks={tasks.map((t) => ({ id: t.id, title: t.title, kind: t.kind, dueAt: t.dueAt.toISOString(), done: Boolean(t.doneAt), assignee: memberLabel(t.assigneeId) }))}
+        messages={messages.map((m) => ({
+          id: m.id, channel: m.channel, status: m.status, body: m.body,
+          at: m.createdAt.toISOString().slice(0, 16).replace("T", " "),
+          events: m.events.map((e) => e.kind),
+        }))}
+        templates={templates.map((t) => ({ id: t.id, name: t.name, channel: t.channel, subject: t.subject, body: t.body }))}
+        sequences={sequences}
+        enrollment={enrollment ? { sequenceName: enrollment.sequence.name, status: enrollment.status } : null}
+        members={members.map((m) => ({ userId: m.userId, label: m.user.name ?? m.user.email }))}
+        permittedChannels={lead.leadType === "b2c" ? (JSON.parse(lead.b2c?.permittedChannels ?? "[]") as string[]) : null}
+      />
     </div>
   );
 }

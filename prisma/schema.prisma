@@ -923,6 +923,175 @@ model LosTokenRate {
   @@index([leadType, industry, effectiveFrom])
 }
 
+// ── LeadOS sales workflow: pipeline, tasks, outreach, scoring ────────────────
+
+// Custom pipeline stages per org. System defaults seeded on first read.
+model LosPipelineStage {
+  id     String @id @default(cuid())
+  orgId  String
+  key    String
+  label  String
+  order  Int
+  isWon  Boolean @default(false)
+  isLost Boolean @default(false)
+
+  @@unique([orgId, key])
+}
+
+model LosTask {
+  id         String    @id @default(cuid())
+  orgId      String
+  leadId     String?
+  assigneeId String
+  title      String
+  // call | follow_up | other
+  kind       String    @default("follow_up")
+  dueAt      DateTime
+  doneAt     DateTime?
+  createdById String
+  demo       Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+
+  @@index([orgId, assigneeId, doneAt, dueAt])
+  @@index([leadId])
+}
+
+model LosNote {
+  id       String   @id @default(cuid())
+  orgId    String
+  leadId   String
+  authorId String
+  body     String
+  mentions String? // JSON userId[]
+  createdAt DateTime @default(now())
+
+  @@index([leadId, createdAt])
+}
+
+// Unified lead timeline: stage_change | note | task_created | task_done |
+// assigned | message_sent | message_event | replacement | score
+model LosActivity {
+  id      String   @id @default(cuid())
+  orgId   String
+  leadId  String
+  kind    String
+  actorId String?
+  data    String? // JSON
+  createdAt DateTime @default(now())
+
+  @@index([leadId, createdAt])
+}
+
+model LosMessageTemplate {
+  id      String @id @default(cuid())
+  orgId   String
+  name    String
+  // whatsapp | sms | email
+  channel String
+  subject String?
+  body    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId, channel])
+}
+
+model LosSequence {
+  id     String @id @default(cuid())
+  orgId  String
+  name   String
+  // active | paused
+  status String @default("active")
+  createdAt DateTime @default(now())
+
+  steps       LosSequenceStep[]
+  enrollments LosSequenceEnrollment[]
+}
+
+model LosSequenceStep {
+  id         String @id @default(cuid())
+  sequenceId String
+  sequence   LosSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  order      Int
+  channel    String
+  templateId String
+  delayHours Int    @default(24)
+
+  @@unique([sequenceId, order])
+}
+
+model LosSequenceEnrollment {
+  id         String   @id @default(cuid())
+  sequenceId String
+  sequence   LosSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  orgId      String
+  leadId     String
+  currentStep Int     @default(0)
+  // active | completed | stopped_reply | stopped_optout | stopped_manual | stopped_converted | blocked
+  status     String   @default("active")
+  nextRunAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([sequenceId, leadId])
+  @@index([status, nextRunAt])
+}
+
+model LosOutboundMessage {
+  id         String   @id @default(cuid())
+  orgId      String
+  leadId     String
+  // whatsapp | sms | email
+  channel    String
+  toAddress  String
+  subject    String?
+  body       String
+  templateId String?
+  sequenceId String?
+  // sent | failed | blocked | dev_logged
+  status     String
+  blockReason String?
+  providerRef String?
+  optOutToken String? @unique
+  sentById   String? // null = system/sequence
+  createdAt  DateTime @default(now())
+
+  events LosMessageEvent[]
+
+  @@index([orgId, channel, createdAt])
+  @@index([leadId, createdAt])
+}
+
+model LosMessageEvent {
+  id        String   @id @default(cuid())
+  messageId String
+  message   LosOutboundMessage @relation(fields: [messageId], references: [id])
+  // delivered | bounce | reply | optout
+  kind      String
+  data      String?
+  createdAt DateTime @default(now())
+
+  @@index([messageId])
+}
+
+model LosScoringConfig {
+  orgId   String @id
+  weights String // JSON — see lib/leados/scoring.ts DEFAULT_WEIGHTS
+  updatedAt DateTime @updatedAt
+}
+
+model LosScoreEvent {
+  id      String   @id @default(cuid())
+  orgId   String
+  leadId  String
+  quality Int
+  intent  Int
+  explanation String // JSON breakdown
+  createdAt DateTime @default(now())
+
+  @@index([leadId, createdAt])
+}
+
 // ── LeadOS B2C campaign generation ───────────────────────────────────────────
 
 model LosCampaign {

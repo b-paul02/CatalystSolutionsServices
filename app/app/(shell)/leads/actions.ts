@@ -67,10 +67,11 @@ export async function updateLeadBasics(_prev: FormState, form: FormData): Promis
   return { ok: "Saved." };
 }
 
-export async function setLeadStatus(leadId: string, status: string, lostReason?: string): Promise<void> {
+export async function setLeadStatus(leadId: string, status: string, lostReason?: string, conversionValue?: number): Promise<void> {
   const actor = await requireOrg("leads.edit");
-  if (!(LEAD_STATUSES as readonly string[]).includes(status)) return;
-  await ownLead(actor.orgId, leadId);
+  const { isValidStage } = await import("@/lib/leados/stages");
+  if (!(await isValidStage(actor.orgId, status))) return;
+  const lead = await ownLead(actor.orgId, leadId);
   await db.losLead.update({
     where: { id: leadId },
     data: {
@@ -78,11 +79,19 @@ export async function setLeadStatus(leadId: string, status: string, lostReason?:
       lostReason: status === "lost" ? (lostReason ?? null) : null,
       contactedAt: status === "contacted" ? new Date() : undefined,
       convertedAt: status === "converted" ? new Date() : undefined,
+      conversionValue: status === "converted" && conversionValue && conversionValue > 0 ? BigInt(Math.round(conversionValue * 100)) : undefined,
+    },
+  });
+  await db.losActivity.create({
+    data: {
+      orgId: actor.orgId, leadId, kind: "stage_change", actorId: actor.userId,
+      data: JSON.stringify({ from: lead.status, to: status, lostReason: lostReason ?? null }),
     },
   });
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "leads.status", entity: "LosLead", entityId: leadId, data: { status } });
   revalidatePath(`/app/leads/${leadId}`);
   revalidatePath("/app/leads");
+  revalidatePath("/app/pipeline");
 }
 
 export async function assignLead(leadId: string, ownerId: string | null): Promise<void> {
@@ -201,4 +210,112 @@ export async function commitImport(importId: string): Promise<void> {
   // Kick the queue now instead of waiting for the next cron tick.
   runPendingJobs(3).catch(() => {});
   revalidatePath(`/app/leads/import/${importId}`);
+}
+
+// ── notes, tasks, messages (lead workspace) ──────────────────────────────────
+
+export async function addNote(_prev: FormState, form: FormData): Promise<FormState> {
+  const actor = await requireOrg("leads.edit");
+  const leadId = String(form.get("leadId"));
+  const body = String(form.get("body") ?? "").trim().slice(0, 4000);
+  if (!body) return { error: "Write something first." };
+  await ownLead(actor.orgId, leadId);
+  const mentions = [...body.matchAll(/@(\S+@\S+)/g)].map((m) => m[1]).slice(0, 10);
+  await db.losNote.create({
+    data: { orgId: actor.orgId, leadId, authorId: actor.userId, body, mentions: mentions.length ? JSON.stringify(mentions) : null },
+  });
+  await db.losActivity.create({
+    data: { orgId: actor.orgId, leadId, kind: "note", actorId: actor.userId, data: JSON.stringify({ preview: body.slice(0, 120) }) },
+  });
+  revalidatePath(`/app/leads/${leadId}`);
+  return { ok: "Note added." };
+}
+
+export async function addTask(_prev: FormState, form: FormData): Promise<FormState> {
+  const actor = await requireOrg("leads.edit");
+  const leadId = String(form.get("leadId") ?? "") || null;
+  const title = String(form.get("title") ?? "").trim().slice(0, 300);
+  const kind = ["call", "follow_up", "other"].includes(String(form.get("kind"))) ? String(form.get("kind")) : "follow_up";
+  const dueAt = new Date(String(form.get("dueAt") ?? ""));
+  const assigneeId = String(form.get("assigneeId") ?? actor.userId);
+  if (!title) return { error: "Give the task a title." };
+  if (isNaN(dueAt.getTime())) return { error: "Set a due date." };
+  if (leadId) await ownLead(actor.orgId, leadId);
+  const member = await db.losMembership.findFirst({ where: { orgId: actor.orgId, userId: assigneeId } });
+  if (!member) return { error: "Pick a valid assignee." };
+  await db.losTask.create({
+    data: { orgId: actor.orgId, leadId, title, kind, dueAt, assigneeId, createdById: actor.userId },
+  });
+  if (leadId) {
+    await db.losActivity.create({
+      data: { orgId: actor.orgId, leadId, kind: "task_created", actorId: actor.userId, data: JSON.stringify({ title, dueAt }) },
+    });
+    revalidatePath(`/app/leads/${leadId}`);
+  }
+  revalidatePath("/app/tasks");
+  return { ok: "Task created." };
+}
+
+export async function toggleTask(taskId: string): Promise<void> {
+  const actor = await requireOrg("leads.edit");
+  const task = await db.losTask.findFirst({ where: { id: taskId, orgId: actor.orgId } });
+  if (!task) return;
+  const doneAt = task.doneAt ? null : new Date();
+  await db.losTask.update({ where: { id: taskId }, data: { doneAt } });
+  if (task.leadId && doneAt) {
+    await db.losActivity.create({
+      data: { orgId: actor.orgId, leadId: task.leadId, kind: "task_done", actorId: actor.userId, data: JSON.stringify({ title: task.title }) },
+    });
+  }
+  revalidatePath("/app/tasks");
+  if (task.leadId) revalidatePath(`/app/leads/${task.leadId}`);
+}
+
+export async function sendOneToOne(_prev: FormState, form: FormData): Promise<FormState> {
+  const actor = await requireOrg("leads.contact");
+  const leadId = String(form.get("leadId"));
+  const channel = String(form.get("channel"));
+  if (!["whatsapp", "sms", "email"].includes(channel)) return { error: "Pick a channel." };
+  const body = String(form.get("body") ?? "").trim().slice(0, 3000);
+  const subject = String(form.get("subject") ?? "").trim().slice(0, 200) || undefined;
+  if (!body) return { error: "Write the message." };
+  await ownLead(actor.orgId, leadId);
+  const { sendOutreachMessage } = await import("@/lib/leados/outreach");
+  const result = await sendOutreachMessage({
+    orgId: actor.orgId, leadId, channel: channel as "whatsapp" | "sms" | "email",
+    body, subject, sentById: actor.userId,
+  });
+  revalidatePath(`/app/leads/${leadId}`);
+  if (result.outcome === "blocked") {
+    return { error: `Not sent: ${result.reason.replace(/_/g, " ")}. Channel permissions and suppression are enforced on every send.` };
+  }
+  return { ok: result.dev ? "Sent (dev mode — no provider configured, message logged)." : "Sent." };
+}
+
+export async function enrollInSequence(leadId: string, sequenceId: string): Promise<void> {
+  const actor = await requireOrg("leads.contact");
+  await ownLead(actor.orgId, leadId);
+  const sequence = await db.losSequence.findFirst({ where: { id: sequenceId, orgId: actor.orgId } });
+  if (!sequence) return;
+  await db.losSequenceEnrollment.upsert({
+    where: { sequenceId_leadId: { sequenceId, leadId } },
+    update: {},
+    create: { sequenceId, leadId, orgId: actor.orgId, nextRunAt: new Date() },
+  });
+  await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "sequence.enroll", entity: "LosSequenceEnrollment", data: { leadId, sequenceId } });
+  revalidatePath(`/app/leads/${leadId}`);
+}
+
+export async function recomputeScore(leadId: string): Promise<void> {
+  const actor = await requireOrg("leads.view");
+  const lead = await db.losLead.findFirst({ where: { id: leadId, orgId: actor.orgId, deletedAt: null }, include: { b2c: true } });
+  if (!lead) return;
+  const { scoreLead, parseWeights } = await import("@/lib/leados/scoring");
+  const config = await db.losScoringConfig.findUnique({ where: { orgId: actor.orgId } });
+  const result = scoreLead(lead, parseWeights(config?.weights));
+  await db.losLead.update({ where: { id: leadId }, data: { qualityScore: result.quality, intentScore: result.intent } });
+  await db.losScoreEvent.create({
+    data: { orgId: actor.orgId, leadId, quality: result.quality, intent: result.intent, explanation: JSON.stringify(result.explanation) },
+  });
+  revalidatePath(`/app/leads/${leadId}`);
 }

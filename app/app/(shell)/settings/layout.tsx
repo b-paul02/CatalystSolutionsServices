@@ -7,6 +7,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
     { href: "/app/settings/security", label: "Security", icon: "lock" },
     { href: "/app/settings/api-keys", label: "API keys", icon: "key" },
     { href: "/app/settings/billing", label: "Tokens & billing", icon: "toll" },
+    { href: "/app/settings/scoring", label: "Scoring", icon: "speed" },
   ];
   return (
     <div>
