@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/audit/db";
 import { requireOrg, requireLosUser } from "@/lib/leados/auth";
 import { logLosAudit } from "@/lib/leados/audit";
-import { decryptField, encryptField, randomToken, sha256 } from "@/lib/leados/crypto";
+import { encryptField, randomToken, sha256, tryDecryptField } from "@/lib/leados/crypto";
 import { generateTotpSecret, totpUri, verifyTotp } from "@/lib/leados/totp";
 import { APP_URL, sendLosMail } from "@/lib/leados/email";
 import { isClientRole } from "@/lib/leados/rbac";
@@ -108,7 +108,9 @@ export async function confirmMfa(_prev: FormState, form: FormData): Promise<Form
   const actor = await requireLosUser();
   const user = await db.losUser.findUnique({ where: { id: actor.userId } });
   if (!user?.mfaSecretEnc) return { error: "Start MFA setup first." };
-  if (!verifyTotp(decryptField(user.mfaSecretEnc), String(form.get("code") ?? ""))) {
+  const setupSecret = tryDecryptField(user.mfaSecretEnc);
+  if (!setupSecret) return { error: "Setup expired — start MFA setup again." };
+  if (!verifyTotp(setupSecret, String(form.get("code") ?? ""))) {
     return { error: "That code didn't match. Check your authenticator app." };
   }
   await db.losUser.update({ where: { id: actor.userId }, data: { mfaEnabledAt: new Date() } });
@@ -121,7 +123,9 @@ export async function disableMfa(_prev: FormState, form: FormData): Promise<Form
   const actor = await requireLosUser();
   const user = await db.losUser.findUnique({ where: { id: actor.userId } });
   if (!user?.mfaSecretEnc || !user.mfaEnabledAt) return { error: "MFA is not enabled." };
-  if (!verifyTotp(decryptField(user.mfaSecretEnc), String(form.get("code") ?? ""))) {
+  const offSecret = tryDecryptField(user.mfaSecretEnc);
+  if (!offSecret) return { error: "Your MFA data can't be read — ask an administrator to reset it." };
+  if (!verifyTotp(offSecret, String(form.get("code") ?? ""))) {
     return { error: "Enter a valid current code to turn MFA off." };
   }
   await db.losUser.update({ where: { id: actor.userId }, data: { mfaSecretEnc: null, mfaEnabledAt: null } });

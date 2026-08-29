@@ -10,7 +10,7 @@ import {
   clearSessionCookie, createLosSession, currentLosActor, hashPassword, LOS_COOKIE,
   passwordProblem, setActiveOrg, setSessionCookie, verifyPassword,
 } from "@/lib/leados/auth";
-import { randomToken, sha256, decryptField } from "@/lib/leados/crypto";
+import { randomToken, sha256, tryDecryptField } from "@/lib/leados/crypto";
 import { logLosAudit } from "@/lib/leados/audit";
 import { APP_URL, sendLosMail } from "@/lib/leados/email";
 import { verifyTotp } from "@/lib/leados/totp";
@@ -111,7 +111,13 @@ export async function verifyMfa(_prev: FormState, form: FormData): Promise<FormS
   }
   const user = await db.losUser.findUnique({ where: { id: actor.userId } });
   if (!user?.mfaSecretEnc) redirect("/app/dashboard");
-  if (!verifyTotp(decryptField(user.mfaSecretEnc), String(form.get("code") ?? ""))) {
+  const secret = tryDecryptField(user.mfaSecretEnc);
+  if (!secret) {
+    // Fail closed: never bypass MFA, never crash. (Happens after an encryption
+    // key change — an administrator must reset the user's MFA.)
+    return { error: "Your two-factor setup can't be read (the platform encryption key changed). Ask an administrator to reset your MFA." };
+  }
+  if (!verifyTotp(secret, String(form.get("code") ?? ""))) {
     return { error: "That code didn't match. Try again." };
   }
   await db.losSession.update({ where: { id: actor.sessionId }, data: { mfaPending: false } });

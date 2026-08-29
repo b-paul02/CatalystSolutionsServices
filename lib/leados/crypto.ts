@@ -32,3 +32,12 @@ export function decryptField(stored: string): string {
   decipher.setAuthTag(Buffer.from(tag, "base64url"));
   return Buffer.concat([decipher.update(Buffer.from(data, "base64url")), decipher.final()]).toString("utf8");
 }
+
+/** decryptField that returns null instead of throwing (wrong key / tampered). */
+export function tryDecryptField(stored: string): string | null {
+  try {
+    return decryptField(stored);
+  } catch {
+    return null;
+  }
+}
