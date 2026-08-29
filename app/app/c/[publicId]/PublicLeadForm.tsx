@@ -1,7 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormSpec } from "@/lib/leados/campaigns";
+
+// Cloudflare Turnstile: rendered only when the public site key is configured.
+// The server rejects submissions without a valid token whenever the secret
+// key is set, so widget and check always come as a pair.
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+
+declare global {
+  interface Window {
+    turnstile?: { render: (el: HTMLElement, opts: { sitekey: string; callback: (token: string) => void; "expired-callback": () => void }) => void };
+  }
+}
+
+function useTurnstile(): { token: string | null; slot: React.RefObject<HTMLDivElement | null> } {
+  const [token, setToken] = useState<string | null>(null);
+  const slot = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY || !slot.current) return;
+    const render = () => {
+      if (window.turnstile && slot.current && slot.current.childElementCount === 0) {
+        window.turnstile.render(slot.current, {
+          sitekey: TURNSTILE_SITE_KEY,
+          callback: setToken,
+          "expired-callback": () => setToken(null),
+        });
+      }
+    };
+    if (window.turnstile) {
+      render();
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    script.async = true;
+    script.onload = render;
+    document.head.appendChild(script);
+  }, []);
+  return { token, slot };
+}
 
 export default function PublicLeadForm(props: {
   publicId: string;
@@ -17,6 +55,7 @@ export default function PublicLeadForm(props: {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const turnstile = useTurnstile();
 
   if (done) {
     return (
@@ -56,6 +95,7 @@ export default function PublicLeadForm(props: {
               utm: props.utm,
               trackingCode: props.trackingCode,
               website: values.website ?? "", // honeypot
+              turnstileToken: turnstile.token,
             }),
           });
           const body = (await res.json()) as { message?: string; error?: string };
@@ -110,9 +150,10 @@ export default function PublicLeadForm(props: {
           <strong>{spec.consentChannels.join(", ")}</strong>. I can withdraw at any time via the privacy page.
         </span>
       </label>
+      {TURNSTILE_SITE_KEY && <div ref={turnstile.slot} className="flex justify-center" />}
       <button
         type="submit"
-        disabled={busy}
+        disabled={busy || (Boolean(TURNSTILE_SITE_KEY) && !turnstile.token)}
         className="w-full rounded-lg px-4 py-3 text-[15px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
         style={{ background: props.brandColor }}
       >
