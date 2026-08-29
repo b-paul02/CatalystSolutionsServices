@@ -40,7 +40,9 @@ export function oauthEnabled(provider: OAuthProvider): boolean {
 }
 
 export function redirectUri(provider: OAuthProvider): string {
-  return `${APP_URL}/api/leados/oauth/${provider}/callback`;
+  // API routes live at the origin root, not under the /app page prefix.
+  const origin = APP_URL.replace(/\/app$/, "");
+  return `${origin}/api/leados/oauth/${provider}/callback`;
 }
 
 /** Exchanges the code and returns the verified email + name, or null. */

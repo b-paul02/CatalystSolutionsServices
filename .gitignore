@@ -17,3 +17,6 @@ CATALYST_COMMERCIAL_SYSTEM.md
 
 # Business documents kept local — not for the public repo
 docs/
+
+# LeadOS secrets kept local — never commit
+leados-production-env.txt
