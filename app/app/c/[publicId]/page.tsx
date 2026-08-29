@@ -71,6 +71,7 @@ export default async function PublicCampaignPage({
           utm={utm}
           calendarUrl={pageSpec.calendarUrl ?? null}
           thankYouRedirect={pageSpec.thankYouRedirect ?? null}
+          turnstileSiteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? process.env.TURNSTILE_SITE_KEY_PUBLIC ?? null}
         />
       </div>
     </div>
