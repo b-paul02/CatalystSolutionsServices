@@ -20,3 +20,6 @@ docs/
 
 # LeadOS secrets kept local — never commit
 leados-production-env.txt
+
+.vercel
+.env*
