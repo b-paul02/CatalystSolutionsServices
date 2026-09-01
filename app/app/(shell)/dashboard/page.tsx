@@ -1,5 +1,6 @@
 import { requireOrg } from "@/lib/leados/auth";
 import { db } from "@/lib/audit/db";
+import { tokenBalance } from "@/lib/leados/tokens";
 import { Card } from "@/components/leados/ui";
 
 export const metadata = { title: "Dashboard" };
@@ -7,14 +8,20 @@ export const metadata = { title: "Dashboard" };
 export default async function DashboardPage() {
   const actor = await requireOrg();
   const org = await db.losOrg.findUnique({ where: { id: actor.orgId } });
-  const members = await db.losMembership.count({ where: { orgId: actor.orgId } });
+  const dayStart = new Date();
+  dayStart.setUTCHours(0, 0, 0, 0);
+  const [members, leads, deliveredToday, balance] = await Promise.all([
+    db.losMembership.count({ where: { orgId: actor.orgId } }),
+    db.losLead.count({ where: { orgId: actor.orgId } }),
+    db.losAllocation.count({ where: { orgId: actor.orgId, createdAt: { gte: dayStart } } }),
+    tokenBalance(actor.orgId),
+  ]);
 
-  // Real metrics arrive with leads (Phase 2) and allocation (Phase 4).
   const cards = [
-    { label: "Leads", value: "—", hint: "Lead management opens in the next release" },
-    { label: "Delivered today", value: "—", hint: "Daily lead delivery" },
+    { label: "Leads", value: leads.toLocaleString(), hint: "All leads in this org" },
+    { label: "Delivered today", value: deliveredToday.toLocaleString(), hint: "Daily lead delivery" },
     { label: "Team members", value: String(members), hint: "Manage in Settings → Team" },
-    { label: "Token balance", value: "—", hint: "Token billing" },
+    { label: "Token balance", value: balance.toLocaleString(), hint: "Settings → Billing" },
   ];
 
   return (
