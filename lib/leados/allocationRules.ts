@@ -74,14 +74,34 @@ export function computeDue(
   return { due: dailyQuota + rollover, rollover };
 }
 
-export type TargetingRule = { countries?: string[]; states?: string[]; cities?: string[] };
+export type TargetingRule = {
+  countries?: string[];
+  states?: string[];
+  cities?: string[];
+  // Dataset-column filters: column name → allowed values (any-of, case-insensitive).
+  fields?: Record<string, string[]>;
+};
 
 const norm = (s: string | null | undefined) => (s ?? "").trim().toLowerCase();
 
 /** Case-insensitive containment; empty/omitted lists match everything. */
-export function matchesTargeting(record: { country?: string | null; state?: string | null; city?: string | null }, rule: TargetingRule | null): boolean {
+export function matchesTargeting(
+  record: { country?: string | null; state?: string | null; city?: string | null },
+  rule: TargetingRule | null,
+  recordFields?: Record<string, unknown>,
+): boolean {
   if (!rule) return true;
   const ok = (list: string[] | undefined, value: string | null | undefined) =>
     !list || list.length === 0 || list.map(norm).includes(norm(value));
-  return ok(rule.countries, record.country) && ok(rule.states, record.state) && ok(rule.cities, record.city);
+  if (!(ok(rule.countries, record.country) && ok(rule.states, record.state) && ok(rule.cities, record.city))) return false;
+  for (const [column, allowed] of Object.entries(rule.fields ?? {})) {
+    if (!allowed || allowed.length === 0) continue;
+    const raw = recordFields?.[column];
+    const value = typeof raw === "string" ? raw : raw == null ? "" : String(raw);
+    // tags-style columns hold comma/semicolon lists: match any token.
+    const tokens = value.split(/[,;]/).map(norm).filter(Boolean);
+    const want = allowed.map(norm);
+    if (!tokens.some((t) => want.includes(t))) return false;
+  }
+  return true;
 }

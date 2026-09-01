@@ -58,4 +58,12 @@ describe("targeting", () => {
     expect(matchesTargeting({ country: "USA" }, { countries: ["India"] })).toBe(false);
     expect(matchesTargeting({ country: "India", city: "Mumbai" }, { countries: ["India"], cities: ["Pune"] })).toBe(false);
   });
+  it("dataset-column filters: any-of, case-insensitive, token-aware for tag lists", () => {
+    const rule = { fields: { budgetBand: ["50-75L"], tags: ["hot"] } };
+    expect(matchesTargeting({}, rule, { budgetBand: "50-75l", tags: "warm, HOT" })).toBe(true);
+    expect(matchesTargeting({}, rule, { budgetBand: "50-75L", tags: "warm" })).toBe(false);
+    expect(matchesTargeting({}, rule, { tags: "hot" })).toBe(false); // missing filtered column
+    expect(matchesTargeting({}, { fields: { budgetBand: [] } }, {})).toBe(true); // empty list matches all
+    expect(matchesTargeting({}, { fields: {} }, undefined)).toBe(true);
+  });
 });

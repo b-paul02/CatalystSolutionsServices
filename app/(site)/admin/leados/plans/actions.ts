@@ -22,11 +22,15 @@ export async function createPlan(_prev: FormState, form: FormData): Promise<Form
   const startDate = new Date(String(form.get("startDate") ?? ""));
   if (isNaN(startDate.getTime())) return { error: "Set a start date." };
   const endRaw = String(form.get("endDate") ?? "");
-  const targeting = {
-    countries: String(form.get("countries") ?? "").split(",").map((s) => s.trim()).filter(Boolean),
-    states: String(form.get("states") ?? "").split(",").map((s) => s.trim()).filter(Boolean),
-    cities: String(form.get("cities") ?? "").split(",").map((s) => s.trim()).filter(Boolean),
-  };
+  // Multi-select values; commas still split so pasted "Mumbai, Pune" keeps working.
+  const geoList = (key: string) =>
+    form.getAll(key).flatMap((v) => String(v).split(",")).map((s) => s.trim()).filter(Boolean);
+  const fields: Record<string, string[]> = {};
+  for (const key of new Set([...form.keys()].filter((k) => k.startsWith("ff_")))) {
+    const values = geoList(key);
+    if (values.length > 0) fields[key.slice(3)] = values;
+  }
+  const targeting = { countries: geoList("countries"), states: geoList("states"), cities: geoList("cities"), fields };
   const workingDays = String(form.get("workingDays") ?? "1,2,3,4,5")
     .split(",").map((s) => parseInt(s.trim(), 10)).filter((n) => n >= 1 && n <= 7);
   const plan = await db.losLeadPlan.create({
