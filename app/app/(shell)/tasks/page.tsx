@@ -3,6 +3,7 @@ import { requireOrg } from "@/lib/leados/auth";
 import { db } from "@/lib/audit/db";
 import { Badge, Card } from "@/components/leados/ui";
 import TaskList from "./TaskList";
+import QuickAddTask from "./QuickAddTask";
 
 export const metadata = { title: "My day" };
 
@@ -37,6 +38,7 @@ export default async function TasksPage() {
       <p className="mb-5 text-[13.5px] text-[var(--los-muted)]">
         {tasks.filter((t) => t.dueAt <= now).length} due now · {tasks.length} open task{tasks.length === 1 ? "" : "s"} · {needsAttention.length} lead{needsAttention.length === 1 ? "" : "s"} waiting for first contact
       </p>
+      <QuickAddTask />
       <TaskList
         tasks={tasks.map((t) => ({
           id: t.id, title: t.title, kind: t.kind,
