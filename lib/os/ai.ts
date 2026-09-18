@@ -1,0 +1,161 @@
+// AI roles for CatalystGrowthOS (blueprint §11). Topology: tenant-scoped context
+// → model → structured JSON → DETERMINISTIC validators → human review gate. The
+// model never executes anything; every output lands as a draft a person reviews.
+// Provider-agnostic: reuses the site's OpenAI-compatible client (LLM_* env).
+import { db } from "@/lib/audit/db";
+import { callClaudeJSON } from "@/lib/audit/anthropic";
+
+export const aiAvailable = (): boolean => Boolean(process.env.LLM_API_KEY);
+export const aiModel = (): string => process.env.LLM_MODEL ?? "default";
+
+// ── deterministic validators (pure, unit-tested) ─────────────────────────────
+
+// Claims the sales deck forbids (PDF pp. 16–17; blueprint §1.3): no guarantees.
+const BANNED = [
+  /\bguarantee[ds]?\b/i, /\b(#\s?1|number one|first page)\s+(on|in|of)\s+google\b/i, /\bwill\s+rank\b/i,
+  /\b\d{2,}\s?%\s+(more|increase|growth|roi)\b.*\bguarant/i, /\brisk[- ]free\b/i, /\bdouble your (revenue|leads|sales)\b/i,
+];
+
+export function copyProblems(text: string): string[] {
+  const problems: string[] = [];
+  for (const re of BANNED) if (re.test(text)) problems.push(`Unsupported claim: "${text.match(re)?.[0]}"`);
+  for (const url of text.match(/https?:\/\/\S+/g) ?? []) {
+    try { new URL(url.replace(/[).,]+$/, "")); } catch { problems.push(`Invalid URL: ${url}`); }
+  }
+  if (/\[(insert|todo|tbd|placeholder)[^\]]*\]/i.test(text) || /lorem ipsum/i.test(text)) problems.push("Contains placeholder text.");
+  return problems;
+}
+
+export type PlanPayload = {
+  summary: string;
+  allocation: { channel: string; pct: number; rationale: string; evidenceIds: string[] }[];
+  focus: { title: string; why: string; effort: string; risk: string; successMetric: string; evidenceIds: string[] }[];
+  assumptions: string[];
+  risks: string[];
+  alternatives: { name: string; tradeoff: string }[];
+};
+
+/**
+ * Evidence discipline for a plan: allocation must sum to 100, every cited id
+ * must be a real finding/learning of THIS tenant (hallucinated citations are
+ * stripped and reported), and an uncited recommendation is only acceptable if
+ * the plan declares assumptions.
+ */
+export function validatePlan(plan: PlanPayload, knownEvidenceIds: Set<string>): { plan: PlanPayload; problems: string[]; notes: string[] } {
+  const problems: string[] = [];
+  const notes: string[] = [];
+  const total = plan.allocation.reduce((a, r) => a + (Number.isFinite(r.pct) ? r.pct : 0), 0);
+  if (plan.allocation.length === 0) problems.push("Plan has no allocation.");
+  else if (Math.abs(total - 100) > 1) problems.push(`Allocation sums to ${total}%, not 100%.`);
+  if (plan.allocation.some((r) => r.pct < 0)) problems.push("Negative allocation.");
+  const clean = <T extends { evidenceIds: string[] }>(rows: T[], what: string): T[] =>
+    rows.map((r) => {
+      const ids = (r.evidenceIds ?? []).filter((id) => knownEvidenceIds.has(id));
+      const dropped = (r.evidenceIds ?? []).length - ids.length;
+      if (dropped > 0) notes.push(`Removed ${dropped} citation(s) that don't exist from ${what}.`);
+      return { ...r, evidenceIds: ids };
+    });
+  const allocation = clean(plan.allocation ?? [], "allocation");
+  const focus = clean(plan.focus ?? [], "focus areas");
+  const uncited = [...allocation, ...focus].filter((r) => r.evidenceIds.length === 0).length;
+  if (uncited > 0 && (plan.assumptions ?? []).length === 0) problems.push("Uncited recommendations but no stated assumptions.");
+  if (uncited > 0) notes.push(`${uncited} recommendation(s) rest on assumptions, not evidence — label them as hypotheses.`);
+  problems.push(...copyProblems(JSON.stringify(plan)));
+  return { plan: { ...plan, allocation, focus, assumptions: plan.assumptions ?? [], risks: plan.risks ?? [], alternatives: plan.alternatives ?? [] }, problems, notes };
+}
+
+export type CalendarDraft = { dayOffset: number; channel: string; persona: string; topic: string; hook: string; format: string; cta: string };
+
+const CHANNEL_ALIASES: Record<string, string> = { twitter: "x", "x/twitter": "x", "linkedin post": "linkedin", "facebook page": "facebook", "blog post": "blog", article: "blog", newsletter: "email", "email newsletter": "email" };
+
+/** Tolerant of shape drift from small models; strict on channels, dates and claims. */
+export function validateCalendar(raw: unknown, allowedChannels: string[], days: number): { items: CalendarDraft[]; dropped: string[] } {
+  const allowed = new Set(allowedChannels.map((c) => c.toLowerCase()));
+  const list: unknown[] = Array.isArray(raw) ? raw : Array.isArray((raw as { items?: unknown })?.items) ? (raw as { items: unknown[] }).items
+    : Array.isArray((raw as { calendar?: unknown })?.calendar) ? (raw as { calendar: unknown[] }).calendar : [];
+  const items: CalendarDraft[] = [];
+  const dropped: string[] = [];
+  for (const it of list) {
+    const o = (it ?? {}) as Record<string, unknown>;
+    const rawChannel = String(o.channel ?? "").trim().toLowerCase();
+    const channel = CHANNEL_ALIASES[rawChannel] ?? rawChannel;
+    const dayOffset = Math.floor(Number(o.dayOffset ?? o.day ?? NaN));
+    const topic = String(o.topic ?? o.title ?? "").trim();
+    const text = `${topic} ${o.hook ?? ""} ${o.cta ?? ""}`;
+    if (!allowed.has(channel)) { dropped.push(`channel "${rawChannel}"`); continue; }
+    if (!Number.isInteger(dayOffset) || dayOffset < 0 || dayOffset >= days) { dropped.push(`day ${o.dayOffset ?? o.day}`); continue; }
+    if (!topic) { dropped.push("no topic"); continue; }
+    const problems = copyProblems(text);
+    if (problems.length) { dropped.push(problems[0]); continue; }
+    items.push({ dayOffset, channel, persona: String(o.persona ?? ""), topic, hook: String(o.hook ?? ""), format: String(o.format ?? ""), cta: String(o.cta ?? "") });
+  }
+  return { items, dropped };
+}
+
+// ── tenant-scoped context ────────────────────────────────────────────────────
+
+async function tenantContext(orgId: string) {
+  const [org, ws, goals, run, findings, learnings] = await Promise.all([
+    db.losOrg.findUnique({ where: { id: orgId }, select: { name: true, industry: true, market: true, website: true } }),
+    db.cosWorkspace.findUnique({ where: { orgId }, select: { brandProfile: true } }),
+    db.cosGoal.findMany({ where: { orgId, archivedAt: null } }),
+    db.cosAuditRun.findFirst({ where: { orgId }, orderBy: { createdAt: "desc" } }),
+    db.cosFinding.findMany({ where: { orgId, status: { notIn: ["archived", "rejected"] } }, take: 40, orderBy: { createdAt: "desc" } }),
+    // only APPROVED learnings may inform a plan (§7.3)
+    db.cosLearning.findMany({ where: { orgId, status: "approved" }, take: 20 }),
+  ]);
+  const evidenceIds = new Set([...findings.map((f) => f.id), ...learnings.map((l) => l.id)]);
+  const text = JSON.stringify({
+    business: org,
+    brand: ws?.brandProfile ? JSON.parse(ws.brandProfile) : null,
+    goals: goals.map((g) => ({ metric: g.metric, target: g.target, unit: g.unit, horizon: g.horizon })),
+    auditScores: run ? JSON.parse(run.scores) : null,
+    findings: findings.map((f) => ({ id: f.id, pillar: f.pillar, text: f.text, label: f.label, evidence: f.evidence.slice(0, 200) })),
+    approvedLearnings: learnings.map((l) => ({ id: l.id, hypothesis: l.hypothesis, result: l.result, uncertainty: l.uncertainty })),
+  });
+  return { text, evidenceIds };
+}
+
+const RULES = `Rules: never promise or guarantee outcomes, rankings, revenue or AI citations. Cite evidence ONLY by the exact "id" values given in the context; if nothing supports a recommendation, leave evidenceIds empty and add the assumption to "assumptions". Findings labelled "assumed" or "unavailable" are hypotheses, not facts. Respond with JSON only.`;
+
+export async function generatePlan(orgId: string, constraints: string) {
+  const ctx = await tenantContext(orgId);
+  const raw = await callClaudeJSON<PlanPayload>(
+    `You are an AI CMO drafting a growth plan for a strategist to review. ${RULES}
+JSON shape: {"summary":string,"allocation":[{"channel":string,"pct":number,"rationale":string,"evidenceIds":string[]}],"focus":[{"title":string,"why":string,"effort":"low|medium|high","risk":string,"successMetric":string,"evidenceIds":string[]}],"assumptions":string[],"risks":string[],"alternatives":[{"name":string,"tradeoff":string}]}
+Allocation percentages are suggested budget/effort ranges that must sum to 100. You cannot move money; you only propose.`,
+    `Context:\n${ctx.text}\n\nClient constraints / notes:\n${constraints.slice(0, 2000) || "none given"}`,
+  );
+  return validatePlan(raw, ctx.evidenceIds);
+}
+
+export async function generateCalendar(orgId: string, channels: string[], days = 14, perWeek = 4) {
+  const ctx = await tenantContext(orgId);
+  const raw = await callClaudeJSON<unknown>(
+    `You plan a ${days}-day content calendar. ${RULES}
+JSON shape: {"items":[{"dayOffset":number (0-${days - 1}),"channel":string,"persona":string,"topic":string,"hook":string,"format":string,"cta":string}]}
+Use ONLY these channels: ${channels.join(", ")}. About ${perWeek} items per week per channel at most. Channel-native formats.`,
+    `Context:\n${ctx.text}`,
+  );
+  return validateCalendar(raw, channels, days);
+}
+
+export async function draftContent(orgId: string, brief: { channel: string; topic: string; hook?: string; persona?: string; format?: string; cta?: string; notes?: string }) {
+  const ctx = await tenantContext(orgId);
+  const out = await callClaudeJSON<{ body: string; meta?: { title?: string; description?: string }; expertiseFlags?: string[] }>(
+    `You draft channel-native marketing content for an editor to review. ${RULES}
+JSON shape: {"body":string,"meta":{"title":string,"description":string},"expertiseFlags":string[]}
+"expertiseFlags" lists every statement that needs a human expert, a source, or a real client proof point — never invent statistics, testimonials, client names or case studies.`,
+    `Context:\n${ctx.text}\n\nBrief:\n${JSON.stringify(brief)}`,
+  );
+  return { ...out, body: out.body ?? "", expertiseFlags: out.expertiseFlags ?? [], problems: copyProblems(out.body ?? "") };
+}
+
+export async function seoBrief(orgId: string, keyword: string) {
+  const ctx = await tenantContext(orgId);
+  return callClaudeJSON<{ intent: string; outline: string[]; questions: string[]; internalLinks: string[]; expertiseFlags: string[] }>(
+    `You write an SEO content brief for a specialist to validate. ${RULES}
+JSON shape: {"intent":string,"outline":string[],"questions":string[],"internalLinks":string[],"expertiseFlags":string[]}`,
+    `Context:\n${ctx.text}\n\nTarget keyword: ${keyword.slice(0, 120)}`,
+  );
+}

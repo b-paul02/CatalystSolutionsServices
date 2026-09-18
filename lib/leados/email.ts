@@ -1,4 +1,4 @@
-// LeadOS transactional email. Uses Resend when RESEND_API_KEY is set.
+// CatalystGrowthOS transactional email. Uses Resend when RESEND_API_KEY is set.
 // Without it (local dev), the mail is logged and the action link is returned
 // so the UI can show it inline — flows stay fully testable with no provider.
 
@@ -24,7 +24,7 @@ export async function sendLosMail(opts: {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      from: process.env.EMAIL_FROM ?? "LeadOS <noreply@catalystsolutionservices.com>",
+      from: process.env.EMAIL_FROM ?? "CatalystGrowthOS <noreply@catalystsolutionservices.com>",
       to: [opts.to],
       subject: opts.subject,
       text: opts.text,

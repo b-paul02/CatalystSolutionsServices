@@ -69,6 +69,12 @@ export async function sendOutreachMessage(opts: {
     include: { b2c: true },
   });
   if (!lead) return { outcome: "blocked", reason: "lead_not_found" };
+  // GrowthOS kill switch (blueprint §9.3): blocks every outbound job for the workspace immediately.
+  const ws = await db.cosWorkspace.findUnique({ where: { orgId: opts.orgId }, select: { killSwitch: true } });
+  if (ws?.killSwitch) {
+    await recordBlocked(opts, lead.id, "kill_switch");
+    return { outcome: "blocked", reason: "kill_switch" };
+  }
 
   const purpose = opts.purpose ?? "sales_contact";
 

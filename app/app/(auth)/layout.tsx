@@ -6,7 +6,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[var(--los-muted)]">
           Catalyst Solutions
         </div>
-        <div className="text-[26px] font-extrabold tracking-tight text-[var(--los-fg)]">LeadOS</div>
+        <div className="text-[26px] font-extrabold tracking-tight text-[var(--los-fg)]">CatalystGrowthOS</div>
       </div>
       <div className="w-full max-w-[400px]">{children}</div>
     </div>

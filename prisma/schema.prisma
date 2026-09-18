@@ -1463,3 +1463,368 @@ model AuditLog {
 
   @@index([entity, entityId])
 }
+
+// ═════════════════════════════════════════════════════════════════════════════
+// CatalystGrowthOS (Cos*) — the services-delivery layer on top of LeadOS.
+// Blueprint: docs/os/blueprint.md. Tenant = LosOrg (orgId everywhere).
+// JSON payloads are Strings, like the rest of this schema.
+// ═════════════════════════════════════════════════════════════════════════════
+
+// One row per org: workspace kind, brand knowledge, autonomy policy, kill switch.
+model CosWorkspace {
+  orgId        String    @id
+  // prospect (audit/route only) | client (contracted modules)
+  kind         String    @default("prospect")
+  // marketing-site Lead.id this workspace was claimed from (no FK — marketing tables are untouched)
+  sourceLeadId String?
+  partnerId    String?
+  // JSON {voice, audience, offers, proofPoints, dos, donts, competitors}
+  brandProfile String?
+  // JSON {publish:{enabled,dailyCap}, email:{...}} — Tier 2 opt-ins; Tier 3 is never autonomous
+  autonomy     String?
+  // blocks every new outbound job for this org while true
+  killSwitch   Boolean   @default(false)
+  killSwitchAt DateTime?
+  killSwitchBy String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  demo         Boolean   @default(false)
+}
+
+// Contracted scope. Entitlements = union of ACTIVE contracts. Never edited after
+// signing — a scope change is a new contract row (kind=change) linked by parentId.
+model CosContract {
+  id          String    @id @default(cuid())
+  orgId       String
+  parentId    String?
+  // program | change | project | addon
+  kind        String    @default("program")
+  programSlug String?
+  // foundation | growth | scale
+  tier        String?
+  // JSON string[] of service slugs / module keys (lib/os/catalog.ts)
+  services    String    @default("[]")
+  modules     String    @default("[]")
+  // JSON {deliverablesPerMonth, reviewCycles, aiCredits, responseHours}
+  allowances  String    @default("{}")
+  scopeDoc    String?
+  exclusions  String?
+  // JSON {setup, monthly, currency} — placeholder until the price book is decided
+  pricing     String?
+  // proposed | active | ended | declined
+  status      String    @default("proposed")
+  proposedBy  String?
+  signedById  String?
+  signedAt    DateTime?
+  endedAt     DateTime?
+  createdAt   DateTime  @default(now())
+  demo        Boolean   @default(false)
+
+  @@index([orgId, status])
+}
+
+model CosAuditRun {
+  id             String   @id @default(cuid())
+  orgId          String
+  sourceLeadId   String?
+  url            String
+  // initial | quarterly | service
+  kind           String   @default("initial")
+  scoringVersion String
+  // JSON {pillarKey: {score|null, label}} — null = unavailable, never 0
+  scores         String
+  // JSON {snapshot, keyPoints, routes, icps, quickWins, assumptions, limitations}
+  summary        String
+  reviewedById   String?
+  createdAt      DateTime @default(now())
+  demo           Boolean  @default(false)
+
+  @@index([orgId, createdAt])
+}
+
+// A finding carries its own evidence. ponytail: one evidence per finding inline;
+// split into a CosEvidence table when a finding needs several sources.
+model CosFinding {
+  id         String   @id @default(cuid())
+  orgId      String
+  auditRunId String
+  pillar     String
+  text       String
+  severity   String   @default("medium")
+  // verified | detected | assumed | unavailable
+  label      String
+  evidence   String
+  sourceUrl  String?
+  observedAt DateTime
+  // identified | evidence_checked | proposed | accepted | deferred | rejected | archived
+  status     String   @default("identified")
+  statusNote String?
+  workItemId String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([orgId, status])
+  @@index([auditRunId])
+}
+
+// INSERT-ONLY. A correction is a new row with supersedesId — never an UPDATE.
+model CosBaseline {
+  id           String   @id @default(cuid())
+  orgId        String
+  version      Int
+  auditRunId   String?
+  // JSON {scores, kpis, working, notWorking, opportunities}
+  snapshot     String
+  supersedesId String?
+  reason       String?
+  approvedById String
+  createdAt    DateTime @default(now())
+
+  @@unique([orgId, version])
+}
+
+model CosGoal {
+  id           String    @id @default(cuid())
+  orgId        String
+  metric       String
+  target       Float
+  unit         String
+  horizon      String
+  currency     String?
+  definition   String?
+  // measured | estimated | unavailable
+  currentLabel String    @default("unavailable")
+  currentValue Float?
+  agreedAt     DateTime?
+  agreedById   String?
+  archivedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([orgId])
+}
+
+// AI CMO plan versions. Approved versions are immutable; a replan is version+1.
+model CosPlan {
+  id           String    @id @default(cuid())
+  orgId        String
+  version      Int
+  // draft | in_review | approved | rejected | superseded
+  status       String    @default("draft")
+  // JSON {summary, allocation:[{channel,pct,rationale,evidenceIds}], focus, assumptions, risks, alternatives, successMetrics}
+  payload      String
+  // ai | human
+  origin       String    @default("ai")
+  model        String?
+  reviewedById String?
+  approvedById String?
+  approvedAt   DateTime?
+  reviewNote   String?
+  createdAt    DateTime  @default(now())
+
+  @@unique([orgId, version])
+}
+
+// The Growth Work Item (blueprint §9.1): one ledger for tasks, content, projects,
+// experiments and change requests. Core fields are columns; field groups are JSON.
+model CosWorkItem {
+  id                   String    @id @default(cuid())
+  orgId                String
+  parentId             String?
+  contractId           String?
+  findingId            String?
+  planId               String?
+  // task | content | project | milestone | experiment | change_request
+  type                 String    @default("task")
+  serviceSlug          String?
+  studio               String?
+  templateKey          String?
+  title                String
+  // see lib/os/workflow.ts WORK_STATES
+  state                String    @default("backlog")
+  // state to return to when unblocked
+  stateBefore          String?
+  version              Int       @default(1)
+  priority             Int       @default(2)
+  // autonomy tier 0-3 (lib/os/workflow.ts)
+  riskTier             Int       @default(1)
+  clientReviewRequired Boolean   @default(true)
+  ownerId              String?
+  assigneeId           String?
+  reviewerId           String?
+  dueAt                DateTime?
+  scheduledAt          DateTime?
+  // JSON {problem, objective, options, rationale, successMeasure, tradeoffs, dependencies}
+  decision             String?
+  // JSON {inScope, estMinutes, estAiCost, incrementalCharge, paymentStatus}
+  commercial           String?
+  // JSON type-specific body: content {channel, persona, hook, format, cta, body}; checklist [...]
+  payload              String?
+  // sha256 of title+payload at the current version — approvals bind to this
+  contentHash          String?
+  // JSON {qa, externalId, kpi, attributionGrade, learningId, closeReason}
+  outcome              String?
+  createdById          String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  closedAt             DateTime?
+  demo                 Boolean   @default(false)
+
+  events       CosWorkEvent[]
+  approvals    CosApproval[]
+  deliverables CosDeliverable[]
+
+  @@index([orgId, state])
+  @@index([orgId, type, scheduledAt])
+  @@index([assigneeId, state])
+  @@index([parentId])
+}
+
+// APPEND-ONLY. Transitions, comments, time and AI cost. Never UPDATE or DELETE.
+model CosWorkEvent {
+  id           String      @id @default(cuid())
+  orgId        String
+  workItemId   String
+  workItem     CosWorkItem @relation(fields: [workItemId], references: [id], onDelete: Cascade)
+  actorId      String?
+  // user | platform_admin | system | ai
+  actorType    String
+  // transition | comment | time | ai | approval | execution | edit
+  kind         String
+  fromState    String?
+  toState      String?
+  minutes      Int?
+  // AI/media cost in micro-USD so margins can be computed later
+  aiCostMicros Int?
+  model        String?
+  // internal events are hidden from client roles
+  internal     Boolean     @default(false)
+  data         String?
+  createdAt    DateTime    @default(now())
+
+  @@index([workItemId, createdAt])
+  @@index([orgId, createdAt])
+}
+
+model CosDeliverable {
+  id           String      @id @default(cuid())
+  orgId        String
+  workItemId   String
+  workItem     CosWorkItem @relation(fields: [workItemId], references: [id], onDelete: Cascade)
+  title        String
+  // ponytail: links, not uploads — add blob storage when a client needs files hosted here
+  url          String?
+  note         String?
+  version      Int         @default(1)
+  acceptedAt   DateTime?
+  acceptedById String?
+  createdById  String?
+  createdAt    DateTime    @default(now())
+
+  @@index([workItemId])
+}
+
+// Approval rows are decided once; a material change means a NEW row for the new version.
+model CosApproval {
+  id            String       @id @default(cuid())
+  orgId         String
+  workItemId    String?
+  workItem      CosWorkItem? @relation(fields: [workItemId], references: [id], onDelete: Cascade)
+  // work_item | plan | contract | baseline
+  subject       String       @default("work_item")
+  subjectId     String
+  version       Int
+  contentHash   String
+  // client | internal
+  audience      String       @default("client")
+  summary       String
+  // JSON action diff shown to the approver
+  diff          String?
+  // requested | approved | approved_with_edits | rejected | expired | revoked
+  status        String       @default("requested")
+  requestedById String?
+  decidedById   String?
+  reason        String?
+  // single-use emailed approval link (sha256 at rest)
+  linkTokenHash String?      @unique
+  expiresAt     DateTime?
+  decidedAt     DateTime?
+  createdAt     DateTime     @default(now())
+
+  @@index([orgId, status])
+  @@index([subject, subjectId])
+}
+
+model CosLearning {
+  id          String   @id @default(cuid())
+  orgId       String
+  hypothesis  String
+  segment     String?
+  window      String?
+  method      String?
+  counts      String?
+  result      String
+  uncertainty String?
+  workItemIds String   @default("[]")
+  // proposed | approved | rejected
+  status      String   @default("proposed")
+  reviewerId  String?
+  createdAt   DateTime @default(now())
+
+  @@index([orgId, status])
+}
+
+// Monthly note / weekly brief. Published reports are immutable.
+model CosReport {
+  id          String    @id @default(cuid())
+  orgId       String
+  // weekly | monthly | quarterly
+  kind        String
+  period      String
+  // JSON {metrics:[{name,value,label,baseline}], narrative, delivered, next, limitations}
+  body        String
+  // draft | published
+  status      String    @default("draft")
+  authorId    String?
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([orgId, kind, period])
+}
+
+// OAuth / API connections. "verified" only after a live access test passes.
+model CosConnection {
+  id              String    @id @default(cuid())
+  orgId           String
+  provider        String
+  accountLabel    String?
+  // pending | verified | failed | disconnected
+  status          String    @default("pending")
+  // AES-256-GCM via lib/leados/crypto — never logged
+  accessTokenEnc  String?
+  refreshTokenEnc String?
+  tokenExpiresAt  DateTime?
+  scopes          String?
+  // JSON provider config (gsc site url, ga property id…)
+  config          String?
+  lastCheckedAt   DateTime?
+  lastError       String?
+  createdById     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([orgId, provider])
+}
+
+// Pulled channel metrics (GSC, GA, Ads). Idempotent upsert per day+metric.
+model CosMetricPoint {
+  id       String   @id @default(cuid())
+  orgId    String
+  provider String
+  metric   String
+  day      DateTime
+  value    Float
+  // A | B | C | D attribution grade where relevant
+  grade    String?
+
+  @@unique([orgId, provider, metric, day])
+}

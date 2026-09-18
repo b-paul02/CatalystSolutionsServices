@@ -19,7 +19,7 @@ export async function createOrg(_prev: FormState, form: FormData): Promise<FormS
   const website = String(form.get("website") ?? "").trim().slice(0, 200) || null;
 
   if (name.length < 2) return { error: "Enter your organization name." };
-  if (!["b2b", "b2c", "both"].includes(intendedUse)) return { error: "Pick how you'll use LeadOS." };
+  if (!["b2b", "b2c", "both"].includes(intendedUse)) return { error: "Pick how you'll use CatalystGrowthOS." };
   if (!["IN", "US"].includes(market)) return { error: "Pick your billing market." };
   if (form.get("acceptTerms") !== "on") return { error: "You must accept the terms and DPA to continue." };
   if (form.get("acceptProhibited") !== "on") return { error: "You must confirm the prohibited-use policy." };

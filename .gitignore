@@ -23,3 +23,5 @@ leados-production-env.txt
 
 .vercel
 .env*
+
+leados-client/

@@ -8,7 +8,7 @@ import { logLosAudit } from "@/lib/leados/audit";
 import { encryptField, randomToken, sha256, tryDecryptField } from "@/lib/leados/crypto";
 import { generateTotpSecret, totpUri, verifyTotp } from "@/lib/leados/totp";
 import { APP_URL, sendLosMail } from "@/lib/leados/email";
-import { isClientRole } from "@/lib/leados/rbac";
+import { isClientRole, isStaffRole } from "@/lib/leados/rbac";
 import type { FormState } from "../../(auth)/actions";
 
 // ── organization ─────────────────────────────────────────────────────────────
@@ -52,8 +52,8 @@ export async function inviteMember(_prev: FormState, form: FormData): Promise<Fo
   const link = `${APP_URL}/invite/${token}`;
   const mail = await sendLosMail({
     to: email,
-    subject: `You're invited to ${org?.name} on LeadOS`,
-    text: `${actor.name ?? actor.email} invited you to join ${org?.name} on LeadOS as ${role.replace(/_/g, " ")}.\n\nAccept the invitation:\n${link}\n\nThe link expires in 7 days.`,
+    subject: `You're invited to ${org?.name} on CatalystGrowthOS`,
+    text: `${actor.name ?? actor.email} invited you to join ${org?.name} on CatalystGrowthOS as ${role.replace(/_/g, " ")}.\n\nAccept the invitation:\n${link}\n\nThe link expires in 7 days.`,
     link,
   });
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "team.invite", entity: "LosInvitation", entityId: invite.id, data: { role } });
@@ -77,6 +77,7 @@ export async function changeMemberRole(membershipId: string, role: string): Prom
   const target = await db.losMembership.findFirst({ where: { id: membershipId, orgId: actor.orgId } });
   if (!target) return;
   if (target.role === "owner") return; // owners are never demoted here
+  if (isStaffRole(target.role)) return; // Catalyst staff memberships are platform-managed
   if (role === "owner" && actor.role !== "owner") return; // only an owner can promote to owner
   await db.losMembership.update({ where: { id: target.id }, data: { role } });
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "team.role_changed", entity: "LosMembership", entityId: target.id, data: { role } });
@@ -86,7 +87,7 @@ export async function changeMemberRole(membershipId: string, role: string): Prom
 export async function removeMember(membershipId: string): Promise<void> {
   const actor = await requireOrg("team.manage");
   const target = await db.losMembership.findFirst({ where: { id: membershipId, orgId: actor.orgId } });
-  if (!target || target.role === "owner" || target.userId === actor.userId) return;
+  if (!target || target.role === "owner" || target.userId === actor.userId || isStaffRole(target.role)) return;
   await db.losMembership.delete({ where: { id: target.id } });
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "team.member_removed", entity: "LosMembership", entityId: target.id });
   revalidatePath("/app/settings/team");

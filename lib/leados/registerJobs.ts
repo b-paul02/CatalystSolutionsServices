@@ -6,5 +6,6 @@ import "./sequenceJob";
 import "./alertJob";
 import "./metrics";
 import "./webhooksOut";
+import "@/lib/os/syncJob";
 
 export {};

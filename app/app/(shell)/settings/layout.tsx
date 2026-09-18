@@ -3,6 +3,7 @@ import NavLink from "../NavLink";
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const tabs = [
     { href: "/app/settings", label: "Organization", icon: "domain", exact: true },
+    { href: "/app/settings/workspace", label: "Workspace", icon: "tune" },
     { href: "/app/settings/team", label: "Team", icon: "group_add" },
     { href: "/app/settings/security", label: "Security", icon: "lock" },
     { href: "/app/settings/api-keys", label: "API keys", icon: "key" },

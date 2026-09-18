@@ -5,7 +5,7 @@ import { cookies, headers } from "next/headers";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { db } from "@/lib/audit/db";
 import { randomToken, sha256 } from "./crypto";
-import { can, type ClientRole, type Permission } from "./rbac";
+import { can, type ClientRole, type Permission, type StaffRole } from "./rbac";
 import { verifySession as verifyEnvAdminSession, SESSION_COOKIE as ENV_ADMIN_COOKIE } from "@/lib/audit/adminAuth";
 
 export const LOS_COOKIE = "los_session";
@@ -117,7 +117,7 @@ export async function requireLosUser(): Promise<LosActor> {
 
 // ── tenancy ──────────────────────────────────────────────────────────────────
 
-export type OrgActor = LosActor & { orgId: string; role: ClientRole };
+export type OrgActor = LosActor & { orgId: string; role: ClientRole | StaffRole };
 
 const ORG_COOKIE = "los_org"; // which org a multi-org user is acting in
 
@@ -146,7 +146,7 @@ export async function requireOrg(...anyOf: Permission[]): Promise<OrgActor> {
   if (memberships.length === 0) throw new LosAuthError("No organization.", 403);
   const preferred = (await cookies()).get(ORG_COOKIE)?.value;
   const m = memberships.find((x) => x.orgId === preferred) ?? memberships[0];
-  const role = m.role as ClientRole;
+  const role = m.role as ClientRole | StaffRole;
   if (anyOf.length > 0 && !anyOf.some((p) => can(role, p))) {
     throw new LosAuthError("Forbidden.", 403);
   }

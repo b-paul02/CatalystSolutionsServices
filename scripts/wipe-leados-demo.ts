@@ -16,6 +16,20 @@ async function main() {
     counts[name] = (await fn()).count;
   };
 
+  // CatalystGrowthOS rows for demo orgs (work items cascade events/approvals/deliverables)
+  await del("cosWorkItems", () => db.cosWorkItem.deleteMany({ where: { OR: [{ demo: true }, { orgId: { in: demoOrgs } }] } }));
+  await del("cosFindings", () => db.cosFinding.deleteMany({ where: { orgId: { in: demoOrgs } } }));
+  await del("cosAuditRuns", () => db.cosAuditRun.deleteMany({ where: { OR: [{ demo: true }, { orgId: { in: demoOrgs } }] } }));
+  await del("cosBaselines", () => db.cosBaseline.deleteMany({ where: { orgId: { in: demoOrgs } } }));
+  await del("cosGoals", () => db.cosGoal.deleteMany({ where: { orgId: { in: demoOrgs } } }));
+  await del("cosPlans", () => db.cosPlan.deleteMany({ where: { orgId: { in: demoOrgs } } }));
+  await del("cosLearnings", () => db.cosLearning.deleteMany({ where: { orgId: { in: demoOrgs } } }));
+  await del("cosReports", () => db.cosReport.deleteMany({ where: { orgId: { in: demoOrgs } } }));
+  await del("cosMetricPoints", () => db.cosMetricPoint.deleteMany({ where: { orgId: { in: demoOrgs } } }));
+  await del("cosConnections", () => db.cosConnection.deleteMany({ where: { orgId: { in: demoOrgs } } }));
+  await del("cosContracts", () => db.cosContract.deleteMany({ where: { OR: [{ demo: true }, { orgId: { in: demoOrgs } }] } }));
+  await del("cosWorkspaces", () => db.cosWorkspace.deleteMany({ where: { OR: [{ demo: true }, { orgId: { in: demoOrgs } }] } }));
+
   await del("messageEvents", () => db.losMessageEvent.deleteMany({ where: { message: { leadId: { in: demoLeads } } } }));
   await del("messages", () => db.losOutboundMessage.deleteMany({ where: { leadId: { in: demoLeads } } }));
   await del("enrollments", () => db.losSequenceEnrollment.deleteMany({ where: { leadId: { in: demoLeads } } }));

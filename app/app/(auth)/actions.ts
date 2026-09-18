@@ -1,6 +1,6 @@
 "use server";
 
-// LeadOS account lifecycle server actions. Every mutation: validate → rate
+// CatalystGrowthOS account lifecycle server actions. Every mutation: validate → rate
 // limit → act → audit. Responses never reveal whether an email exists.
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
@@ -14,7 +14,7 @@ import { randomToken, sha256, tryDecryptField } from "@/lib/leados/crypto";
 import { logLosAudit } from "@/lib/leados/audit";
 import { APP_URL, sendLosMail } from "@/lib/leados/email";
 import { verifyTotp } from "@/lib/leados/totp";
-import { isClientRole } from "@/lib/leados/rbac";
+import { isClientRole, isStaffRole } from "@/lib/leados/rbac";
 
 export type FormState = { error?: string; ok?: string; devLink?: string };
 
@@ -60,8 +60,8 @@ async function sendVerificationMail(email: string) {
   const link = `${APP_URL}/verify?token=${token}`;
   return sendLosMail({
     to: email,
-    subject: "Verify your LeadOS account",
-    text: `Welcome to LeadOS.\n\nVerify your email to continue:\n${link}\n\nThe link expires in 24 hours.`,
+    subject: "Verify your CatalystGrowthOS account",
+    text: `Welcome to CatalystGrowthOS.\n\nVerify your email to continue:\n${link}\n\nThe link expires in 24 hours.`,
     link,
   });
 }
@@ -151,8 +151,8 @@ export async function requestPasswordReset(_prev: FormState, form: FormData): Pr
     const link = `${APP_URL}/reset?token=${token}`;
     const mail = await sendLosMail({
       to: email,
-      subject: "Reset your LeadOS password",
-      text: `Reset your LeadOS password:\n${link}\n\nThe link expires in 1 hour. If you didn't request this, ignore this email.`,
+      subject: "Reset your CatalystGrowthOS password",
+      text: `Reset your CatalystGrowthOS password:\n${link}\n\nThe link expires in 1 hour. If you didn't request this, ignore this email.`,
       link,
     });
     devLink = mail.devLink;
@@ -187,7 +187,7 @@ export async function resetPassword(_prev: FormState, form: FormData): Promise<F
 export async function acceptInvite(_prev: FormState, form: FormData): Promise<FormState> {
   const token = String(form.get("token") ?? "");
   const invite = await db.losInvitation.findUnique({ where: { tokenHash: sha256(token) }, include: { org: true } });
-  if (!invite || invite.acceptedAt || invite.revokedAt || invite.expiresAt < new Date() || !isClientRole(invite.role)) {
+  if (!invite || invite.acceptedAt || invite.revokedAt || invite.expiresAt < new Date() || !(isClientRole(invite.role) || isStaffRole(invite.role))) {
     return { error: "This invitation is invalid or expired." };
   }
 
