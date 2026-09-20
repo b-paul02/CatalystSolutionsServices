@@ -40,6 +40,7 @@ export async function entitlements(orgId: string): Promise<Entitlements> {
       allowances.responseHours = allowances.responseHours === 0 ? a.responseHours ?? 0 : Math.min(allowances.responseHours, a.responseHours ?? allowances.responseHours);
     } catch { /* malformed allowances grant nothing */ }
   }
+  if (contracts.length > 0) modules.add("automations"); // paid customers build workflows
   return {
     kind: !ws ? "legacy" : contracts.length > 0 || ws.kind === "client" ? "client" : "prospect",
     modules,

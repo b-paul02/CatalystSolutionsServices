@@ -241,5 +241,8 @@ export async function createLead(opts: {
     notifySlack(orgId, `New ${leadType.toUpperCase()} lead: ${[lead.firstName, lead.lastName].filter(Boolean).join(" ") || lead.email || lead.phone} (${opts.source})`).catch(() => {});
   }).catch(() => {});
 
+  // GrowthOS automations: workflows triggered by "Lead created".
+  await import("@/lib/os/automation/engine").then(({ dispatchEvent }) => dispatchEvent(orgId, "trigger.lead_created", { leadId: lead.id, source: opts.source, leadType }, `lead_created:${lead.id}`)).catch(() => {});
+
   return { outcome: "created", leadId: lead.id };
 }

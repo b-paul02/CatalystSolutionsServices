@@ -57,7 +57,9 @@ export type Permission =
   | "spend.approve" // tier-3 sign-off: spend, production release, large sends
   | "contract.sign"
   | "strategy.manage" // goals, plans, baselines, findings — staff
-  | "os.settings"; // brand profile, connections, autonomy, kill switch
+  | "os.settings" // brand profile, connections, autonomy, kill switch
+  | "automations.manage" // build and edit workflows, add connections
+  | "automations.activate"; // turn a workflow on — client side only: it acts in the client's name
 
 const ALL: Permission[] = [
   "org.manage", "org.billing", "team.manage", "apikeys.manage",
@@ -65,6 +67,7 @@ const ALL: Permission[] = [
   "campaigns.view", "campaigns.manage", "pipeline.manage", "reports.view",
   // client-side OS permissions; staff-only ones (work.manage/execute/review, strategy.manage) are NOT here
   "work.view", "work.request", "approvals.decide", "spend.approve", "contract.sign", "os.settings",
+  "automations.manage", "automations.activate",
 ];
 
 const MATRIX: Record<ClientRole | StaffRole, readonly Permission[]> = {
@@ -73,20 +76,20 @@ const MATRIX: Record<ClientRole | StaffRole, readonly Permission[]> = {
   admin: ALL.filter((p) => p !== "org.manage" && p !== "spend.approve" && p !== "contract.sign"),
   campaign_manager: [
     "leads.view", "leads.import", "campaigns.view", "campaigns.manage", "reports.view",
-    "work.view", "work.request", "approvals.decide",
+    "work.view", "work.request", "approvals.decide", "automations.manage",
   ],
   sales_manager: [
     "leads.view", "leads.edit", "leads.assign", "leads.contact", "leads.export",
-    "campaigns.view", "pipeline.manage", "reports.view", "work.view", "work.request",
+    "campaigns.view", "pipeline.manage", "reports.view", "work.view", "work.request", "automations.manage",
   ],
   sales_rep: ["leads.view", "leads.edit", "leads.contact", "campaigns.view", "work.view"],
   analyst: ["leads.view", "campaigns.view", "reports.view", "work.view"],
   // staff never hold approvals.decide / spend.approve / contract.sign — Catalyst cannot approve its own work
   cgo_lead: [
     "work.view", "work.request", "work.manage", "work.execute", "work.review", "strategy.manage", "os.settings",
-    "leads.view", "campaigns.view", "campaigns.manage", "reports.view",
+    "leads.view", "campaigns.view", "campaigns.manage", "reports.view", "automations.manage",
   ],
-  cgo_specialist: ["work.view", "work.execute", "campaigns.view", "reports.view"],
+  cgo_specialist: ["work.view", "work.execute", "campaigns.view", "reports.view", "automations.manage"],
   cgo_reviewer: ["work.view", "work.review", "reports.view"],
   cgo_freelancer: ["work.execute"],
 };

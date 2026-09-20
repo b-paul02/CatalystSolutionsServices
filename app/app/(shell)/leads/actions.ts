@@ -89,6 +89,10 @@ export async function setLeadStatus(leadId: string, status: string, lostReason?:
     },
   });
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "leads.status", entity: "LosLead", entityId: leadId, data: { status } });
+  if (lead.status !== status) {
+    const { dispatchEvent } = await import("@/lib/os/automation/engine");
+    await dispatchEvent(actor.orgId, "trigger.lead_stage_changed", { leadId, from: lead.status, to: status });
+  }
   revalidatePath(`/app/leads/${leadId}`);
   revalidatePath("/app/leads");
   revalidatePath("/app/pipeline");

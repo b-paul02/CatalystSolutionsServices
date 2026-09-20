@@ -10,8 +10,9 @@
 - Separation of duties is a hard rule: staff roles (`cgo_*`) never get `approvals.decide` / `spend.approve` / `contract.sign`; `client_review → approved` happens only through `decideApproval`. Tier-3 (money/release) needs a workspace owner. Never add a bypass.
 - Approvals bind to `(version, contentHash)`; any material edit must create a new version and revoke live approvals. `CosWorkEvent` and `CosBaseline` are append/insert-only.
 - Every external action (publish, send, launch) passes `gateAction` immediately before it runs and respects the kill switch.
-- AI output always goes through the deterministic validators in `lib/os/ai.ts` and lands as a draft — never auto-executes, never reaches a client when validation fails. Never send lead personal data to the model.
+- AI output always goes through the deterministic validators in `lib/os/ai.ts` and lands as a draft — never auto-executes, never reaches a client when validation fails. Never send lead personal data to the model — EXCEPT inside a client's own workflow (owner decision 2026-09-19): an AI step may receive the lead data that workspace's workflow passes to it. It is still never logged (step logs are redacted).
 - Out-of-contract work is a `change_request` — recommendations never silently create billable scope.
+- Workflows (`lib/os/automation`): only the ACTIVATED definition runs (hash match) — any logic edit drops it to draft. Staff (`cgo_*`) can build but never activate. Clients never run code on our servers: no code/shell/SQL blocks, ever, and no client-installable nodes. Every step that contacts a lead goes through `sendOutreachMessage` (consent, suppression, caps) — this was NOT relaxed. HTTP steps go through `safeUrl` (no internal addresses, no redirects). New integration = one entry in `catalog.ts` + one runner in `blocks.ts`.
 - Tests in `tests/os/`; both `tests/os/e2e-slice.test.ts` and `tests/leados/e2e-slice.test.ts` must stay green.
 
 ## LeadOS rules (from the approved blueprint)

@@ -174,5 +174,6 @@ export async function processSubmission(opts: {
   }
   await logLosAudit({ orgId: campaign.orgId, actorType: "system", action: "form.submission", entity: "LosFormSubmission", entityId: submission.id, data: { campaignId: campaign.id, status } });
 
+  await import("@/lib/os/automation/engine").then(({ dispatchEvent }) => dispatchEvent(campaign.orgId, "trigger.form_submitted", { leadId, campaignId: campaign.id, submissionId: submission.id }, `form_submitted:${submission.id}`)).catch(() => {});
   return { outcome: "accepted", submissionId: submission.id, message: pageSpec.thankYouMessage };
 }

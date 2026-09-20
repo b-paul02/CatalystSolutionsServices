@@ -7,5 +7,6 @@ import "./alertJob";
 import "./metrics";
 import "./webhooksOut";
 import "@/lib/os/syncJob";
+import "@/lib/os/automation/engine";
 
 export {};

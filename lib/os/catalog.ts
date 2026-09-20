@@ -18,6 +18,7 @@ export const MODULES = {
   crm: { label: "CRM", core: false }, // LeadOS leads / pipeline / outreach / campaigns
   lead_supply: { label: "Lead Supply", core: false }, // LeadOS discover / deliveries (token economy)
   intelligence: { label: "Intelligence", core: false },
+  automations: { label: "Workflows", core: false }, // every paying workspace (any active contract)
 } as const;
 export type ModuleKey = keyof typeof MODULES;
 export const MODULE_KEYS = Object.keys(MODULES) as ModuleKey[];

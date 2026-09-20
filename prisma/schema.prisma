@@ -1828,3 +1828,86 @@ model CosMetricPoint {
 
   @@unique([orgId, provider, metric, day])
 }
+
+// ── CatalystGrowthOS automations (lib/os/automation) ─────────────────────────
+
+// A client-built workflow: one trigger, then conditions / waits / actions.
+// Only the ACTIVATED definition runs: activeHash must equal the hash of
+// `definition`, so any logic edit drops the workflow back to draft.
+model CosWorkflow {
+  id            String    @id @default(cuid())
+  orgId         String
+  name          String
+  description   String?
+  templateKey   String?
+  // draft | active | paused | archived
+  status        String    @default("draft")
+  version       Int       @default(1)
+  // JSON {nodes:[{id,type,config,position}], edges:[{from,to,branch?}]}
+  definition    String
+  // trigger block type, denormalised for event lookup
+  triggerType   String?
+  activeHash    String?
+  activatedById String?
+  activatedAt   DateTime?
+  // sha256 of the unguessable inbound-webhook token
+  hookTokenHash String?   @unique
+  // JSON scratch state owned by blocks (e.g. feed items already seen)
+  state         String?
+  createdById   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  demo          Boolean   @default(false)
+
+  runs CosWorkflowRun[]
+
+  @@index([orgId, status])
+  @@index([orgId, triggerType, status])
+}
+
+model CosWorkflowRun {
+  id              String      @id @default(cuid())
+  orgId           String
+  workflowId      String
+  workflow        CosWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflowVersion Int
+  // one run per (workflow, event) — a redelivered event never runs twice
+  eventKey        String
+  trigger         String
+  // queued | running | waiting | succeeded | failed | blocked
+  status          String      @default("queued")
+  // loop guard: events caused by a workflow carry depth+1
+  depth           Int         @default(0)
+  // JSON execution context {trigger:{…}, steps:{nodeId:output}} — never logged
+  context         String
+  // node to continue from after a wait
+  cursor          String?
+  resumeAt        DateTime?
+  error           String?
+  stepCount       Int         @default(0)
+  createdAt       DateTime    @default(now())
+  finishedAt      DateTime?
+
+  steps CosWorkflowStepLog[]
+
+  @@unique([workflowId, eventKey])
+  @@index([orgId, createdAt])
+  @@index([status, resumeAt])
+}
+
+// APPEND-ONLY. One row per executed step. `summary` is redacted of emails/phones.
+model CosWorkflowStepLog {
+  id        String         @id @default(cuid())
+  orgId     String
+  runId     String
+  run       CosWorkflowRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  nodeId    String
+  blockType String
+  // ok | skipped | blocked | failed | waiting
+  status    String
+  summary   String?
+  ms        Int?
+  createdAt DateTime       @default(now())
+
+  @@index([runId, createdAt])
+}

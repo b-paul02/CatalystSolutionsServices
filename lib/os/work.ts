@@ -195,6 +195,7 @@ export async function transitionWorkItem(actor: WorkActor, id: string, to: strin
     await db.cosFinding.updateMany({ where: { id: item.findingId, orgId: actor.orgId }, data: { statusNote: "Work delivered and closed." } });
   }
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "work.transition", entity: "CosWorkItem", entityId: item.id, data: { from: item.state, to } });
+  await import("./automation/engine").then(({ dispatchEvent }) => dispatchEvent(actor.orgId, "trigger.work_item_state", { workItemId: item.id, title: item.title, from: item.state, to })).catch(() => {});
 }
 
 /**
@@ -354,6 +355,7 @@ export async function decideApproval(actor: WorkActor, approvalId: string, decis
     });
   });
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: `approval.${decision}`, entity: "CosApproval", entityId: approval.id, data: { workItemId: item.id, version: item.version, tier: item.riskTier } });
+  await import("./automation/engine").then(({ dispatchEvent }) => dispatchEvent(actor.orgId, "trigger.approval_decided", { workItemId: item.id, title: item.title, decision, to: decision }, `approval:${approval.id}`)).catch(() => {});
 }
 
 /** A client can pull an approval back before the work ships. */
