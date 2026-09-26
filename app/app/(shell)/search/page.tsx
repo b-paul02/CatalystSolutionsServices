@@ -6,6 +6,7 @@ import ActionForm from "@/components/os/ActionForm";
 import Studio from "@/components/os/Studio";
 import { newSeoBrief } from "../_os/actions";
 import { trackedPositions } from "@/lib/os/indexnow";
+import AiVisibility from "./AiVisibility";
 import { keywordAdd, keywordRemove } from "./keywords/actions";
 import { indexNowKey } from "@/lib/os/indexnow";
 
@@ -22,6 +23,7 @@ export default async function SearchPage() {
       metrics={[{ key: "clicks", label: "Clicks" }, { key: "impressions", label: "Impressions" }, { key: "ai_citations", label: "AI citations seen" }, { key: "indexed_pages", label: "Indexed pages" }]}
       note="AI-citation checks are dated observations, not guarantees."
       extras={<>
+        <AiVisibility orgId={actor.orgId} canManage={can(actor.role, "strategy.manage") || can(actor.role, "os.settings") || can(actor.role, "campaigns.manage")} />
         <Card className="mb-4 p-4">
           <div className="mb-1 text-[15px] font-bold">Tracked phrases</div>
           <p className="mb-2 text-[13px] text-[var(--los-muted)]">Average position from Search Console, refreshed weekly. Not scraped; no volumes. {indexNowKey() ? "New blog posts are also submitted to IndexNow." : "Set INDEXNOW_KEY to submit new blog posts to search engines."}</p>
