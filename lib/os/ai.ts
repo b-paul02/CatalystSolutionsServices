@@ -67,6 +67,16 @@ export function validatePlan(plan: PlanPayload, knownEvidenceIds: Set<string>): 
 
 export type CalendarDraft = { dayOffset: number; channel: string; persona: string; topic: string; hook: string; format: string; cta: string };
 
+// WP-19: formats are an enum; unknown formats are dropped (strict on shape). Aliases absorb small-model drift.
+export const CALENDAR_FORMATS = ["text_post", "thread", "carousel", "image_post", "blog", "email", "reel", "short", "video"] as const;
+const FORMAT_ALIASES: Record<string, string> = { post: "text_post", "text post": "text_post", text: "text_post", "linkedin post": "text_post", "x post": "text_post", tweet: "text_post", update: "text_post", article: "blog", "blog post": "blog", "long-form": "blog", longform: "blog", newsletter: "email", "email newsletter": "email", image: "image_post", "image post": "image_post", photo: "image_post", graphic: "image_post", "carousel post": "carousel", document: "carousel", reels: "reel", shorts: "short", "short video": "short", "video post": "video", "long video": "video", "youtube video": "video", "x thread": "thread", "twitter thread": "thread" };
+export function normaliseFormat(raw: string, channel = ""): string | null {
+  const f = raw.trim().toLowerCase().replace(/_/g, " "); const key = f.replace(/ /g, "_");
+  if (!f) return channel === "blog" ? "blog" : channel === "email" ? "email" : channel === "youtube" ? "video" : "text_post"; // absent = the channel default
+  if ((CALENDAR_FORMATS as readonly string[]).includes(key)) return key;
+  return FORMAT_ALIASES[f] ?? null;
+}
+
 const CHANNEL_ALIASES: Record<string, string> = { twitter: "x", "x/twitter": "x", "linkedin post": "linkedin", "facebook page": "facebook", "blog post": "blog", article: "blog", newsletter: "email", "email newsletter": "email" };
 
 /** Tolerant of shape drift from small models; strict on channels, dates and claims. */
@@ -88,7 +98,9 @@ export function validateCalendar(raw: unknown, allowedChannels: string[], days: 
     if (!topic) { dropped.push("no topic"); continue; }
     const problems = copyProblems(text);
     if (problems.length) { dropped.push(problems[0]); continue; }
-    items.push({ dayOffset, channel, persona: String(o.persona ?? ""), topic, hook: String(o.hook ?? ""), format: String(o.format ?? ""), cta: String(o.cta ?? "") });
+    const format = normaliseFormat(String(o.format ?? ""), channel);
+    if (!format) { dropped.push(`format "${String(o.format ?? "")}"`); continue; }
+    items.push({ dayOffset, channel, persona: String(o.persona ?? ""), topic, hook: String(o.hook ?? ""), format, cta: String(o.cta ?? "") });
   }
   return { items, dropped };
 }
@@ -165,7 +177,7 @@ async function generateCalendarRaw(orgId: string, channels: string[], days = 14,
   const raw = await callClaudeJSON<unknown>(
     `You plan a ${days}-day content calendar. ${RULES}
 JSON shape: {"items":[{"dayOffset":number (0-${days - 1}),"channel":string,"persona":string,"topic":string,"hook":string,"format":string,"cta":string}]}
-Use ONLY these channels: ${channels.join(", ")}. About ${perWeek} items per week per channel at most. Channel-native formats.`,
+Use ONLY these channels: ${channels.join(", ")}. About ${perWeek} items per week per channel at most. "format" must be one of: ${CALENDAR_FORMATS.join(", ")}.`,
     `Context:\n${ctx.text}`,
   );
   return validateCalendar(raw, channels, days);

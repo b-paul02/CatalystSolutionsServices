@@ -9,7 +9,11 @@ import { Card, Input, Label } from "@/components/leados/ui";
 import ActionForm from "@/components/os/ActionForm";
 import { field, PageHeader, StateBadge } from "@/components/os/bits";
 import { Notice, Pill, Tabs } from "@/components/os/v2";
-import { fillCalendar } from "../_os/actions";
+import { fillCalendar, produceAll, produceItem } from "../_os/actions";
+import { productionOf, isFormat } from "@/lib/os/contentPipeline";
+import { AutoRefresh } from "@/components/os/StudioForm";
+import { isStaffRole } from "@/lib/leados/rbac";
+import GrowthStep from "@/components/os/GrowthStep";
 import { campaignCreate, masterCreate, variantBulk } from "../_os/v2";
 
 export const metadata = { title: "Content" };
@@ -35,7 +39,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
     db.cosCampaign.findMany({ where: { orgId: actor.orgId, status: { not: "archived" } }, orderBy: { createdAt: "desc" } }),
     db.cosGoal.findMany({ where: { orgId: actor.orgId, archivedAt: null } }),
     db.losMembership.findMany({ where: { orgId: actor.orgId }, include: { user: { select: { name: true, email: true } } } }),
-    db.cosWorkItem.findMany({ where: { orgId: actor.orgId, type: "content", state: { notIn: ["cancelled", "closed"] }, ...(sp.campaign ? { campaignId: sp.campaign } : {}) }, orderBy: { createdAt: "desc" }, take: 60, include: { variants: { select: { id: true, state: true } } } }),
+    db.cosWorkItem.findMany({ where: { orgId: actor.orgId, type: "content", state: { notIn: ["cancelled", "closed"] }, ...(sp.campaign ? { campaignId: sp.campaign } : {}), ...(sp.plan ? { planId: sp.plan } : {}) }, orderBy: { createdAt: "desc" }, take: 60, include: { variants: { select: { id: true, state: true } } } }),
   ]);
   const variants = await db.cosContentVariant.findMany({
     where: { orgId: actor.orgId, state: { in: sp.status && STATES.includes(sp.status) ? [sp.status] : STATES }, ...(sp.channel && CHANNELS[sp.channel] ? { channel: sp.channel } : {}), ...(sp.owner ? { ownerId: sp.owner } : {}), ...(sp.campaign ? { workItem: { campaignId: sp.campaign } } : {}) },
@@ -48,6 +52,12 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   const q = (patch: Record<string, string | undefined>) => `/app/content?${new URLSearchParams(Object.entries({ ...sp, ...patch }).filter((e): e is [string, string] => Boolean(e[1]))).toString()}`;
   const shift = (n: number) => q({ start: zonedDay(new Date(start.getTime() + n * 86_400_000 + 12 * 3_600_000), tz) });
   const campaignName = (id: string | null) => campaigns.find((c) => c.id === id)?.name;
+  // WP-19 production status per master (from payload.production); the page polls while anything is queued/drafting
+  const prod = new Map(masters.map((m) => [m.id, { p: productionOf(m.payload), format: (() => { try { return String((JSON.parse(m.payload ?? "{}") as { format?: string }).format ?? ""); } catch { return ""; } })() }]));
+  const busy = [...prod.values()].some((x) => x.p?.status === "queued" || x.p?.status === "drafting");
+  const staff = isStaffRole(actor.role) && can(actor.role, "work.execute");
+  const PROD_LABEL: Record<string, string> = { queued: "queued", drafting: "drafting…", draft_ready: "draft ready", failed: "failed", needs_asset: "needs asset" };
+  const justReady = masters.filter((m) => prod.get(m.id)?.p?.status === "draft_ready" && prod.get(m.id)?.p?.finishedAt && Date.now() - new Date(prod.get(m.id)!.p!.finishedAt!).getTime() < 10 * 60_000).length;
 
   return (
     <div className="max-w-[1180px]">
@@ -58,6 +68,9 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
 
       {view === "calendar" ? (
         <>
+          {busy && <AutoRefresh everyMs={5000} />}
+          {sp.plan && <p className="mb-3 text-[12.5px] text-[var(--los-muted)]">Showing the calendar generated for plan <code>{sp.plan}</code>. <Link className="underline" href={q({ plan: undefined })}>Show all</Link></p>}
+          {justReady > 0 && <div className="mb-4"><GrowthStep done={`${justReady} draft${justReady === 1 ? "" : "s"} produced.`} step={{ pillar: "digital_visibility", metric: "impressions", metricLabel: "Impressions of published content", action: { kind: "work_item", label: "Send drafts to QA", title: "Review produced drafts and move them to internal QA", type: "task", serviceSlug: "content" } }} /></div>}
           <form method="get" className="mb-4 flex flex-wrap items-end gap-2 text-[13px]" aria-label="Filter the calendar">
             <input type="hidden" name="start" value={startDay} />
             <label className="flex flex-col gap-1">Campaign<select name="campaign" defaultValue={sp.campaign ?? ""} className={field}><option value="">All</option>{campaigns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
@@ -109,13 +122,19 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
 
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <Card>
-              <div className="border-b border-[var(--los-line)] px-5 py-3 text-[15px] font-bold">Master pieces</div>
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--los-line)] px-5 py-3 text-[15px] font-bold">Master pieces{staff && masters.some((m) => { const x = prod.get(m.id)!; return isFormat(x.format) && x.p?.status !== "draft_ready"; }) && <ActionForm action={produceAll} submit="Produce all drafts" tone="ghost" hidden={{ start: startDay, planId: sp.plan ?? "" }} confirm="Draft every item in this window that has a production format? Text is Catalyst-metered; images use the client's credits only with their authorisation, otherwise the built-in template." />}</div>
               {masters.length === 0 ? <Notice title="No master pieces yet">A master piece holds the brief, sources and core message. Channel versions are made from it.</Notice> : (
                 <ul className="divide-y divide-[var(--los-line)]">
                   {masters.slice(0, 25).map((m) => (
-                    <li key={m.id} className="flex items-center justify-between gap-2 px-5 py-2 text-[13.5px]">
-                      <Link href={`/app/content/${m.id}`} className="min-w-0 truncate font-medium text-[var(--los-brand)] hover:underline">{m.title}</Link>
-                      <span className="flex shrink-0 items-center gap-2 text-[12px] text-[var(--los-faint)]">{m.variants.length} version{m.variants.length === 1 ? "" : "s"}<StateBadge state={m.state} /></span>
+                    <li key={m.id} className="flex flex-wrap items-center justify-between gap-2 px-5 py-2 text-[13.5px]">
+                      <Link href={`/app/content/${m.id}`} className="min-w-0 flex-1 truncate font-medium text-[var(--los-brand)] hover:underline">{m.title}</Link>
+                      <span className="flex shrink-0 flex-wrap items-center gap-2 text-[12px] text-[var(--los-faint)]">
+                        {prod.get(m.id)?.format && <span>{prod.get(m.id)!.format.replace(/_/g, " ")}</span>}
+                        {prod.get(m.id)?.p && <Pill value={prod.get(m.id)!.p!.status === "draft_ready" ? "approved" : prod.get(m.id)!.p!.status === "failed" ? "failed" : prod.get(m.id)!.p!.status === "needs_asset" ? "needs_review" : "scheduled"} label={PROD_LABEL[prod.get(m.id)!.p!.status]} />}
+                        {prod.get(m.id)?.p?.status === "failed" && <span className="text-[var(--los-danger)]" title={prod.get(m.id)!.p!.reason}>{(prod.get(m.id)!.p!.reason ?? "").slice(0, 60)}</span>}
+                        {staff && isFormat(prod.get(m.id)?.format ?? "") && !["queued", "drafting"].includes(prod.get(m.id)?.p?.status ?? "") && <ActionForm action={produceItem} submit={prod.get(m.id)?.p?.status === "failed" ? "Retry" : "Produce"} tone="ghost" hidden={{ id: m.id }} />}
+                        {m.variants.length} version{m.variants.length === 1 ? "" : "s"}<StateBadge state={m.state} />
+                      </span>
                     </li>
                   ))}
                 </ul>

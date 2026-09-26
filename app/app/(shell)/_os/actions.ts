@@ -368,19 +368,41 @@ export async function fillCalendar(_p: State, form: FormData): Promise<State> {
   if (channels.length === 0) return { error: "Pick at least one channel." };
   const start = date(form, "start") ?? new Date();
   const { items: drafts, dropped } = await generateCalendar(actor.orgId, channels, 14);
+  const plan = await db.cosPlan.findFirst({ where: { orgId: actor.orgId, status: "approved" }, orderBy: { version: "desc" }, select: { id: true } });
   if (drafts.length === 0) return { error: `The model returned nothing usable${dropped.length ? ` (${dropped.length} dropped: ${[...new Set(dropped)].slice(0, 3).join("; ")})` : ""} — try again.` };
   return run(async () => {
     let requests = 0;
     for (const d of drafts.slice(0, 40)) {
       const item = await createWorkItem(actor, {
         title: d.topic.slice(0, 160), type: "content", serviceSlug: await contentService(actor.orgId, d.channel),
-        riskTier: 2, scheduledAt: new Date(start.getTime() + d.dayOffset * 86_400_000),
-        payload: { channel: d.channel, persona: d.persona, hook: d.hook, format: d.format, cta: d.cta, body: "", provenance: { origin: "ai", model: aiModel() } },
+        riskTier: 2, scheduledAt: new Date(start.getTime() + d.dayOffset * 86_400_000), planId: plan?.id ?? null,
+        payload: { channel: d.channel, persona: d.persona, hook: d.hook, format: d.format, cta: d.cta, body: "", planId: plan?.id ?? null, pillar: "digital_visibility", provenance: { origin: "ai", model: aiModel() } },
       });
       if (item.type === "change_request") requests++;
     }
     const n = Math.min(40, drafts.length);
     return { ok: requests ? `${n} items created — ${requests} are change requests because content isn't in the contract yet.` : `${n} calendar items created as drafts.` };
+  }, ["/app/content", "/app/work"]);
+}
+
+/** WP-19 · queue production for one calendar item (job chain; output lands as a draft). */
+export async function produceItem(_p: State, form: FormData): Promise<State> {
+  const actor = await orgOrDeny("work.execute"); if ("error" in actor) return actor;
+  return run(async () => {
+    const { enqueueProduce } = await import("@/lib/os/contentPipeline");
+    const r = await enqueueProduce(actor, str(form, "id", 60));
+    return r.queued ? { ok: "Queued. The draft appears on this item when it is ready (usually within a minute)." } : { error: r.reason ?? "Not queued." };
+  }, ["/app/content", "/app/work"]);
+}
+
+/** WP-19 · "Produce all drafts" for the calendar window (or a plan). The quote total is shown before it runs. */
+export async function produceAll(_p: State, form: FormData): Promise<State> {
+  const actor = await orgOrDeny("work.execute"); if ("error" in actor) return actor;
+  return run(async () => {
+    const { enqueueProduceAll } = await import("@/lib/os/contentPipeline");
+    const start = date(form, "start"), planId = str(form, "planId", 60) || null;
+    const r = await enqueueProduceAll(actor, { planId, ...(start && !planId ? { start, end: new Date(start.getTime() + 14 * 86_400_000) } : {}) });
+    return { ok: r.queued ? `${r.queued} item(s) queued${r.images ? ` · ${r.images} image(s)${r.quoteCredits !== null ? ` — up to ${r.quoteCredits} client credits if an authorisation exists, else the built-in template` : " — built-in template (image pricing not set)"}` : ""}.` : "Nothing to produce: every item in the window has a draft or an unsupported format." };
   }, ["/app/content", "/app/work"]);
 }
 

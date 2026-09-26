@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { db } from "@/lib/audit/db";
 import { Tabs } from "@/components/os/v2";
 import { can } from "@/lib/leados/rbac";
@@ -113,6 +114,7 @@ export default async function StrategyPage({ searchParams }: { searchParams: Pro
                 </div>
               </div>
               <p className="mb-3">{payload.summary}</p>
+              {p.status === "approved" && <p className="mb-3 text-[12.5px]"><Link className="font-semibold text-[var(--los-brand)] hover:underline" href={`/app/content?plan=${p.id}`}>Open the content calendar generated for this plan →</Link></p>}
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <div className="mb-1 font-semibold">Allocation</div>
