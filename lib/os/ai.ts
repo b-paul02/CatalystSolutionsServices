@@ -4,6 +4,7 @@
 // Provider-agnostic: reuses the site's OpenAI-compatible client (LLM_* env).
 import { db } from "@/lib/audit/db";
 import { callClaudeJSON, withLlmUsage } from "@/lib/audit/anthropic";
+import { priceForModel } from "./providerPrices";
 
 export const aiAvailable = (): boolean => Boolean(process.env.LLM_API_KEY);
 export const aiModel = (): string => process.env.LLM_MODEL ?? "default";
@@ -176,10 +177,15 @@ JSON shape: {"intent":string,"outline":string[],"questions":string[],"internalLi
 
 const price = (name: string): number | null => { const v = Number(process.env[name]); return Number.isFinite(v) && v > 0 ? v : null; };
 
-/** Provider money cost in micro-USD, or null when prices / token counts are missing — unknown is never zero. */
-export function costMicros(u: { inputTokens: number | null; outputTokens: number | null }): number | null {
-  const inP = price("LLM_PRICE_INPUT_MICROS_PER_MTOK"), outP = price("LLM_PRICE_OUTPUT_MICROS_PER_MTOK");
-  return inP !== null && outP !== null && u.inputTokens !== null && u.outputTokens !== null ? Math.round((u.inputTokens * inP + u.outputTokens * outP) / 1_000_000) : null;
+/**
+ * Provider money cost in micro-USD, or null when prices / token counts are missing — unknown is never zero.
+ * WP-04: the (provider, model) price table is consulted first; the LLM_PRICE_* env pair is the fallback for the default model.
+ */
+export function costMicros(u: { inputTokens: number | null; outputTokens: number | null; model?: string | null }): number | null {
+  if (u.inputTokens === null || u.outputTokens === null) return null;
+  const table = u.model ? priceForModel(u.model) : null;
+  const inP = table?.inputMicrosPerMTok ?? price("LLM_PRICE_INPUT_MICROS_PER_MTOK"), outP = table?.outputMicrosPerMTok ?? price("LLM_PRICE_OUTPUT_MICROS_PER_MTOK");
+  return inP !== null && outP !== null ? Math.round((u.inputTokens * inP + u.outputTokens * outP) / 1_000_000) : null;
 }
 
 /**
@@ -194,11 +200,9 @@ export async function metered<T>(orgId: string, feature: string, fn: () => Promi
   let ok = true;
   const started = await withLlmUsage(async () => { try { return await fn(); } catch (e) { ok = false; throw e; } }).catch((e) => ({ error: e as unknown, usage: [] as { model: string; inputTokens: number | null; outputTokens: number | null }[], result: undefined as T | undefined }));
   const usage = started.usage;
-  const inP = price("LLM_PRICE_INPUT_MICROS_PER_MTOK"), outP = price("LLM_PRICE_OUTPUT_MICROS_PER_MTOK");
   const ws = await db.cosWorkspace.findUnique({ where: { orgId }, select: { demo: true } });
   for (const u of usage.length ? usage : [{ model: aiModel(), inputTokens: null, outputTokens: null }]) {
-    const known = inP !== null && outP !== null && u.inputTokens !== null && u.outputTokens !== null;
-    await db.cosAiUsage.create({ data: { orgId, feature, modality: opts.modality ?? "text", model: u.model, inputTokens: u.inputTokens, outputTokens: u.outputTokens, costMicros: known ? Math.round((u.inputTokens! * inP! + u.outputTokens! * outP!) / 1_000_000) : null, ok: "error" in started ? false : ok, workItemId: opts.workItemId ?? null, userId: opts.userId ?? null, demo: ws?.demo ?? false, payer: opts.payer ?? "catalyst_internal", billingPurpose: opts.billingPurpose ?? "internal_delivery", operationId: opts.operationId ?? null } });
+    await db.cosAiUsage.create({ data: { orgId, feature, modality: opts.modality ?? "text", model: u.model, inputTokens: u.inputTokens, outputTokens: u.outputTokens, costMicros: costMicros({ inputTokens: u.inputTokens, outputTokens: u.outputTokens, model: u.model }), ok: "error" in started ? false : ok, workItemId: opts.workItemId ?? null, userId: opts.userId ?? null, demo: ws?.demo ?? false, payer: opts.payer ?? "catalyst_internal", billingPurpose: opts.billingPurpose ?? "internal_delivery", operationId: opts.operationId ?? null } });
   }
   if ("error" in started) throw started.error;
   return started.result as T;

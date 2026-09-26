@@ -23,6 +23,7 @@ export default async function StudioPage() {
   return (
     <div className="max-w-[1100px]">
       <PageHeader title="AI Studio" sub="Draft with AI yourself. Every result is a draft: it goes through review and your approval before anything is published.">
+        <Link href="/app/studio/usage" className="rounded-lg border border-[var(--los-line)] px-3 py-1.5 text-[13px] font-semibold">Usage</Link>
         {!staff && <Link href="/app/settings/ai-credits" className="rounded-lg border border-[var(--los-line)] px-3 py-1.5 text-[13px] font-semibold">{wallet.available} credits{wallet.reserved ? ` · ${wallet.reserved} held` : ""}</Link>}
       </PageHeader>
       {wallet.restricted && !staff && <Notice kind="blocked" title="AI tools are paused on this workspace" href="/app/settings/ai-credits" action="See why">A refunded or disputed credit purchase is being settled. Your content, reports and assets are unaffected, and you can keep editing by hand.</Notice>}

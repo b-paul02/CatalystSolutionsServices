@@ -10,6 +10,9 @@ import { TOOLS } from "./studio";
 export type ProviderPrices = { inputMicrosPerMTok: number | null; outputMicrosPerMTok: number | null; imageMicros: number | null };
 const num = (v: string | undefined) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? n : null; };
 export const providerPrices = (env: NodeJS.ProcessEnv = process.env): ProviderPrices => ({ inputMicrosPerMTok: num(env.LLM_PRICE_INPUT_MICROS_PER_MTOK), outputMicrosPerMTok: num(env.LLM_PRICE_OUTPUT_MICROS_PER_MTOK), imageMicros: num(env.IMAGE_PRICE_MICROS) });
+
+export { PROVIDER_PRICES, priceForModel, type ModelPrice } from "./providerPrices";
+
 export const minMarginPct = (env: NodeJS.ProcessEnv = process.env): number => num(env.AI_MIN_MARGIN_PCT) ?? 70;
 
 // Prompt size we budget for: brand profile + approved claims + sources + findings (tenantContext) plus the inputs.

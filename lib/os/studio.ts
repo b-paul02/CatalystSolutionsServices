@@ -337,7 +337,7 @@ async function finish(op: Op, attemptId: string, result: { ok: true; output: Stu
   const tokens = { inputTokens: usage.length && usage.every((u) => u.inputTokens !== null) ? usage.reduce((a, u) => a + u.inputTokens!, 0) : null, outputTokens: usage.length && usage.every((u) => u.outputTokens !== null) ? usage.reduce((a, u) => a + u.outputTokens!, 0) : null };
   // provider money cost is Catalyst's, recorded whether or not the client is charged; unknown stays NULL
   const imagePrice = Number(process.env.IMAGE_PRICE_MICROS);
-  const cost = tool?.kind === "image" ? (result.ok && Number.isFinite(imagePrice) && imagePrice > 0 ? Math.round(imagePrice) : null) : costMicros(tokens);
+  const cost = tool?.kind === "image" ? (result.ok && Number.isFinite(imagePrice) && imagePrice > 0 ? Math.round(imagePrice) : null) : costMicros({ ...tokens, model: usage.at(-1)?.model ?? op.model });
   // when the provider reports no token counts the estimate is stored, so a recovery prices the run identically
   const billable = result.ok ? tokens.outputTokens ?? result.outputTokens : 0;
   await db.$transaction([
