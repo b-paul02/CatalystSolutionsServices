@@ -130,7 +130,9 @@ export async function sendOutreachMessage(opts: {
   let dev = false;
   if (opts.channel === "email") {
     const footer = `\n\n—\nReply STOP or use this link to stop these messages: ${APP_URL}/u/${optOutToken}`;
-    const r = await sendLosMail({ to, subject: opts.subject ?? "Hello from our team", text: rendered + footer });
+    // WP-31: a verified workspace sending domain is the From; the org tag comes back on bounce / complaint webhooks
+    const from = await import("@/lib/os/emailDomain").then((m) => m.senderFor(opts.orgId)).catch(() => null);
+    const r = await sendLosMail({ to, subject: opts.subject ?? "Hello from our team", text: rendered + footer, from, tags: { orgId: opts.orgId } });
     dev = !r.delivered;
     status = r.delivered ? "sent" : "dev_logged";
   } else {

@@ -7,7 +7,7 @@ import ActionForm from "@/components/os/ActionForm";
 import GrowthStep from "@/components/os/GrowthStep";
 import { day, field, PageHeader } from "@/components/os/bits";
 import IntegrationsManager from "../integrations/IntegrationsManager";
-import { connectKeyConn, disconnectConn, syncConn, testConn } from "./actions";
+import { connectKeyConn, disconnectConn, domainAdd, domainCheck, syncConn, testConn } from "./actions";
 
 export const metadata = { title: "Connections" };
 
@@ -33,6 +33,8 @@ export default async function ConnectionsPage({ searchParams }: { searchParams: 
   const settings = can(actor.role, "os.settings"), automations = can(actor.role, "automations.manage");
   const just = sp.connect === "ok" ? cards.find((c) => c.source === "oauth" && c.status === "verified" && c.lastCheckedAt && Date.now() - c.lastCheckedAt.getTime() < 10 * 60_000) : null;
   const slackUrl = config ? (JSON.parse(config.config) as { slackWebhookUrl?: string }).slackWebhookUrl ?? "" : "";
+  const ws = await db.cosWorkspace.findUnique({ where: { orgId: actor.orgId }, select: { emailDomainRecords: true, emailDomainStatus: true } });
+  const dns = ws?.emailDomainRecords ? (JSON.parse(ws.emailDomainRecords) as { type: string; name: string; value: string; status?: string }[]) : [];
   return (
     <div className="space-y-6">
       <PageHeader title="Connections" sub="Everything this workspace is connected to, in one place." />
@@ -72,6 +74,16 @@ export default async function ConnectionsPage({ searchParams }: { searchParams: 
                       {c.id && c.status !== "disconnected" && <ActionForm action={testConn} submit="Test" tone="ghost" hidden={{ id: c.id }} />}
                       {c.id && c.status !== "disconnected" && <ActionForm action={disconnectConn} submit="Disconnect" tone="danger" hidden={{ id: c.id }} confirm={`Disconnect ${c.label}? Workflows using it will fail until it is reconnected.`} />}
                       <p className="w-full text-[12px] text-[var(--los-faint)]">{c.keyInput!.help}</p>
+                    </div>
+                  )}
+                  {c.provider === "email_domain" && settings && c.status !== "not_configured" && (
+                    <div className="mt-3 text-[12.5px]">
+                      {c.status === "not_connected" ? <ActionForm action={domainAdd} submit="Add domain" className="flex flex-wrap items-end gap-2"><div className="min-w-[200px] flex-1"><Label>Domain</Label><input name="domain" required placeholder="mail.yourcompany.com" className={field} /></div></ActionForm> : (
+                        <>
+                          {dns.length > 0 && <table className="mb-2 w-full text-[11.5px]"><thead><tr className="text-[var(--los-faint)]"><th className="text-left">Type</th><th className="text-left">Name</th><th className="text-left">Value</th><th></th></tr></thead><tbody>{dns.map((r, i) => <tr key={i} className="border-t border-[var(--los-line)] align-top"><td className="py-1 pr-2">{r.type}</td><td className="break-all py-1 pr-2 font-mono">{r.name}</td><td className="break-all py-1 pr-2 font-mono">{r.value}</td><td className="py-1">{r.status ?? ""}</td></tr>)}</tbody></table>}
+                          {c.status !== "verified" && <ActionForm action={domainCheck} submit="Check DNS" tone="ghost" />}
+                        </>
+                      )}
                     </div>
                   )}
                   {c.source === "ads" && c.connectHref && settings && <a href={c.connectHref} className="mt-3 inline-block text-[13px] font-semibold text-[var(--los-brand)] hover:underline">Set up in Lead capture →</a>}

@@ -14,6 +14,10 @@ export async function sendLosMail(opts: {
   text: string;
   /** The primary action URL — surfaced to the UI in dev mode. */
   link?: string;
+  /** WP-31: a verified workspace sending domain ("Name <hello@mail.client.com>"); platform default otherwise */
+  from?: string | null;
+  /** tags travel to Resend and come back on bounce/complaint webhooks */
+  tags?: Record<string, string>;
 }): Promise<SentMail> {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
@@ -24,10 +28,11 @@ export async function sendLosMail(opts: {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      from: process.env.EMAIL_FROM ?? "CatalystGrowthOS <noreply@catalystsolutionservices.com>",
+      from: opts.from ?? process.env.EMAIL_FROM ?? "CatalystGrowthOS <noreply@catalystsolutionservices.com>",
       to: [opts.to],
       subject: opts.subject,
       text: opts.text,
+      ...(opts.tags ? { tags: Object.entries(opts.tags).map(([name, value]) => ({ name, value })) } : {}),
     }),
   });
   if (!res.ok) {

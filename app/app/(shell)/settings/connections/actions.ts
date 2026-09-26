@@ -36,6 +36,15 @@ export async function connectKeyConn(_p: State, form: FormData): Promise<State> 
   } catch (e) { revalidatePath(PATH); return fail(e); }
 }
 
+/** WP-31 · sending domain: add (shows DNS records) and check. */
+export async function domainAdd(_p: State, form: FormData): Promise<State> {
+  const actor = await requireOrgAction("os.settings"); if ("error" in actor) return actor;
+  try { const { addSendingDomain } = await import("@/lib/os/emailDomain"); const r = await addSendingDomain(actor, str(form, "domain", 253)); revalidatePath(PATH); return { ok: `Domain ${r.domain} added — publish the DNS records shown on the card, then press Check.` }; } catch (e) { return fail(e); }
+}
+export async function domainCheck(_p: State, _form: FormData): Promise<State> {
+  const actor = await requireOrgAction("os.settings"); if ("error" in actor) return actor;
+  try { const { checkSendingDomain } = await import("@/lib/os/emailDomain"); const r = await checkSendingDomain(actor); revalidatePath(PATH); return r.status === "verified" ? { ok: "Verified. Outreach now sends from your domain." } : { error: r.status === "failed" ? "Verification failed — check the DNS records." : "Still pending — DNS can take a while to propagate." }; } catch (e) { return fail(e); }
+}
 export async function syncConn(_p: State, _form: FormData): Promise<State> {
   const actor = await requireOrgAction("os.settings"); if ("error" in actor) return actor;
   try { const n = await syncSearchConsole(actor.orgId); revalidatePath("/app/search"); return { ok: `Synced ${n} day(s) of Search Console data.` }; } catch (e) { return fail(e); }
