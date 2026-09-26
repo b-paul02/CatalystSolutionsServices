@@ -25,6 +25,8 @@ const T = (key: string, category: string, name: string, description: string, def
 
 export const TEMPLATES: Template[] = [
   // ── leads & sales ──
+  T("T33", "Leads & sales", "CRM webhook → lead", "Any CRM or form tool that can call a web address creates a lead here (one-way). Map its fields to the lead below.",
+    wf([["trigger.webhook", { label: "Pipedrive / Zoho / your CRM" }], ["crm.create_lead", { firstName: "{{trigger.body.name}}", email: "{{trigger.body.email}}", phone: "{{trigger.body.phone}}", source: "crm-webhook", leadType: "b2b" }], ["crm.create_task", { title: "Review lead from the CRM webhook: {{trigger.body.name}}", dueInHours: "24" }]])),
   T("T32", "Leads & sales", "Scorecard follow-up", "When a scorecard is completed, low-band results get a call-back task within the hour; everyone else gets a note with their band. Contact still goes through consent rules.",
     wf([["trigger.form_submitted"], ["logic.condition", { left: "{{trigger.band}}", operator: "equals", right: "Getting started" }], ["crm.create_task", { title: `Call ${LEAD} — scorecard "{{trigger.band}}" ({{trigger.score}}%)`, dueInHours: "1" }], ["crm.add_note", { text: "Scorecard result: {{trigger.band}} ({{trigger.score}}%). Self-reported answers, not verified." }]],
       { at: 1, no: [["crm.add_note", { text: "Scorecard result: {{trigger.band}} ({{trigger.score}}%). Self-reported answers, not verified." }]] })),

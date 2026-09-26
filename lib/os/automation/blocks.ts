@@ -216,6 +216,25 @@ export const RUNNERS: Record<string, Run> = {
     const { body } = await call(`https://api.airtable.com/v0/${encodeURIComponent(c.baseId)}/${encodeURIComponent(c.table)}`, { method: "POST", headers: { Authorization: `Bearer ${await secret(env, "airtable")}` }, json: { fields } });
     return { recordId: (JSON.parse(body) as { id?: string }).id ?? null };
   },
+  // WP-30 · one-way CRM sync. Pipedrive: search by email, then add or update. Zoho: upsert by Email through the v2 API.
+  "pipedrive.upsert_person": async (c, env) => {
+    const [token, company] = (await secret(env, "pipedrive")).split("|").map((s) => s.trim());
+    if (!token || !company) throw new Error("Pipedrive connection must be: API token | company domain.");
+    const base = `https://${company.replace(/[^a-z0-9-]/gi, "")}.pipedrive.com/api/v1`;
+    const found = JSON.parse((await call(`${base}/persons/search?term=${encodeURIComponent(c.email)}&fields=email&exact_match=true&api_token=${encodeURIComponent(token)}`)).body) as { data?: { items?: { item: { id: number } }[] } };
+    const existing = found.data?.items?.[0]?.item.id;
+    const body = { name: c.name || c.email, email: [{ value: c.email, primary: true }], ...(c.phone ? { phone: [{ value: c.phone, primary: true }] } : {}) };
+    if (existing) { await call(`${base}/persons/${existing}?api_token=${encodeURIComponent(token)}`, { method: "PUT", json: body }); return { personId: existing, created: false }; }
+    const made = JSON.parse((await call(`${base}/persons?api_token=${encodeURIComponent(token)}`, { method: "POST", json: body })).body) as { data?: { id?: number } };
+    return { personId: made.data?.id ?? null, created: true };
+  },
+  "zoho.upsert_contact": async (c, env) => {
+    const [token, domain] = (await secret(env, "zoho")).split("|").map((s) => s.trim());
+    if (!token || !domain) throw new Error("Zoho connection must be: access token | API domain.");
+    const { body } = await call(`${domain.replace(/\/$/, "")}/crm/v2/Contacts/upsert`, { method: "POST", headers: { Authorization: `Zoho-oauthtoken ${token}` }, json: { data: [{ Email: c.email, Last_Name: c.lastName, First_Name: c.firstName ?? "", Phone: c.phone ?? "" }], duplicate_check_fields: ["Email"] } });
+    const r = (JSON.parse(body) as { data?: { details?: { id?: string }; action?: string }[] }).data?.[0];
+    return { contactId: r?.details?.id ?? null, created: r?.action === "insert" };
+  },
   "hubspot.upsert_contact": async (c, env) => {
     const headers = { Authorization: `Bearer ${await secret(env, "hubspot")}` };
     const properties = { email: c.email, firstname: c.firstName ?? "", lastname: c.lastName ?? "" };
@@ -270,6 +289,8 @@ export async function testKeyConnection(provider: string, value: string): Promis
     case "notion": return (JSON.parse((await call("https://api.notion.com/v1/users/me", { headers: { Authorization: `Bearer ${value}`, "Notion-Version": "2022-06-28" } })).body) as { name?: string }).name ?? "Notion integration";
     case "airtable": return (JSON.parse((await call("https://api.airtable.com/v0/meta/whoami", { headers: { Authorization: `Bearer ${value}` } })).body) as { id: string }).id;
     case "hubspot": await call("https://api.hubapi.com/crm/v3/objects/contacts?limit=1", { headers: { Authorization: `Bearer ${value}` } }); return "HubSpot private app";
+    case "pipedrive": { const [token, company] = value.split("|").map((s) => s.trim()); if (!token || !company) throw new Error("Use: API token | company domain"); const me = JSON.parse((await call(`https://${company.replace(/[^a-z0-9-]/gi, "")}.pipedrive.com/api/v1/users/me?api_token=${encodeURIComponent(token)}`)).body) as { data?: { name?: string } }; return `${me.data?.name ?? "Pipedrive"} @ ${company}`; }
+    case "zoho": { const [token, domain] = value.split("|").map((s) => s.trim()); if (!token || !domain) throw new Error("Use: access token | API domain"); await call(`${domain.replace(/\/$/, "")}/crm/v2/Contacts?per_page=1`, { headers: { Authorization: `Zoho-oauthtoken ${token}` } }); return "Zoho CRM"; }
     case "wordpress": {
       const [site, user, pass] = value.split("|").map((s) => s.trim());
       if (!site || !user || !pass) throw new Error("Use: site address | username | application password");
