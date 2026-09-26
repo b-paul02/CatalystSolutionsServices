@@ -75,16 +75,32 @@ registerJobHandler(WEEKLY_REPORT_JOB, async () => {
       { leads: 0, delivered: 0, converted: 0, tokens: 0 },
     );
     const scorecard = await weeklyScorecardSection(org.id, new Date(since));
-    if (sum.leads + sum.delivered === 0 && !scorecard) continue;
+    const pillars = await weeklyPillarSection(org.id, new Date(since)).catch(() => null);
+    if (sum.leads + sum.delivered === 0 && !scorecard && !pillars) continue;
     const owner = await db.losMembership.findFirst({ where: { orgId: org.id, role: "owner" }, include: { user: true } });
     if (!owner) continue;
     await sendLosMail({
       to: owner.user.email,
       subject: `${org.name} — your LeadOS week`,
-      text: `This week at ${org.name}:\n\n• ${sum.leads} new leads\n• ${sum.delivered} leads delivered\n• ${sum.converted} conversions\n• ${sum.tokens.toLocaleString()} tokens used${scorecard ? `\n\n${scorecard}` : ""}\n\nFull reports: ${APP_URL}/reports`,
+      text: `This week at ${org.name}:\n\n• ${sum.leads} new leads\n• ${sum.delivered} leads delivered\n• ${sum.converted} conversions\n• ${sum.tokens.toLocaleString()} tokens used${scorecard ? `\n\n${scorecard}` : ""}${pillars ? `\n\n${pillars}` : ""}\n\nFull reports: ${APP_URL}/reports`,
     }).catch(() => {});
   }
 });
+
+/** Growth rule · the week grouped by the five pillars: goal, latest measurement (with date), work delivered. Facts only. */
+export async function weeklyPillarSection(orgId: string, since: Date): Promise<string | null> {
+  const { pillarTiles } = await import("@/lib/os/pillars");
+  const ws = await db.cosWorkspace.findUnique({ where: { orgId }, select: { demo: true } });
+  if (!ws) return null;
+  const tiles = await pillarTiles(orgId, ws.demo);
+  const delivered = await db.cosWorkItem.findMany({ where: { orgId, deliveredAt: { gte: since }, ...(ws.demo ? {} : { demo: false }) }, select: { title: true, payload: true } });
+  const lines = ["By growth pillar:"];
+  for (const t of tiles) {
+    const done = delivered.filter((d) => { try { return (JSON.parse(d.payload ?? "{}") as { pillar?: string }).pillar === t.pillar; } catch { return false; } });
+    lines.push(`• ${t.label}: ${t.goal ? `goal ${t.goal.metric} → ${t.goal.target} ${t.goal.unit}` : "no goal"}; ${t.latest ? `${t.latest.metric} ${t.latest.value} (${t.latest.at.toISOString().slice(0, 10)})` : "no measurement"}; ${done.length} delivered this week${t.next ? `; next: ${t.next.title}` : ""}`);
+  }
+  return tiles.some((t) => t.goal || t.latest || t.next) ? lines.join("\n") : null;
+}
 
 /** WP-10d · scorecard bands per campaign, completion rate, leads by band → stage. Counts only. */
 export async function weeklyScorecardSection(orgId: string, since: Date): Promise<string | null> {

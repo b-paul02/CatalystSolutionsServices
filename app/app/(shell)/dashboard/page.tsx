@@ -12,6 +12,7 @@ import ActionForm from "@/components/os/ActionForm";
 import { day, Empty, EvidenceBadge, PageHeader, SectionTitle, StateBadge } from "@/components/os/bits";
 import { signContract } from "../_os/actions";
 import HomeSummary from "./HomeSummary";
+import PillarTiles from "./PillarTiles";
 
 export const metadata = { title: "Overview" };
 
@@ -51,6 +52,7 @@ export default async function OverviewPage() {
         sub={`${org?.name} · ${ent.kind === "prospect" ? "Getting started" : ent.kind === "legacy" ? "Lead workspace" : "Client workspace"}${isStaffRole(actor.role) ? " · you are Catalyst staff here" : ""}`}
       />
       {ent.kind !== "legacy" && <HomeSummary orgId={actor.orgId} userId={actor.userId} role={actor.role} />}
+      {ent.kind !== "legacy" && <PillarTiles orgId={actor.orgId} includeDemo={ent.demo} canGoal={can(actor.role, "approvals.decide") || can(actor.role, "strategy.manage") || can(actor.role, "work.request")} />}
 
       {proposed.map((c) => {
         const program = programs.find((p) => p.slug === c.programSlug);
