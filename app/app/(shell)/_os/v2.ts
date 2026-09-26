@@ -274,6 +274,21 @@ export async function publicationCancel(_p: State, form: FormData): Promise<Stat
 export async function publicationReschedule(_p: State, form: FormData): Promise<State> {
   return run(async () => { const a = await actorFor("content"); await P.reschedulePublication(a, str(form, "id", 60), str(form, "localTime", 20), str(form, "timezone", 60) || undefined); return { ok: "Rescheduled." }; }, ["/app/content"]);
 }
+/** WP-20 · drag on the month calendar: same local time, new day. */
+export async function publicationDrag(_p: State, form: FormData): Promise<State> {
+  return run(async () => {
+    const a = await actorFor("content");
+    const pub = await db.cosPublication.findFirst({ where: { id: str(form, "id", 60), orgId: a.orgId } });
+    if (!pub) throw new WorkError("Publication not found.");
+    if (pub.status !== "scheduled") throw new WorkError("Only a scheduled post can be moved.");
+    const day = str(form, "day", 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new WorkError("Bad day.");
+    const { utcToZonedInput } = await import("@/lib/os/time");
+    const localTime = `${day}T${utcToZonedInput(pub.scheduledAt, pub.timezone).slice(11, 16)}`;
+    await P.reschedulePublication(a, pub.id, localTime, pub.timezone);
+    return { ok: `Moved to ${day} (same time, ${pub.timezone}).` };
+  }, ["/app/content"]);
+}
 export async function publicationReconcile(_p: State, form: FormData): Promise<State> {
   return run(async () => { const a = await actorFor("content"); await P.reconcilePublication(a, str(form, "id", 60), str(form, "verdict", 10) === "live" ? "live" : "not_live", { externalUrl: str(form, "externalUrl", 500), note: str(form, "note", 300) }); }, ["/app/content"]);
 }

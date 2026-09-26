@@ -14,6 +14,7 @@ import { Notice, Pill } from "@/components/os/v2";
 import { saveWorkItem } from "../../_os/actions";
 import { claimPropose, graphicMake, publicationCancel, publicationManual, publicationReconcile, publicationSchedule, sourceAdd, variantAckSource, variantComment, variantCreate, variantEdit, variantMove, variantsAiDraft } from "../../_os/v2";
 import { TEMPLATES as GRAPHIC_TEMPLATES } from "@/lib/os/graphics";
+import ChannelPreview from "@/components/os/ChannelPreview";
 
 export const metadata = { title: "Content piece" };
 
@@ -121,16 +122,8 @@ export default async function MasterPage({ params }: { params: Promise<{ id: str
                   {check.problems.length > 0 && <ul role="alert" className="list-disc rounded-lg border border-[var(--los-danger)] py-2 pl-7 pr-3 text-[12.5px] text-[var(--los-danger)]">{check.problems.map((p) => <li key={p}>{p}</li>)}</ul>}
                   {(check.warnings.length > 0 || dupes.length > 0) && <ul className="list-disc rounded-lg border border-[var(--los-line)] py-2 pl-7 pr-3 text-[12.5px] text-[var(--los-warn)]">{check.warnings.map((w) => <li key={w}>{w}</li>)}{dupes.map((d) => <li key={d.id}>Same copy already exists on this channel: “{d.title}” ({d.state.replace(/_/g, " ")}).</li>)}</ul>}
 
-                  {/* platform-style preview of exactly what will be sent */}
-                  <div className="rounded-xl border border-[var(--los-line)] bg-[var(--los-surface-2)] p-3">
-                    <div className="mb-1 text-[11.5px] font-semibold uppercase tracking-wide text-[var(--los-faint)]">Preview</div>
-                    {v.title && <div className="font-bold">{v.title}</div>}
-                    {v.format === "thread" ? <ol className="space-y-2">{v.parts.map((p, i) => <li key={i} className="whitespace-pre-wrap rounded-lg bg-[var(--los-surface)] p-2">{p}<span className="ml-2 text-[11px] text-[var(--los-faint)]">{[...p].length}/{spec?.parts?.maxChars}</span></li>)}</ol> : <p className="whitespace-pre-wrap">{v.body || <span className="text-[var(--los-faint)]">No copy yet</span>}</p>}
-                    {v.cta && <p className="mt-1 font-medium">{v.cta}</p>}
-                    {link && <p className="mt-1 break-all text-[12px] text-[var(--los-brand)]">{link}</p>}
-                    {v.mediaAssetIds.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{v.mediaAssetIds.map((a) => { const as = assets.find((x) => x.id === a); return as?.kind === "image" ? <img key={a} src={`/api/os/assets/${a}`} alt={as.name} className="h-20 w-20 rounded-lg object-cover" /> : <span key={a} className="rounded-lg border border-[var(--los-line)] px-2 py-1 text-[12px]">{as?.name ?? "file"}</span>; })}</div>}
-                    {!v.format.includes("thread") && spec?.maxChars && <div className="mt-1 text-[11px] text-[var(--los-faint)]">{[...v.body].length} / {spec.maxChars} characters</div>}
-                  </div>
+                  {/* WP-20: platform-shaped preview with the format's limits */}
+                  <ChannelPreview v={{ channel: v.channel, format: v.format, title: v.title, body: v.body, parts: v.parts, cta: v.cta, link, media: v.mediaAssetIds.map((a) => { const as = assets.find((x) => x.id === a); return { id: a, kind: as?.kind ?? "other", name: as?.name ?? "file" }; }) }} />
 
                   {editable && (
                     <details><summary className="cursor-pointer font-semibold">Edit this version</summary>

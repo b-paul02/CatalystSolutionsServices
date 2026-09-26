@@ -14,6 +14,7 @@ import { productionOf, isFormat } from "@/lib/os/contentPipeline";
 import { AutoRefresh } from "@/components/os/StudioForm";
 import { isStaffRole } from "@/lib/leados/rbac";
 import GrowthStep from "@/components/os/GrowthStep";
+import MonthCalendar from "./MonthCalendar";
 import { campaignCreate, masterCreate, variantBulk } from "../_os/v2";
 
 export const metadata = { title: "Content" };
@@ -33,7 +34,8 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   const startDay = sp.start && /^\d{4}-\d{2}-\d{2}$/.test(sp.start) ? sp.start : zonedDay(new Date(), tz);
   const start = zonedToUtc(`${startDay}T00:00`, tz).utc;
   const end = new Date(start.getTime() + 14 * 86_400_000);
-  const view = sp.view === "campaigns" ? "campaigns" : "calendar";
+  const view = sp.view === "campaigns" ? "campaigns" : sp.view === "month" ? "month" : "calendar";
+  const month = sp.month && /^\d{4}-\d{2}$/.test(sp.month) ? sp.month : zonedDay(new Date(), tz).slice(0, 7);
 
   const [campaigns, goals, members, masters] = await Promise.all([
     db.cosCampaign.findMany({ where: { orgId: actor.orgId, status: { not: "archived" } }, orderBy: { createdAt: "desc" } }),
@@ -64,9 +66,10 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
       <PageHeader title="Content" sub={`Times shown in ${tz}. Each channel version is approved and published on its own.`}>
         {view === "calendar" && <div className="flex gap-2 text-[13px]"><Link className="rounded-lg border border-[var(--los-line)] px-3 py-1.5" href={shift(-14)}>← Earlier</Link><Link className="rounded-lg border border-[var(--los-line)] px-3 py-1.5" href={q({ start: undefined })}>Today</Link><Link className="rounded-lg border border-[var(--los-line)] px-3 py-1.5" href={shift(14)}>Later →</Link></div>}
       </PageHeader>
-      <Tabs active={view} items={[{ key: "calendar", label: "Calendar", href: q({ view: undefined }) }, { key: "campaigns", label: `Campaigns (${campaigns.length})`, href: q({ view: "campaigns" }) }]} />
+      <Tabs active={view} items={[{ key: "calendar", label: "Calendar", href: q({ view: undefined }) }, { key: "month", label: "Month", href: q({ view: "month" }) }, { key: "campaigns", label: `Campaigns (${campaigns.length})`, href: q({ view: "campaigns" }) }]} />
+      {view === "month" && <MonthView orgId={actor.orgId} month={month} tz={tz} />}
 
-      {view === "calendar" ? (
+      {view === "month" ? null : view === "calendar" ? (
         <>
           {busy && <AutoRefresh everyMs={5000} />}
           {sp.plan && <p className="mb-3 text-[12.5px] text-[var(--los-muted)]">Showing the calendar generated for plan <code>{sp.plan}</code>. <Link className="underline" href={q({ plan: undefined })}>Show all</Link></p>}
@@ -192,4 +195,13 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
       )}
     </div>
   );
+}
+
+// WP-20 · month view: every publication in the month (workspace zone), scheduled ones draggable.
+async function MonthView({ orgId, month, tz }: { orgId: string; month: string; tz: string }) {
+  const start = zonedToUtc(`${month}-01T00:00`, tz).utc;
+  const [y, m] = month.split("-").map(Number);
+  const end = zonedToUtc(`${new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 7)}-01T00:00`, tz).utc;
+  const pubs = await db.cosPublication.findMany({ where: { orgId, scheduledAt: { gte: start, lt: end }, status: { not: "cancelled" } }, include: { variant: { select: { workItemId: true, workItem: { select: { title: true } } } } }, orderBy: { scheduledAt: "asc" }, take: 300 });
+  return <Card className="mb-5 p-4"><MonthCalendar month={month} tz={tz} pubs={pubs.map((p) => ({ id: p.id, day: zonedDay(p.scheduledAt, tz), time: formatInZone(p.scheduledAt, tz, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }), title: p.variant.workItem.title, channel: CHANNELS[p.channel]?.label ?? p.channel, status: p.status, href: `/app/content/${p.variant.workItemId}#v-${p.variantId}`, draggable: p.status === "scheduled" }))} /></Card>;
 }
