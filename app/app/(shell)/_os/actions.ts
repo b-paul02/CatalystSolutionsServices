@@ -18,6 +18,7 @@ import { aiAvailable, aiModel, copyProblems, draftContent, generateCalendar, gen
 import { allocationDiff, type Allocation } from "@/lib/os/workflow";
 import { entitlements } from "@/lib/os/entitlements";
 import { serviceBySlug } from "@/lib/os/catalog";
+import { can, isStaffRole } from "@/lib/leados/rbac";
 import { isPillar } from "@/lib/os/pillars";
 
 type State = { error?: string; ok?: string };
@@ -227,6 +228,20 @@ export async function findingToWork(_p: State, form: FormData): Promise<State> {
     const item = await findingToWorkItem(actor, str(form, "id", 60), { serviceSlug: serviceBySlug[slug] ? slug : null, successMeasure: str(form, "successMeasure", 500) });
     return { ok: item.type === "change_request" ? "Outside contracted scope — created as a change request for client approval." : "Work item created." };
   }, ["/app/audit", "/app/work"]);
+}
+
+/** WP-13 · staff runs a first-party site audit for the workspace (Catalyst-internal); clients run it as a Studio tool. */
+export async function startSiteAuditAction(_p: State, form: FormData): Promise<State> {
+  const actor = await orgOrDeny(); if ("error" in actor) return actor;
+  if (!isStaffRole(actor.role)) return { error: "Run the site audit from AI Studio (it uses credits); Catalyst staff run it from here." };
+  if (!can(actor.role, "work.execute") && !can(actor.role, "strategy.manage")) return { error: "Forbidden." };
+  return run(async () => {
+    const { startSiteAudit } = await import("@/lib/os/siteAudit");
+    const ent = await entitlements(actor.orgId);
+    if (ent.accessMode !== "active") throw new WorkError("This workspace is read-only.");
+    const r = await startSiteAudit(actor.orgId, str(form, "url", 300), { requestedById: actor.userId, demo: ent.demo });
+    return { ok: `Crawling ${r.url}. This page updates as it runs.` };
+  }, ["/app/audit"]);
 }
 
 export async function approveBaseline(_p: State, form: FormData): Promise<State> {

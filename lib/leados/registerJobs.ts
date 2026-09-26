@@ -11,5 +11,6 @@ import "@/lib/os/automation/engine";
 import "@/lib/os/publishing";
 import "@/lib/os/metrics";
 import "@/lib/os/studio";
+import "@/lib/os/siteAudit";
 
 export {};

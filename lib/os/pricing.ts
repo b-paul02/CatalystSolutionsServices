@@ -44,6 +44,7 @@ export function marginReport(rates: Rates, prices: ProviderPrices, creditMicros:
     const maxTokens = t.limits.long, maxCredits = priceMax(rates[t.key], maxTokens);
     let cost: number | null;
     if (t.kind === "image") cost = prices.imageMicros; // one provider call per run: renderImage never retries
+    else if (t.kind === "audit") cost = 0; // WP-13: our own crawler + Google PSI (free API): no provider bill
     else cost = prices.inputMicrosPerMTok === null || prices.outputMicrosPerMTok === null ? null
       : Math.ceil((((ASSUMED_INPUT_TOKENS + (t.key === "repurpose" ? REPURPOSE_EXTRA_TOKENS : 0)) * prices.inputMicrosPerMTok + maxTokens * prices.outputMicrosPerMTok) / 1_000_000) * RETRY_FACTOR);
     // the CHARGE for that worst run is at least base + the tokens produced, i.e. the quote itself
@@ -77,6 +78,7 @@ export const PROPOSED_RATES: Rates = {
   youtube_script: { base: 3, perKOutputTokens: 4 }, short_script: std, email_sequence: { base: 3, perKOutputTokens: 4 }, seo_brief: std, repurpose: { base: 3, perKOutputTokens: 4 },
   research: { base: 2, perKOutputTokens: 0 }, // per web search, on top of the tool
   image: { base: 10, perKOutputTokens: 0 }, performance_summary: { base: 3, perKOutputTokens: 4 },
+  site_audit: { base: 15, perKOutputTokens: 0 }, // WP-13: flat per crawl (up to 300 pages + PageSpeed)
 };
 export const PROPOSED_PACKS: (PackLike & { label: string; market: "US" | "IN" })[] = [
   { label: "Starter", market: "US", credits: 250, currency: "USD", amountMinor: 25_00 }, { label: "Growth", market: "US", credits: 600, currency: "USD", amountMinor: 49_00 }, { label: "Scale", market: "US", credits: 1500, currency: "USD", amountMinor: 99_00 },

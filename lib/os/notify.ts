@@ -15,7 +15,7 @@ export const NOTIFICATION_KINDS: { kind: string; label: string }[] = [
   { kind: "renewal_due", label: "Renewal due" }, { kind: "access_needed", label: "Access needed" }, { kind: "payment", label: "Payments" }, { kind: "cycle_generated", label: "Monthly cycle generated" },
   { kind: "campaign_draft", label: "Campaign draft ready" }, { kind: "ai_uncertain", label: "AI run needs a person" }, { kind: "ai_credits_low", label: "AI credits low" },
   { kind: "job_failed", label: "Background job failed" }, { kind: "site_down", label: "Website down / back up" }, { kind: "new_lead", label: "New lead (scorecard, form, booking)" },
-  { kind: "booking", label: "Booking made / changed" }, { kind: "draft_ready", label: "Content draft ready" }, { kind: "asset_needed", label: "Asset needed" }, { kind: "app_error", label: "Application error (staff)" },
+  { kind: "booking", label: "Booking made / changed" }, { kind: "draft_ready", label: "Content draft ready" }, { kind: "asset_needed", label: "Asset needed" }, { kind: "audit_finished", label: "Site audit finished" }, { kind: "app_error", label: "Application error (staff)" },
 ];
 
 export async function notify(n: NotifyInput): Promise<void> {

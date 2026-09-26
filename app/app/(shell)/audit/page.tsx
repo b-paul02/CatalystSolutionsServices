@@ -7,7 +7,11 @@ import { SERVICES } from "@/lib/os/catalog";
 import { Card, Input, Label } from "@/components/leados/ui";
 import ActionForm from "@/components/os/ActionForm";
 import { day, Empty, EvidenceBadge, field, human, PageHeader, SectionTitle } from "@/components/os/bits";
-import { approveBaseline, findingMove, findingToWork } from "../_os/actions";
+import { approveBaseline, findingMove, findingToWork, startSiteAuditAction } from "../_os/actions";
+import { auditState, SITE_AUDIT_KIND } from "@/lib/os/siteAudit";
+import { AutoRefresh } from "@/components/os/StudioForm";
+import { isStaffRole } from "@/lib/leados/rbac";
+import { entitlements } from "@/lib/os/entitlements";
 import { pairedRuns, SCORECARD_RUN_KIND } from "@/lib/os/scorecardAudit";
 import GrowthStep from "@/components/os/GrowthStep";
 import { AUDIT_CATEGORY_PILLAR } from "@/lib/os/pillarDefs";
@@ -23,14 +27,36 @@ export default async function AuditPage() {
     db.cosAuditRun.findMany({ where: { orgId }, orderBy: { createdAt: "desc" }, take: 5 }),
     db.cosBaseline.findMany({ where: { orgId }, orderBy: { version: "desc" } }),
   ]);
-  const run = runs[0];
+  // WP-13: a crawl in progress is shown separately; finished site audits are ordinary runs
+  const inProgress = runs.filter((r) => r.kind === SITE_AUDIT_KIND && ["crawling", "psi"].includes(auditState(r)?.status ?? "")).map((r) => ({ r, st: auditState(r)! }));
+  const failedRun = runs.find((r) => r.kind === SITE_AUDIT_KIND && auditState(r)?.status === "failed");
+  const finished = runs.filter((r) => !(r.kind === SITE_AUDIT_KIND && ["crawling", "psi", "failed"].includes(auditState(r)?.status ?? "")));
+  const run = finished[0];
   const strategist = can(actor.role, "strategy.manage");
   const decider = can(actor.role, "approvals.decide");
+  const staff = isStaffRole(actor.role);
+  const ent = await entitlements(orgId);
+  const org = await db.losOrg.findUnique({ where: { id: orgId }, select: { website: true } });
+  const runPanel = (
+    <Card className="mb-5 p-5 text-[13.5px]">
+      {inProgress.length > 0 && <AutoRefresh everyMs={5000} />}
+      <div className="mb-1 text-[15px] font-bold">Site audit</div>
+      {inProgress.map(({ r, st }) => <div key={r.id} role="status" className="mb-2 rounded-lg bg-[var(--los-surface-2)] px-3 py-2">{st.status === "crawling" ? `Crawling ${r.url}: ${st.pages} page(s) checked, ${st.queue.length} queued…` : `Running PageSpeed on ${st.psiQueue.length + 1} page(s)…`} This page updates by itself.</div>)}
+      {failedRun && !inProgress.length && <div role="alert" className="mb-2 rounded-lg border border-[var(--los-danger)] px-3 py-2 text-[var(--los-danger)]">The last crawl of {failedRun.url} failed: {auditState(failedRun)?.error}. Run it again below.</div>}
+      {staff && ent.accessMode === "active" ? (
+        <ActionForm action={startSiteAuditAction} submit={inProgress.length ? "Run another" : "Run site audit"} className="flex flex-wrap items-end gap-2"><div className="min-w-[240px] flex-1"><Label>Website address</Label><Input name="url" defaultValue={org?.website ?? ""} required /></div></ActionForm>
+      ) : ent.aiTools.has("site_audit") && can(actor.role, "ai.use") ? (
+        <p>Crawl your site for titles, descriptions, headings, alt text, broken links, mixed content and PageSpeed: <Link className="font-semibold text-[var(--los-brand)] hover:underline" href="/app/studio/site_audit">run a site audit from AI Studio →</Link></p>
+      ) : <p className="text-[var(--los-muted)]">Site audits are run by your Catalyst team, or by you when the Site audit tool is part of your engagement.</p>}
+      <p className="mt-2 text-[12px] text-[var(--los-faint)]">Up to 300 pages, same site only, robots.txt respected. HTML checks are deterministic parsing, not a browser render.</p>
+    </Card>
+  );
   if (!run) {
     return (
       <div className="max-w-[900px]">
         <PageHeader title="Growth Audit" sub="Evidence first: six scored pillars, every claim linked to a source and a date." />
-        <Card><Empty>No audit in this workspace yet. Run the free <a className="text-[var(--los-brand)] hover:underline" href="https://catalystsolutionservices.com/growth-audit">Growth Audit</a> — your Catalyst lead will attach it here.</Empty></Card>
+        {runPanel}
+        <Card><Empty>No finished audit in this workspace yet. Run a site audit above, or the free <a className="text-[var(--los-brand)] hover:underline" href="https://catalystsolutionservices.com/growth-audit">Growth Audit</a> — your Catalyst lead will attach it here.</Empty></Card>
       </div>
     );
   }
@@ -43,13 +69,14 @@ export default async function AuditPage() {
   const scores = JSON.parse(main.scores) as Record<string, PillarScore>;
   const weakest = PILLARS.map((p) => ({ p, s: scores[p.key]?.score ?? selfScores?.[p.key]?.score ?? null })).filter((x) => x.s !== null).sort((a, b) => a.s! - b.s!)[0] ?? null;
   const summary = JSON.parse(main.summary) as Summary;
-  const previous = runs[1] ? (JSON.parse(runs[1].scores) as Record<string, PillarScore>) : null;
+  const previous = finished[1] ? (JSON.parse(finished[1].scores) as Record<string, PillarScore>) : null;
   const base = baselines[0] ? (JSON.parse(baselines[0].snapshot) as { scores?: Record<string, PillarScore> }).scores ?? null : null;
   const compare = previous ?? base;
 
   return (
     <div className="max-w-[1100px]">
       <PageHeader title="Growth Audit" sub={`${main.url} · ${human(main.kind)} audit · ${day(main.createdAt)} · scoring ${main.scoringVersion}${selfRun ? ` · self-reported scorecard ${day(selfRun.createdAt)}${selfRun.pairedRunId === main.id ? " (same site)" : " (unpaired)"}` : ""}`} />
+      {runPanel}
       {weakest && (
         <div className="mb-4"><GrowthStep done="Audit finished." note={`weakest: ${weakest.p.label}`} step={{ pillar: AUDIT_CATEGORY_PILLAR[weakest.p.key] ?? "market_intelligence", metric: `audit.${weakest.p.key}`, metricLabel: `${weakest.p.label} score`, action: { kind: "goal", label: `Set a goal for ${weakest.p.label}`, title: `Raise ${weakest.p.label} from ${weakest.s}`, unit: "score", target: Math.min(100, (weakest.s ?? 0) + 20), horizon: "90 days" } }} /></div>
       )}
@@ -133,6 +160,7 @@ export default async function AuditPage() {
                 </div>
                 <div className="flex shrink-0 items-center gap-2 text-[12px] text-[var(--los-faint)]"><EvidenceBadge label={f.label} /><span>{human(f.status)}</span></div>
               </div>
+              {f.severity !== "medium" && <div className="mt-1 text-[11.5px] uppercase tracking-wide text-[var(--los-faint)]">{f.severity}</div>}
               <div className="mt-2 flex flex-wrap items-end gap-2">
                 {strategist && f.status === "identified" && (
                   <ActionForm action={findingMove} submit="Evidence checked" tone="ghost" hidden={{ id: f.id, to: "evidence_checked" }} className="flex items-end gap-2">

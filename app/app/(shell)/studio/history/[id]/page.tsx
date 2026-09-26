@@ -57,7 +57,8 @@ export default async function StudioRunPage({ params }: { params: Promise<{ id: 
         <p className="mt-3 text-[13px]">Saved to <Link className="font-semibold text-[var(--los-brand)] underline" href="/app/assets">Assets</Link>. {tool.handoff}</p>
       </Card>}
 
-      {op.status === "completed" && tool?.kind !== "image" && <Card className="p-5">
+      {op.status === "completed" && tool?.kind === "audit" && <Card className="mb-4 p-5 text-[13.5px]"><b>{out.title}</b><p className="mt-1">{out.body}</p><p className="mt-2"><Link className="font-semibold text-[var(--los-brand)] underline" href="/app/audit">Open Growth Audit →</Link></p></Card>}
+      {op.status === "completed" && tool?.kind !== "image" && tool?.kind !== "audit" && <Card className="p-5">
         {flags.length > 0 && <div className="mb-4 rounded-lg bg-[var(--los-surface-2)] px-3 py-2 text-[12.5px]"><b>Check before using:</b><ul className="ml-4 list-disc">{flags.map((f, i) => <li key={i}>{f}</li>)}</ul></div>}
         {tool?.handoff && <p className="mb-4 rounded-lg bg-[var(--los-surface-2)] px-3 py-2 text-[12.5px]">{tool.handoff}</p>}
         {saved.some((s) => s.kind === "work") && <p className="mb-4 text-[13px]">Saved: {saved.filter((s) => s.kind === "work").slice(0, 5).map((s) => <Link key={s.id} className="mr-2 font-semibold text-[var(--los-brand)] underline" href={`/app/content/${s.id}`}>open draft</Link>)}</p>}

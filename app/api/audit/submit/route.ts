@@ -3,11 +3,20 @@ import { after } from "next/server";
 import { db, logEvent } from "@/lib/audit/db";
 import { scoreG1, type Intake } from "@/lib/audit/score";
 import { runPipeline } from "@/lib/audit/pipeline";
+import { rateLimit } from "@/lib/partner/ratelimit";
 
 export const maxDuration = 300; // pipeline runs after the response via after()
 
 export async function POST(req: NextRequest) {
-  const { leadId, profile, intake, moduleAnswers } = await req.json().catch(() => ({}));
+  // WP-13: public submit gets a rate limit, a honeypot and Turnstile (when configured) — the crawl behind it is expensive
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
+  if (!rateLimit(`audit-submit:${ip}`, 5, 60_000)) return NextResponse.json({ error: "Too many submissions. Please try again in a minute." }, { status: 429 });
+  const { leadId, profile, intake, moduleAnswers, website, turnstileToken } = await req.json().catch(() => ({}));
+  if (website) return NextResponse.json({ ok: true }); // honeypot: silently drop
+  if (process.env.TURNSTILE_SECRET_KEY) {
+    const check = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ secret: process.env.TURNSTILE_SECRET_KEY, response: String(turnstileToken ?? ""), remoteip: ip }) }).then((r) => r.json() as Promise<{ success: boolean }>).catch(() => ({ success: false }));
+    if (!check.success) return NextResponse.json({ error: "Bot check failed — reload and try again." }, { status: 400 });
+  }
   if (!leadId || !intake) return NextResponse.json({ error: "Missing intake." }, { status: 400 });
 
   const lead = await db.lead.findUnique({ where: { id: leadId }, include: { evidencePack: true } });

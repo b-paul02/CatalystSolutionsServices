@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/Icon";
 import { MODULES, FAMILIES, pickModules, type Module } from "@/lib/audit/modules";
 
@@ -36,7 +36,19 @@ function Choice({ options, value, onPick }: { options: string[]; value?: string;
   );
 }
 
+declare global { interface Window { turnstile?: { render: (el: HTMLElement, opts: { sitekey: string; callback: (token: string) => void; "expired-callback": () => void }) => void } } }
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? null;
+
 export default function Wizard() {
+  // WP-13: bot check before the (expensive) audit pipeline runs; rendered only when the site key is configured
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileSlot = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY || !turnstileSlot.current) return;
+    const render = () => { if (window.turnstile && turnstileSlot.current && turnstileSlot.current.childElementCount === 0) window.turnstile.render(turnstileSlot.current, { sitekey: TURNSTILE_SITE_KEY, callback: setTurnstileToken, "expired-callback": () => setTurnstileToken(null) }); };
+    if (window.turnstile) { render(); return; }
+    const s = document.createElement("script"); s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"; s.async = true; s.onload = render; document.head.appendChild(s);
+  });
   const [leadId, setLeadId] = useState<string | null>(null);
   const [reportToken, setReportToken] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -114,7 +126,7 @@ export default function Wizard() {
         body: JSON.stringify({
           leadId, profile,
           intake: { goal, businessModel, services, budget, timeline, decision, competitors, teamSize: profile.teamSize, stage: profile.stage, presenceLinks: profile.presenceLinks },
-          moduleAnswers,
+          moduleAnswers, turnstileToken,
         }),
       });
       const data = await res.json();
@@ -277,10 +289,11 @@ export default function Wizard() {
       )}
 
       {error && <p className="mt-4 text-[13.5px] text-red-400">{error}</p>}
+      {TURNSTILE_SITE_KEY && isLastQuestionStep && <div ref={turnstileSlot} className="mt-4 flex justify-center" />}
 
       <div className="mt-7 flex items-center justify-between">
         <button type="button" onClick={back} className="btn-ghost px-5 py-2.5 text-sm" disabled={step <= 1 || busy}>Back</button>
-        <button type="button" disabled={busy ||
+        <button type="button" disabled={busy || (isLastQuestionStep && Boolean(TURNSTILE_SITE_KEY) && !turnstileToken) ||
             (step === 1 && (!profile.business_name || (noWebsite && !profile.stage))) || (step === 2 && !goal) || (step === 3 && !businessModel) ||
             (step === 4 && services.length === 0) || (step === 5 && !budget) || (step === 6 && !timeline) || (step === 7 && !decision) ||
             (currentModule ? currentModule.questions.some((q) => q.required && !(moduleAnswers[q.id] ?? "").trim()) : false)}

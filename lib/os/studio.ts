@@ -32,7 +32,7 @@ export type Field = { name: string; label: string; help?: string; type: "text" |
 export type Tool = {
   key: string; label: string; group: "Plan" | "Write" | "Social" | "Video" | "Email & SEO" | "Media" | "Results";
   purpose: string;
-  kind: "text" | "calendar" | "image" | "summary";
+  kind: "text" | "calendar" | "image" | "summary" | "audit";
   fields: Field[];
   /** output ceilings (tokens) the person can choose between — the quote is priced on the chosen ceiling */
   limits: { short: number; standard: number; long: number };
@@ -69,6 +69,7 @@ export const TOOLS: Tool[] = [
   { key: "seo_brief", research: true, label: "SEO brief & metadata", group: "Email & SEO", kind: "text", purpose: "Search intent, outline, questions to answer, internal links to consider, and page metadata.", fields: [{ name: "keyword", label: "Target search phrase", type: "text", required: true, max: 120 }, { name: "page", label: "Page it is for (optional)", type: "text", max: 300 }, notes], limits: L(600, 1100, 1800), saveAs: [["blog", "article"]], instruction: `"title" = recommended page title. "body" = Intent, then Outline, then Questions to answer, then Internal links to consider — as plain headed sections. "meta" = SEO title (≤60) and description (≤155). Never state search volumes or rankings: you have no data for them.` },
   { key: "repurpose", label: "Repurpose source content", group: "Write", kind: "text", purpose: "Turn something you already have into another format.", fields: [source, { name: "into", label: "Turn it into", type: "select", max: 40, options: ["LinkedIn post", "X thread", "Blog article", "Email", "Short-video script"], required: true }, notes], limits: L(500, 1100, 2400), saveAs: [["linkedin", "post"], ["x", "thread"], ["blog", "article"], ["youtube", "short"]], instruction: `Use ONLY the pasted source, approved claims and sources — add no new facts. "body" = the new piece ("parts" = one post per entry when it is a thread).` },
   { key: "image", label: "Image generation", group: "Media", kind: "image", purpose: "One image from a description, saved to Assets as an AI-generated draft.", fields: [{ name: "prompt", label: "Describe the image", help: "No brand names, real people or “in the style of”.", type: "textarea", required: true, max: 1500 }], limits: L(1, 1, 1), saveAs: [], instruction: "", handoff: "Saved to Assets as a draft labelled AI generated. Check the provider's commercial-use terms before publishing." },
+  { key: "site_audit", label: "Site audit (crawl + PageSpeed)", group: "Results", kind: "audit", purpose: "Crawls your website (up to 300 pages), checks titles, descriptions, headings, alt text, canonicals, broken links, mixed content and structured data, then runs Google PageSpeed on the homepage and top templates. Findings land on the Growth Audit page.", fields: [{ name: "url", label: "Website address", type: "text", required: true, max: 300 }], limits: L(1, 1, 1), saveAs: [], instruction: "", handoff: "The crawl runs in the background for a few minutes. Findings appear on Growth Audit with why-it-matters and how-to-fix notes; nothing is changed on your site." },
   { key: "performance_summary", label: "Performance summary", group: "Results", kind: "summary", purpose: "A plain-language summary of the last 30 days, written only from the numbers stored in Results.", fields: [{ name: "focus", label: "What you want to understand (optional)", type: "text", max: 300 }], limits: L(400, 800, 1200), saveAs: [], instruction: "" },
 ];
 export const TOOL_KEYS = TOOLS.map((t) => t.key);
@@ -97,6 +98,7 @@ export function toolAvailability(tool: Tool, ent: Entitlements, opts: { staffInt
   // tool entitlement is the CLIENT's; Catalyst's own production (paid by Catalyst) is not limited by it
   if (!opts.staffInternal && !ent.aiTools.has(tool.key)) return { ok: false, reason: "Not included in your engagement's AI tools. Buying credits does not add tools — ask Catalyst about adding it." };
   if (tool.kind === "image") { const s = imageGenStatus(); if (!s.ready) return { ok: false, reason: "Image generation is not set up on this platform yet." }; }
+  else if (tool.kind === "audit") { /* crawler + PSI: no model needed */ }
   else if (!aiAvailable()) return { ok: false, reason: "AI drafting is not set up on this platform yet." };
   if (!opts.staffInternal && !opts.priced) return { ok: false, reason: "Credit pricing for this tool has not been configured yet." };
   return { ok: true, reason: "" };
@@ -144,7 +146,7 @@ async function checkLinks(orgId: string, inputs: Record<string, string>) {
   if (inputs.engagementId && !(await db.cosEngagement.findFirst({ where: { id: inputs.engagementId, orgId }, select: { id: true } }))) throw new WorkError("Engagement not found.");
 }
 
-const modelFor = (tool: Tool) => (tool.kind === "image" ? process.env.IMAGE_MODEL ?? "image" : aiModel());
+const modelFor = (tool: Tool) => (tool.kind === "image" ? process.env.IMAGE_MODEL ?? "image" : tool.kind === "audit" ? "crawler+psi" : aiModel());
 
 export async function createQuote(actor: WorkActor, toolKey: string, raw: Record<string, unknown>, requestedPurpose?: string, now = new Date()) {
   if (!can(actor.role, "ai.use")) throw new WorkError("Your role cannot use AI tools. Ask a workspace admin.");
@@ -218,7 +220,7 @@ export async function executeQuote(actor: WorkActor, o: { quoteId: string; reque
 // ── execution ────────────────────────────────────────────────────────────────
 
 export type StudioSource = { n: number; title: string; url: string; provider: string; retrievedAt: string };
-export type StudioOutput = { sources?: StudioSource[]; research?: { provider: string; query: string; retrievedAt: string; results: number; droppedAsUntrusted: number; grounding: "search_snippets" }; title?: string; body?: string; parts?: string[]; meta?: { title?: string; description?: string }; notes?: string[]; items?: unknown[]; assetId?: string; ai?: boolean; suggestions?: { text: string; evidence: string }[] };
+export type StudioOutput = { auditRunId?: string; sources?: StudioSource[]; research?: { provider: string; query: string; retrievedAt: string; results: number; droppedAsUntrusted: number; grounding: "search_snippets" }; title?: string; body?: string; parts?: string[]; meta?: { title?: string; description?: string }; notes?: string[]; items?: unknown[]; assetId?: string; ai?: boolean; suggestions?: { text: string; evidence: string }[] };
 
 const SHAPE = `JSON shape: {"title":string,"body":string,"parts":string[],"meta":{"title":string,"description":string},"notes":string[]}. "notes" lists every statement that still needs a human expert, a source or a real client proof point.`;
 const GROUND = `You draft marketing material for a person to edit and approve. State facts ONLY from "approvedClaims" and "sources" in the context or from the text the user pasted. Never invent statistics, testimonials, client names, prices, rankings or results; when a point needs proof you do not have, write it without the claim and add it to "notes". Never promise or guarantee outcomes.`;
@@ -362,6 +364,12 @@ export async function runOperation(operationId: string, now = new Date()): Promi
   let usage: LlmUsage[] = [], searched = false;
   try {
     if (!tool) throw new WorkError("This tool is no longer available.");
+    if (tool.kind === "audit") {
+      // WP-13: the crawl is a job chain; the flat credit price is settled now, the findings arrive on Growth Audit
+      const { startSiteAudit } = await import("./siteAudit");
+      const run = await startSiteAudit(op.orgId, inputs.url, { requestedById: op.userId, operationId: op.id, demo: op.demo });
+      return await finish(op, attempt.id, { ok: true, output: { title: `Site audit of ${run.url}`, body: `The crawl has started (run ${run.id}). Findings appear on the Growth Audit page as soon as it finishes — usually a few minutes for a typical site, longer for large ones.`, auditRunId: run.id }, flags: [], outputTokens: 0 }, usage, new Date());
+    }
     if (tool.kind === "image") {
       const member = await db.losMembership.findFirst({ where: { orgId: op.orgId, userId: op.userId }, select: { role: true } });
       if (!member) throw new WorkError("The member who asked for this is no longer in the workspace.");
