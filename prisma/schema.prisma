@@ -1150,6 +1150,10 @@ model LosMessageTemplate {
   channel String
   subject String?
   body    String
+  // WP-45: Twilio Content API template (WhatsApp): content SID, approval status (approved | pending | rejected | unsubmitted), JSON variables
+  contentSid     String?
+  approvalStatus String?
+  variables      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1578,6 +1582,9 @@ model CosContract {
   proposedBy  String?
   signedById  String?
   signedAt    DateTime?
+  // WP-51: sha256 of the scope the client signed and the IP class (private | public | unknown) — never the raw IP
+  signedHash  String?
+  signedIpClass String?
   endedAt     DateTime?
   createdAt   DateTime  @default(now())
   demo        Boolean   @default(false)
@@ -2540,6 +2547,10 @@ model CosCommercialRecord {
   paidMinor    BigInt        @default(0)
   // how "paid" was established: webhook (verified) | recorded (a person entered it)
   paidBasis    String?
+  // WP-50: GST export fields (blank when unknown — never guessed)
+  taxRateBp    Int?
+  taxMinor     BigInt?
+  hsnSac       String?
   createdById  String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -3122,4 +3133,152 @@ model CosMonitor {
   createdAt   DateTime  @default(now())
 
   @@index([orgId])
+}
+
+// WP-40 · site copy: append-only versions per (project, key, locale); latest = highest version.
+model CosSiteContent {
+  id          String   @id @default(cuid())
+  orgId       String
+  workItemId  String
+  key         String
+  locale      String   @default("en")
+  value       String
+  version     Int
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@unique([workItemId, key, locale, version])
+  @@index([orgId, workItemId])
+}
+
+// WP-42 · a comment pin on a preview (work item / variant image), x/y in percent; the thread is the CosWorkEvent comment.
+model CosPin {
+  id          String    @id @default(cuid())
+  orgId       String
+  // work_item | variant
+  subject     String
+  subjectId   String
+  version     Int
+  x           Float
+  y           Float
+  eventId     String?
+  createdById String?
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([orgId, subject, subjectId])
+}
+
+// WP-43 · behaviour beacon rows (no text, no input values, no cookies); 30-day retention swept from tick.
+model CosBehaviorEvent {
+  id        String   @id @default(cuid())
+  orgId     String
+  day       DateTime
+  // pv | click | scroll
+  type      String
+  path      String
+  x         Float?
+  y         Float?
+  tag       String?
+  depth     Int?
+  createdAt DateTime @default(now())
+
+  @@index([orgId, day])
+  @@index([orgId, path, type])
+}
+
+// WP-44 · chat widget conversations (visitor token in a header, never a cookie); 365-day retention.
+model CosConversation {
+  id           String    @id @default(cuid())
+  orgId        String
+  visitorToken String    @unique
+  email        String?
+  leadId       String?
+  // open | closed
+  status       String    @default("open")
+  page         String?
+  lastAt       DateTime  @default(now())
+  demo         Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  messages     CosChatMessage[]
+
+  @@index([orgId, status, lastAt])
+}
+
+model CosChatMessage {
+  id             String          @id @default(cuid())
+  conversationId String
+  conversation   CosConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  orgId          String
+  // visitor | staff | system
+  from           String
+  authorId       String?
+  text           String
+  createdAt      DateTime        @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+// WP-46 · company enrichment from the company's own public homepage (no personal data, nothing purchased).
+model LosLeadEnrichment {
+  leadId     String    @id
+  orgId      String
+  // JSON {fields: {name: {value, source, fetchedAt}}, robotsAllowed, url}
+  data       String
+  fetchedAt  DateTime
+  acceptedAt DateTime?
+
+  @@index([orgId])
+}
+
+// WP-47 · competitor domains observed weekly (first-party signals only, never estimated traffic).
+model CosCompetitor {
+  id         String    @id @default(cuid())
+  orgId      String
+  domain     String
+  lastRunAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([orgId, domain])
+}
+
+// WP-48 · AI-search visibility: tracked questions and weekly observations from the configured LLM provider.
+model CosTrackedQuestion {
+  id        String   @id @default(cuid())
+  orgId     String
+  question  String
+  createdAt DateTime @default(now())
+  observations CosAiVisibility[]
+
+  @@index([orgId])
+}
+
+model CosAiVisibility {
+  id             String             @id @default(cuid())
+  orgId          String
+  questionId     String
+  question       CosTrackedQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  at             DateTime           @default(now())
+  brandMentioned Boolean
+  // JSON string[] competitor names mentioned; JSON string[] cited URLs
+  competitors    String             @default("[]")
+  citedUrls      String             @default("[]")
+  model          String?
+
+  @@index([orgId, at])
+}
+
+// WP-49 · reviews read from Google Business Profile (public text; reviewer names are not stored).
+model CosReview {
+  id         String   @id @default(cuid())
+  orgId      String
+  provider   String   @default("gbp")
+  externalId String
+  rating     Int
+  snippet    String?
+  at         DateTime
+  syncedAt   DateTime @default(now())
+
+  @@unique([orgId, provider, externalId])
+  @@index([orgId, at])
 }

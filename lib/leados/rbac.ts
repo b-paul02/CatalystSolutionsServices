@@ -61,7 +61,8 @@ export type Permission =
   | "os.settings" // brand profile, connections, autonomy, kill switch
   | "automations.manage" // build and edit workflows, add connections
   | "ai.use" // run entitled AI Studio tools (metered). NOT work.execute: it makes drafts, nothing else
-  | "automations.activate"; // turn a workflow on — client side only: it acts in the client's name
+  | "automations.activate" // turn a workflow on — client side only: it acts in the client's name
+  | "site.edit"; // WP-40: edit site copy on a website project — client side
 
 const ALL: Permission[] = [
   "org.manage", "org.billing", "org.export", "team.manage", "apikeys.manage",
@@ -69,7 +70,7 @@ const ALL: Permission[] = [
   "campaigns.view", "campaigns.manage", "pipeline.manage", "reports.view",
   // client-side OS permissions; staff-only ones (work.manage/execute/review, strategy.manage) are NOT here
   "work.view", "work.request", "approvals.decide", "spend.approve", "contract.sign", "os.settings",
-  "automations.manage", "automations.activate", "ai.use",
+  "automations.manage", "automations.activate", "ai.use", "site.edit",
 ];
 
 const MATRIX: Record<ClientRole | StaffRole, readonly Permission[]> = {
