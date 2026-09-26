@@ -5,6 +5,7 @@ import { requireModule } from "@/lib/os/guard";
 import { CHANNELS } from "@/lib/os/channels";
 import { campaignContentTotals, metricsFor, METRICS, SOURCE_LABEL } from "@/lib/os/metrics";
 import { businessOutcomes } from "@/lib/os/outcomes";
+import { clicksByVariant } from "@/lib/os/links";
 import { formatInZone, periodBounds } from "@/lib/os/time";
 import { Card, Input, Label } from "@/components/leados/ui";
 import ActionForm from "@/components/os/ActionForm";
@@ -124,12 +125,14 @@ async function Content({ orgId, range, demo, tz }: { orgId: string; range: Range
   const pubs = await db.cosPublication.findMany({ where: { orgId, status: "published", ...(demo ? {} : { adapter: { not: "test" } }) }, include: { variant: { select: { workItemId: true, format: true, workItem: { select: { title: true } } } } }, orderBy: { publishedAt: "desc" }, take: 40 });
   if (pubs.length === 0) return <Card><Notice title="Nothing published yet" href="/app/content" action="Open Content">Each published post, article and video appears here with the numbers its platform reports.</Notice></Card>;
   const rows = await Promise.all(pubs.map(async (p) => ({ p, values: await metricsFor(orgId, { publicationId: p.id }, range, demo) })));
+  const clicks = await clicksByVariant(orgId, pubs.map((p) => p.variantId), range);
   return (
     <Card>
       <ul className="divide-y divide-[var(--los-line)]">
         {rows.map(({ p, values }) => (
           <li key={p.id} className="px-5 py-3 text-[13px]">
             <div className="flex flex-wrap items-center justify-between gap-2"><Link href={`/app/content/${p.variant.workItemId}`} className="font-semibold text-[var(--los-brand)] hover:underline">{p.variant.workItem.title}</Link><span className="text-[12px] text-[var(--los-faint)]">{CHANNELS[p.channel]?.label} · {p.variant.format.replace(/_/g, " ")} · {p.publishedAt ? formatInZone(p.publishedAt, tz, { dateStyle: "medium" }) : ""}{p.externalUrl ? <> · <a className="underline" href={p.externalUrl} target="_blank" rel="noreferrer">view</a></> : null}</span></div>
+            {clicks.has(p.variantId) && <p className="text-[12.5px]"><span className="text-[var(--los-muted)]">Short-link clicks (our count, bots excluded): </span><b>{clicks.get(p.variantId)!.toLocaleString("en")}</b></p>}
             {values.length === 0 ? <p className="text-[12.5px] text-[var(--los-muted)]">{p.adapter === "manual" ? "Published by hand — the platform’s numbers are not pulled in. They can be recorded below." : "No numbers available: statistics access is not connected for this account, or the first sync has not run yet."}</p> : (
               <dl className="mt-1 flex flex-wrap gap-x-5 gap-y-1">{values.map((v) => <div key={`${v.provider}${v.metric}${v.kind}`}><dt className="inline text-[12px] text-[var(--los-muted)]" title={METRICS[v.metric]?.definition}>{METRICS[v.metric]?.label ?? v.metric}{v.kind === "lifetime" ? " (total to date)" : ""}: </dt><dd className="inline font-semibold">{v.value.toLocaleString("en")}</dd><span className="ml-1 text-[11px] text-[var(--los-faint)]">{SOURCE_LABEL[v.source] ?? "Mixed sources"} · {formatInZone(v.syncedAt, tz, { dateStyle: "short" })}</span></div>)}</dl>
             )}

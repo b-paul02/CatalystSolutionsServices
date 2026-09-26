@@ -2946,3 +2946,16 @@ model LosLinkClick {
 
   @@index([linkId, at])
 }
+
+// WP-05 · short links for published content (/l/:code → tagged destination). One per variant, stable code.
+model CosShortLink {
+  id        String   @id @default(cuid())
+  orgId     String
+  code      String   @unique
+  url       String
+  variantId String?  @unique
+  label     String?
+  createdAt DateTime @default(now())
+
+  @@index([orgId])
+}

@@ -340,5 +340,8 @@ export async function publishLink(orgId: string, v: { id: string; channel: strin
   if (!v.destinationUrl) return null;
   const item = await db.cosWorkItem.findFirst({ where: { id: v.workItemId, orgId }, select: { campaignId: true } });
   const camp = item?.campaignId ? await db.cosCampaign.findFirst({ where: { id: item.campaignId, orgId }, select: { code: true, paidMode: true } }) : null;
-  return camp ? taggedUrl(v.destinationUrl, { campaignCode: camp.code, channel: v.channel, variantId: v.id, paid: camp.paidMode === "paid" }) : v.destinationUrl;
+  const tagged = camp ? taggedUrl(v.destinationUrl, { campaignCode: camp.code, channel: v.channel, variantId: v.id, paid: camp.paidMode === "paid" }) : v.destinationUrl;
+  // WP-05: the published link is a short link (/l/:code) so clicks are counted; the tagged destination is what it opens
+  const { shortLinkForVariant, shortUrl } = await import("./links");
+  return shortUrl((await shortLinkForVariant(orgId, v.id, tagged)).code);
 }

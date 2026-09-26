@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { clicksFor, shortUrl } from "@/lib/os/links";
 import { notFound } from "next/navigation";
 import { requireOrgPage } from "@/lib/os/guard";
 import { can } from "@/lib/leados/rbac";
@@ -33,6 +34,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
   const views = stats.find((s) => s.kind === "view")?._count ?? 0;
   const submits = stats.find((s) => s.kind === "submit")?._count ?? 0;
   const publicUrl = `${APP_URL}/c/${campaign.publicId}`;
+  const linkClicks = await clicksFor(campaign.trackingLinks.map((t) => t.id));
 
   return (
     <div>
@@ -55,7 +57,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           formSpec: JSON.parse(campaign.formSpec ?? "{}"),
           pageSpec: JSON.parse(campaign.pageSpec ?? "{}"),
           distribution: JSON.parse(campaign.distribution ?? "{}"),
-          trackingLinks: campaign.trackingLinks.map((t) => ({ id: t.id, label: t.label, code: t.code })),
+          trackingLinks: campaign.trackingLinks.map((t) => ({ id: t.id, label: t.label, code: t.code, shortUrl: shortUrl(t.code), clicks: linkClicks.get(t.id) ?? 0 })),
         }}
         canManage={can(actor.role, "campaigns.manage")}
         members={members.map((m) => ({ userId: m.userId, label: m.user.name ?? m.user.email }))}

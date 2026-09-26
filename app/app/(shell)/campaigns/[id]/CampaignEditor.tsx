@@ -18,7 +18,7 @@ type Campaign = {
   formSpec: FormSpec;
   pageSpec: PageSpec;
   distribution: Distribution;
-  trackingLinks: { id: string; label: string; code: string }[];
+  trackingLinks: { id: string; label: string; code: string; shortUrl: string; clicks: number }[];
 };
 
 const PURPOSES = ["sales_contact", "service_updates", "marketing", "survey"];
@@ -430,7 +430,7 @@ export default function CampaignEditor(props: {
   );
 }
 
-function TrackingPanel(props: { campaignId: string; publicUrl: string; links: { id: string; label: string; code: string }[]; canManage: boolean }) {
+function TrackingPanel(props: { campaignId: string; publicUrl: string; links: { id: string; label: string; code: string; shortUrl: string; clicks: number }[]; canManage: boolean }) {
   const [state, action] = useActionState<FormState, FormData>(addTrackingLink, {});
   return (
     <Card className="p-5">
@@ -440,7 +440,7 @@ function TrackingPanel(props: { campaignId: string; publicUrl: string; links: { 
         {props.links.map((l) => (
           <li key={l.id} className="break-all">
             <span className="font-medium">{l.label}:</span>{" "}
-            <span className="text-[var(--los-brand)]">{props.publicUrl}?t={l.code}</span>
+            <span className="text-[var(--los-brand)]">{l.shortUrl}</span> <span className="text-[var(--los-faint)]">({l.clicks} click{l.clicks === 1 ? "" : "s"} · long form {props.publicUrl}?t={l.code})</span>
           </li>
         ))}
         {props.links.length === 0 && <li className="text-[var(--los-faint)]">No tracking links yet.</li>}
