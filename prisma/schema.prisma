@@ -2007,6 +2007,9 @@ model CosWorkflowStepLog {
   // ok | skipped | blocked | failed | waiting
   status    String
   summary   String?
+  // WP-18 run inspector: the rendered config the step received and what it returned — redacted JSON, truncated
+  input     String?
+  output    String?
   ms        Int?
   createdAt DateTime       @default(now())
 

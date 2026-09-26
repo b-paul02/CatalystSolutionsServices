@@ -10,8 +10,8 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { BLOCKS, BLOCK_LIST } from "@/lib/os/automation/catalog";
-import type { BlockMeta, Definition, PreviewStep } from "@/lib/os/automation/definition";
-import { previewCanvas, saveCanvas } from "../actions";
+import type { BlockMeta, Definition, PreviewStep, StepTest } from "@/lib/os/automation/definition";
+import { previewCanvas, saveCanvas, testStepAction } from "../actions";
 
 type Data = { blockType: string; config: Record<string, string>; reached?: PreviewStep["status"] };
 type CardNode = RfNode<Data, "card">;
@@ -66,6 +66,8 @@ export default function Builder({ id, initialName, initial, canEdit, sampleHint 
   const [dirty, setDirty] = useState(false);
   const [sample, setSample] = useState(sampleHint);
   const [preview, setPreview] = useState<{ steps: PreviewStep[]; skipped: string[] } | null>(null);
+  const [query, setQuery] = useState("");
+  const [stepTest, setStepTest] = useState<StepTest | null>(null);
   const [pending, startTransition] = useTransition();
   const selected = nodes.find((n) => n.id === selectedId) ?? null;
   const selectedMeta = selected ? BLOCKS[selected.data.blockType] : undefined;
@@ -105,6 +107,9 @@ export default function Builder({ id, initialName, initial, canEdit, sampleHint 
   });
 
   const groups = [...new Set(BLOCK_LIST.map((b) => b.group))];
+  const q = query.trim().toLowerCase();
+  const matches = (b: BlockMeta) => !q || b.label.toLowerCase().includes(q) || b.group.toLowerCase().includes(q) || b.type.includes(q);
+  const runStepTest = () => { if (!selected) return; startTransition(async () => { const r = await testStepAction({ id: selected.id, type: selected.data.blockType, config: selected.data.config }, sample); if (r.error) { setNotice(r.error); return; } setStepTest(r.test ?? null); }); };
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -118,10 +123,11 @@ export default function Builder({ id, initialName, initial, canEdit, sampleHint 
       <div className={`grid gap-3 ${canEdit ? "md:grid-cols-[180px_1fr] xl:grid-cols-[190px_1fr_290px]" : "xl:grid-cols-[1fr_290px]"}`}>
         {canEdit && (
           <div className="max-h-[560px] overflow-y-auto rounded-xl border border-[var(--los-line)] bg-[var(--los-surface)] p-2">
-            {groups.map((g) => (
-              <details key={g} open={g === "Triggers" || g === "Logic" || g === "CRM"} className="mb-1">
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search steps…" aria-label="Search steps" className={`${field} mb-2`} />
+            {groups.filter((g) => BLOCK_LIST.some((b) => b.group === g && matches(b))).map((g) => (
+              <details key={g} open={Boolean(q) || g === "Triggers" || g === "Logic" || g === "CRM"} className="mb-1">
                 <summary className="cursor-pointer px-1 py-1 text-[11.5px] font-semibold text-[var(--los-faint)]">{g}</summary>
-                {BLOCK_LIST.filter((b) => b.group === g).map((b) => (
+                {BLOCK_LIST.filter((b) => b.group === g && matches(b)).map((b) => (
                   <button key={b.type} onClick={() => addBlock(b)} className="flex w-full items-center gap-2 rounded-md px-1.5 py-1 text-left text-[12.5px] hover:bg-[var(--los-surface-2)]">
                     <span className="material-symbols-outlined text-[16px]" style={{ color: KIND_TONE[b.kind] }} aria-hidden>{b.icon}</span>{b.label}
                   </button>
@@ -161,7 +167,15 @@ export default function Builder({ id, initialName, initial, canEdit, sampleHint 
                   {f.help && <span className="mt-0.5 block text-[11px] font-normal text-[var(--los-faint)]">{f.help}</span>}
                 </label>
               ))}
-              {selectedMeta.provider && <p className="text-[11.5px] text-[var(--los-faint)]">Needs a {selectedMeta.provider} connection (Workflows → Connections).</p>}
+              {selectedMeta.provider && <p className="text-[11.5px] text-[var(--los-faint)]">Needs a {selectedMeta.provider} connection (Settings → Connections).</p>}
+              <button onClick={runStepTest} disabled={pending} className="mt-1 mr-2 rounded-lg border border-[var(--los-line)] px-2.5 py-1 text-[12px] font-semibold hover:bg-[var(--los-surface-2)] disabled:opacity-50">Test this step</button>
+              {stepTest && stepTest.nodeId === selected.id && (
+                <div className="mt-2 rounded-lg bg-[var(--los-surface-2)] p-2 text-[11.5px]">
+                  <div className="font-semibold">{stepTest.simulated ? "Simulated" : "Evaluated"} · {stepTest.note}</div>
+                  <div className="mt-1 text-[var(--los-muted)]">Input (rendered from the sample)</div><pre className="max-h-28 overflow-auto whitespace-pre-wrap font-mono">{JSON.stringify(stepTest.input, null, 1)}</pre>
+                  <div className="mt-1 text-[var(--los-muted)]">Output keys later steps can read as {"{{steps." + selected.id + ".…}}"}</div><pre className="max-h-28 overflow-auto whitespace-pre-wrap font-mono">{JSON.stringify(stepTest.output, null, 1)}</pre>
+                </div>
+              )}
               {canEdit && <button onClick={removeSelected} className="mt-1 rounded-lg border border-[var(--los-danger)] px-2.5 py-1 text-[12px] font-semibold text-[var(--los-danger)]">Delete step</button>}
             </div>
           ) : <div className="rounded-xl border border-dashed border-[var(--los-line)] p-3 text-[12.5px] text-[var(--los-faint)]">Select a step to edit it. Drag from a step&apos;s right dot to the next step&apos;s left dot. A condition has a green Yes dot and a red No dot.</div>}

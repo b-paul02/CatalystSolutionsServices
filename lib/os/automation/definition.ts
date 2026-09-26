@@ -168,6 +168,51 @@ export function simulate(def: Definition, blocks: Record<string, BlockMeta>, sam
   return { steps, skipped: def.nodes.filter((n) => !visited.has(n.id)).map((n) => blocks[n.type]?.label ?? n.type) };
 }
 
+// ── WP-18 · test one step in simulate mode ───────────────────────────────────
+
+/** What a step returns, by block family, so a test can show the keys later steps may read. Nothing here is real data. */
+const OUTPUT_SHAPES: [RegExp, Record<string, unknown>][] = [
+  [/^logic\.condition$/, { result: true }],
+  [/^logic\.wait$/, { resumeAt: "<time the run resumes>" }],
+  [/^crm\.create_lead$/, { leadId: "<new lead id>", created: true }],
+  [/^crm\.create_task$/, { taskId: "<task id>" }],
+  [/^crm\.assign_owner$/, { ownerId: "<member id>" }],
+  [/^crm\.update_stage$/, { stage: "<stage>" }],
+  [/^crm\.add_note$/, { noteId: "<note id>" }],
+  [/^sequence\.enroll$/, { enrolled: true }],
+  [/^message\.send$/, { outcome: "sent | blocked", reason: "<consent / suppression / cap when blocked>" }],
+  [/^os\.create_work_item$/, { workItemId: "<work item id>" }],
+  [/^os\.create_content_draft$/, { workItemId: "<work item id>", draft: true }],
+  [/^notify\./, { delivered: true }],
+  [/^ai\.classify$/, { category: "<one of your categories>", confidence: "<0-1>" }],
+  [/^ai\./, { text: "<generated text (draft)>" }],
+  [/^(feed|youtube)\./, { isNew: true, count: 1, item: { id: "<id>", title: "<title>", link: "<url>" }, items: [], digest: "<one line per item>" }],
+  [/^http\.request$/, { status: 200, body: "<response body>", json: {} }],
+  [/^(notion|airtable|hubspot)\./, { id: "<record id>" }],
+  [/^wordpress\.latest_post$/, { isNew: true, item: { id: 1, title: "<title>", link: "<url>" } }],
+  [/^wordpress\./, { id: "<post id>", link: "<url>" }],
+];
+export const outputShapeFor = (type: string): Record<string, unknown> => OUTPUT_SHAPES.find(([re]) => re.test(type))?.[1] ?? { ok: true };
+
+export type StepTest = { nodeId: string; label: string; kind: BlockKind; input: Record<string, string>; output: Record<string, unknown>; simulated: boolean; note: string };
+
+/**
+ * "Test this step": render the step's config against sample data and show what it would receive and return. Conditions
+ * are evaluated for real; everything else is simulated (no call, no write, no message) — external and contact steps most
+ * of all. The sample may include earlier steps' outputs under `steps`.
+ */
+export function testStep(node: Node, blocks: Record<string, BlockMeta>, sample: { trigger?: unknown; steps?: Record<string, unknown> }): StepTest {
+  const meta = blocks[node.type];
+  if (!meta) throw new Error("Unknown step type.");
+  const ctx = { trigger: sample.trigger ?? {}, steps: sample.steps ?? {} };
+  const input = Object.fromEntries(Object.entries(node.config ?? {}).map(([k, v]) => [k, render(v, ctx)]));
+  if (meta.kind === "condition") { const yes = evaluateCondition(node.config ?? {}, ctx); return { nodeId: node.id, label: meta.label, kind: meta.kind, input, output: { result: yes }, simulated: false, note: `Evaluated for real against the sample: ${yes ? "Yes" : "No"}.` }; }
+  if (meta.kind === "wait") return { nodeId: node.id, label: meta.label, kind: meta.kind, input, output: { resumeAt: new Date(Date.now() + waitMs(input)).toISOString() }, simulated: true, note: "A real run pauses here and resumes on the scheduler tick." };
+  if (meta.kind === "trigger") return { nodeId: node.id, label: meta.label, kind: meta.kind, input, output: { trigger: ctx.trigger }, simulated: true, note: "The trigger passes the sample data to the steps below." };
+  const note = meta.external ? "Simulated: nothing was sent to the outside service. Real runs use your connection." : meta.contacts ? "Simulated: no message was sent. Real runs check consent, suppression and sending caps first." : "Simulated: nothing was created or changed.";
+  return { nodeId: node.id, label: meta.label, kind: meta.kind, input, output: outputShapeFor(node.type), simulated: true, note };
+}
+
 /** Strip emails and phone numbers before anything is written to the step log. */
 export function redact(text: string): string {
   return text.replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, "[email]").replace(/\+?\d[\d\s().-]{7,}\d/g, "[phone]").slice(0, 400);

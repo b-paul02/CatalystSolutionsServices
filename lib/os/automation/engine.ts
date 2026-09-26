@@ -72,8 +72,9 @@ export async function emitEvent(
   }
 }
 
-async function logStep(orgId: string, runId: string, node: Node, status: string, summary: string, ms?: number) {
-  await db.cosWorkflowStepLog.create({ data: { orgId, runId, nodeId: node.id, blockType: node.type, status, summary: redact(summary), ms: ms ?? null } });
+const clip = (v: unknown): string | null => { if (v === undefined) return null; try { return redact(JSON.stringify(v)).slice(0, 2000); } catch { return null; } };
+async function logStep(orgId: string, runId: string, node: Node, status: string, summary: string, ms?: number, io: { input?: unknown; output?: unknown } = {}) {
+  await db.cosWorkflowStepLog.create({ data: { orgId, runId, nodeId: node.id, blockType: node.type, status, summary: redact(summary), ms: ms ?? null, input: clip(io.input), output: clip(io.output) } });
 }
 
 /** Execute (or resume) a run from its cursor until it finishes, waits or is stopped. */
@@ -114,7 +115,7 @@ export async function executeRun(runId: string): Promise<void> {
 
     if (meta.kind === "condition") {
       const yes = evaluateCondition(node.config ?? {}, ctx);
-      await logStep(run.orgId, runId, node, "ok", `${meta.describe(cfg)} → ${yes ? "Yes" : "No"}`);
+      await logStep(run.orgId, runId, node, "ok", `${meta.describe(cfg)} → ${yes ? "Yes" : "No"}`, undefined, { input: cfg, output: { result: yes } });
       node = nextNode(def, node.id, yes ? "true" : "false");
       continue;
     }
@@ -134,11 +135,11 @@ export async function executeRun(runId: string): Promise<void> {
       if (!runner) throw new Error(`No runner for ${node.type}.`);
       const output = await runner(cfg, env);
       ctx.steps[node.id] = output;
-      await logStep(run.orgId, runId, node, "ok", meta.describe(cfg), Date.now() - t0);
+      await logStep(run.orgId, runId, node, "ok", meta.describe(cfg), Date.now() - t0, { input: cfg, output });
     } catch (e) {
       const message = e instanceof Error ? e.message : "Step failed.";
       const blocked = e instanceof BlockedError;
-      await logStep(run.orgId, runId, node, blocked ? "blocked" : "failed", message, Date.now() - t0);
+      await logStep(run.orgId, runId, node, blocked ? "blocked" : "failed", message, Date.now() - t0, { input: cfg });
       // a policy block (no consent, suppressed…) stops this path; it is not an error to retry
       await finish(blocked ? "blocked" : "failed", message);
       return;

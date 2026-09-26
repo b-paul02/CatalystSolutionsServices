@@ -11,7 +11,7 @@ import { WorkError } from "@/lib/os/work";
 import { activateWorkflow, createWorkflow, rotateHookToken, saveKeyConnection, saveWorkflow, setWorkflowStatus } from "@/lib/os/automation/manage";
 import { emitEvent } from "@/lib/os/automation/engine";
 import { BLOCKS } from "@/lib/os/automation/catalog";
-import { simulate, validateDefinition, type Definition, type PreviewStep } from "@/lib/os/automation/definition";
+import { simulate, testStep, validateDefinition, type Definition, type PreviewStep, type StepTest } from "@/lib/os/automation/definition";
 
 type State = { error?: string; ok?: string };
 const fail = (e: unknown): State => { if (e instanceof WorkError || (e instanceof Error && e.name === "LosAuthError")) return { error: e.message }; throw e; };
@@ -41,6 +41,14 @@ export async function previewCanvas(definition: Definition, sampleJson: string):
   try { sample = sampleJson.trim() ? JSON.parse(sampleJson) : {}; } catch { return { error: "Sample data must be valid JSON." }; }
   const problems = validateDefinition(definition, BLOCKS);
   return { ...simulate(definition, BLOCKS, sample), problems };
+}
+
+/** WP-18 · "Test this step": simulate mode — conditions evaluate, everything else returns its output shape. Runs nothing. */
+export async function testStepAction(node: Definition["nodes"][number], sampleJson: string): Promise<{ error?: string; test?: StepTest }> {
+  const actor = await requireOrgAction("work.view"); if ("error" in actor) return actor;
+  let sample: { trigger?: unknown; steps?: Record<string, unknown> } = {};
+  try { const raw = sampleJson.trim() ? JSON.parse(sampleJson) : {}; sample = raw && typeof raw === "object" && ("trigger" in raw || "steps" in raw) ? raw : { trigger: raw }; } catch { return { error: "Sample data must be valid JSON." }; }
+  try { return { test: testStep(node, BLOCKS, sample) }; } catch (e) { return { error: e instanceof Error ? e.message : "Could not test this step." }; }
 }
 
 export async function workflowStatus(_p: State, form: FormData): Promise<State> {

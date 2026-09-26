@@ -69,7 +69,11 @@ export default async function WorkflowPage({ params }: { params: Promise<{ id: s
                     <Badge tone={RUN_TONE[r.status as keyof typeof RUN_TONE] ?? "neutral"}>{r.status}</Badge>
                   </summary>
                   <ol className="ml-4 mt-2 list-decimal space-y-0.5 text-[12.5px] text-[var(--los-muted)]">
-                    {r.steps.map((s) => <li key={s.id}><b className="text-[var(--los-fg)]">{BLOCKS[s.blockType]?.label ?? s.blockType}</b> — {s.status}{s.summary ? `: ${s.summary}` : ""}{s.ms ? ` (${s.ms} ms)` : ""}</li>)}
+                    {r.steps.map((s) => (
+                      <li key={s.id}><b className="text-[var(--los-fg)]">{BLOCKS[s.blockType]?.label ?? s.blockType}</b> — {s.status}{s.summary ? `: ${s.summary}` : ""}{s.ms ? ` (${s.ms} ms)` : ""}
+                        {(s.input || s.output) && <details className="mt-0.5"><summary className="cursor-pointer text-[11.5px]">input / output</summary>{s.input && <pre className="max-h-32 overflow-auto whitespace-pre-wrap rounded bg-[var(--los-surface-2)] p-1.5 font-mono text-[11px]">in: {s.input}</pre>}{s.output && <pre className="max-h-32 overflow-auto whitespace-pre-wrap rounded bg-[var(--los-surface-2)] p-1.5 font-mono text-[11px]">out: {s.output}</pre>}</details>}
+                      </li>
+                    ))}
                   </ol>
                   {r.error && <p className="mt-1 text-[12.5px] text-[var(--los-danger)]">{r.error}</p>}
                 </details>
