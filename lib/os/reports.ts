@@ -82,6 +82,8 @@ export async function monthlyReport(orgId: string, month: string, tz: string, in
   for (const a of ads) add("digital_visibility", `Ads: ${a.campaign}`, Object.entries(a.spend).map(([c, v]) => `${v.toFixed(2)} ${c}`).join(" + ") || null, `${a.clicks} clicks · ${a.conversions} conversions · ${a.days} days`);
   add("business_operations", "Work delivered", delivered, "counted on the day each item was first delivered");
   add("business_operations", "AI calls", ai._count._all, ai._count._all > 0 && ai._count.costMicros === ai._count._all ? `provider cost $${((ai._sum.costMicros ?? 0) / 1_000_000).toFixed(4)}` : "provider cost unknown for at least one call");
+  const rv = await import("./reviews").then((m) => m.reviewsSummary(orgId)).catch(() => null);
+  if (rv) add("digital_visibility", "Google reviews", `${rv.count} reviews · average ${rv.average}`, `latest sync ${rv.syncedAt?.toISOString().slice(0, 10)} (lifetime, not per month)`);
   add("market_intelligence", "Scorecards completed", sc.reduce((a, s) => a + s.completions, 0) || null, sc.length ? undefined : "no scorecard ran this month");
   // hidden widgets drop their facts (coarse mapping by pillar + label prefix)
   const layout = await getLayout(orgId);

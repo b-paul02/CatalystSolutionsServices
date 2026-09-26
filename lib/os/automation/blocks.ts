@@ -235,6 +235,13 @@ export const RUNNERS: Record<string, Run> = {
     const r = (JSON.parse(body) as { data?: { details?: { id?: string }; action?: string }[] }).data?.[0];
     return { contactId: r?.details?.id ?? null, created: r?.action === "insert" };
   },
+  // WP-49 · review request: same consent/suppression/caps path as any lead contact, purpose review_request
+  "review.request": async (c, env) => {
+    if (!env.leadId) throw new Error("No lead in this run.");
+    const { sendOutreachMessage } = await import("@/lib/leados/outreach");
+    const r = await sendOutreachMessage({ orgId: env.orgId, leadId: env.leadId, channel: (["whatsapp", "sms", "email"].includes(c.channel) ? c.channel : "email") as "whatsapp" | "sms" | "email", body: c.body.replace(/\{\{\s*reviewUrl\s*\}\}/g, c.reviewUrl), subject: "A quick favour: would you leave us a review?", purpose: "review_request", sentById: env.actorId });
+    return { outcome: r.outcome, reason: "reason" in r ? r.reason : undefined };
+  },
   "hubspot.upsert_contact": async (c, env) => {
     const headers = { Authorization: `Bearer ${await secret(env, "hubspot")}` };
     const properties = { email: c.email, firstname: c.firstName ?? "", lastname: c.lastName ?? "" };
