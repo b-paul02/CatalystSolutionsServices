@@ -2888,3 +2888,61 @@ model CosHeartbeat {
   at    DateTime
   note  String?
 }
+
+// ── First-party build 2026-09-27 (docs/os/integrations-plan.md v2) ───────────
+
+// WP-03 · request errors captured by instrumentation.onRequestError, one row per fingerprint. Never holds a request
+// body or personal data: message + truncated stack + route only.
+model CosErrorEvent {
+  id          String   @id @default(cuid())
+  fingerprint String   @unique
+  message     String
+  stack       String?
+  route       String?
+  orgId       String?
+  count       Int      @default(1)
+  firstAt     DateTime @default(now())
+  lastAt      DateTime @default(now())
+  resolvedAt  DateTime?
+
+  @@index([lastAt])
+}
+
+// WP-06 · feature flags read by gateAction: an org row overrides the global row (orgId = ""). Kill switch stays separate.
+model CosFeatureFlag {
+  id        String   @id @default(cuid())
+  key       String
+  // "" = global
+  orgId     String   @default("")
+  on        Boolean  @default(false)
+  note      String?
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+
+  @@unique([key, orgId])
+}
+
+// WP-07 · per-user notification preferences per kind; absent row = in-app only.
+model CosNotificationPref {
+  id      String  @id @default(cuid())
+  userId  String
+  orgId   String
+  kind    String
+  inApp   Boolean @default(true)
+  email   Boolean @default(false)
+  slack   Boolean @default(false)
+
+  @@unique([userId, orgId, kind])
+}
+
+// WP-05 · short-link clicks. No IP, no user-agent string: referrer host and a coarse UA class only.
+model LosLinkClick {
+  id        String   @id @default(cuid())
+  linkId    String
+  at        DateTime @default(now())
+  refDomain String?
+  // bot | mobile | desktop | unknown
+  uaClass   String   @default("unknown")
+
+  @@index([linkId, at])
+}

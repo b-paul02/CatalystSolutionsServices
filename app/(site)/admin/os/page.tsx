@@ -77,6 +77,12 @@ export default async function OsAdminPage() {
         <span className="text-[12px] font-bold uppercase tracking-[0.08em] text-[var(--color-faint)]">AI</span>
         <Link className="text-[var(--color-brand-soft)] hover:text-white" href="/admin/os/credits">AI credits, rate cards, reconciliation</Link>
       </nav>
+      <nav className="mb-6 flex flex-wrap items-center gap-4 text-[14px]">
+        <span className="text-[12px] font-bold uppercase tracking-[0.08em] text-[var(--color-faint)]">Platform</span>
+        <Link className="text-[var(--color-brand-soft)] hover:text-white" href="/admin/os/jobs">Background jobs</Link>
+        <Link className="text-[var(--color-brand-soft)] hover:text-white" href="/admin/os/errors">Errors</Link>
+        <Link className="text-[var(--color-brand-soft)] hover:text-white" href="/admin/os/flags">Feature flags</Link>
+      </nav>
 
       <OpsOverview />
 
