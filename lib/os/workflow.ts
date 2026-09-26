@@ -111,7 +111,7 @@ const F: Record<string, readonly string[]> = {
 };
 export const canMoveFinding = (from: string, to: string): boolean => (F[from] ?? []).includes(to);
 
-export const EVIDENCE_LABELS = ["verified", "detected", "assumed", "unavailable"] as const;
+export const EVIDENCE_LABELS = ["verified", "detected", "assumed", "unavailable", "self_reported"] as const;
 export type EvidenceLabel = (typeof EVIDENCE_LABELS)[number];
 
 // ── autonomy policy (§9.3) ───────────────────────────────────────────────────

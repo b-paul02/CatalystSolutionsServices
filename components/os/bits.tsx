@@ -15,7 +15,7 @@ export function StateBadge({ state }: { state: string }) {
 }
 
 // Evidence confidence — observation vs inference is always visible (§1.2).
-const LABEL_TONE: Record<string, Tone> = { verified: "success", measured: "success", detected: "brand", estimated: "warn", assumed: "warn", unavailable: "neutral" };
+const LABEL_TONE: Record<string, Tone> = { verified: "success", measured: "success", detected: "brand", estimated: "warn", assumed: "warn", unavailable: "neutral", self_reported: "warn" };
 export function EvidenceBadge({ label }: { label: string }) {
   return <Badge tone={LABEL_TONE[label] ?? "neutral"}>{label}</Badge>;
 }

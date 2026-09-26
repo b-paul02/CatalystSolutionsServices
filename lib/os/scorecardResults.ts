@@ -3,14 +3,14 @@
 // and upserted, so a retry never double counts. Average score = score_sum / completions, computed at read.
 // Demo campaigns write demo rows, which stay out of real clients' reports.
 import { db } from "@/lib/audit/db";
-import type { ScoreResult } from "@/lib/leados/scorecard";
+import type { ScorecardSpec, ScoreResult } from "@/lib/leados/scorecard";
 import { upsertSnapshot } from "./metrics";
 import { notify } from "./notify";
 
 export const SCORECARD_PROVIDER = "scorecard";
 const dayOf = (d: Date) => d.toISOString().slice(0, 10);
 
-type Camp = { id: string; orgId: string; name: string; demo: boolean; marketingCampaignId: string | null };
+type Camp = { id: string; orgId: string; name: string; demo: boolean; marketingCampaignId: string | null; createdById?: string };
 
 /** Recompute one campaign-day from the submissions table (completions, leads, score sum, bands). */
 export async function recomputeScorecardDay(campaign: Camp, day: string) {
@@ -40,8 +40,9 @@ export async function recordScorecardStart(campaign: Camp, day = dayOf(new Date(
 }
 
 /** After processSubmission stored a scored submission. */
-export async function onScorecardCompleted(campaign: Camp, submissionId: string, score: ScoreResult) {
+export async function onScorecardCompleted(campaign: Camp, submissionId: string, score: ScoreResult, spec?: ScorecardSpec) {
   await recomputeScorecardDay(campaign, dayOf(new Date()));
+  if (spec) await import("./scorecardAudit").then((m) => m.importScorecardRun({ ...campaign, createdById: campaign.createdById ?? "system" }, submissionId, score, spec)).catch(() => undefined);
   await notify({ orgId: campaign.orgId, audience: "client", kind: "new_lead", title: `New scorecard result: ${score.band} (${score.pct}%) — ${campaign.name}`, body: "Self-reported answers. Open the lead to follow up.", href: `/app/campaigns/${campaign.id}`, dedupeKey: `scorecard:${submissionId}` });
 }
 

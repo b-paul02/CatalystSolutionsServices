@@ -189,7 +189,7 @@ export async function processSubmission(opts: {
       await db.losLead.update({ where: { id: lead.id }, data: { qualityScore: r.quality, intentScore: r.intent } });
       await db.losScoreEvent.create({ data: { orgId: campaign.orgId, leadId: lead.id, quality: r.quality, intent: r.intent, explanation: JSON.stringify([...r.explanation, { component: `Scorecard: ${score.band} (${score.pct}%)`, points: 0 }]) } });
     }
-    await import("@/lib/os/scorecardResults").then((m) => m.onScorecardCompleted(campaign, submission.id, score)).catch(() => {});
+    await import("@/lib/os/scorecardResults").then((m) => m.onScorecardCompleted(campaign, submission.id, score, scorecard)).catch(() => {});
   }
   await db.losAttributionEvent.create({
     data: { campaignId: campaign.id, kind: "submit", trackingCode: opts.trackingCode ?? null, utm: Object.keys(opts.utm).length ? JSON.stringify(opts.utm) : null },

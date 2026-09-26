@@ -8,6 +8,9 @@ import { Card, Input, Label } from "@/components/leados/ui";
 import ActionForm from "@/components/os/ActionForm";
 import { day, Empty, EvidenceBadge, field, human, PageHeader, SectionTitle } from "@/components/os/bits";
 import { approveBaseline, findingMove, findingToWork } from "../_os/actions";
+import { pairedRuns, SCORECARD_RUN_KIND } from "@/lib/os/scorecardAudit";
+import GrowthStep from "@/components/os/GrowthStep";
+import { AUDIT_CATEGORY_PILLAR } from "@/lib/os/pillarDefs";
 
 export const metadata = { title: "Growth Audit" };
 
@@ -31,16 +34,25 @@ export default async function AuditPage() {
       </div>
     );
   }
-  const findings = await db.cosFinding.findMany({ where: { orgId, auditRunId: run.id, status: { not: "archived" } }, orderBy: [{ severity: "asc" }, { createdAt: "asc" }] });
-  const scores = JSON.parse(run.scores) as Record<string, PillarScore>;
-  const summary = JSON.parse(run.summary) as Summary;
+  const pair = await pairedRuns(orgId);
+  // the verified run is the main column; the self-reported scorecard run sits next to it (never blended)
+  const main = run.kind === SCORECARD_RUN_KIND && pair?.verified ? pair.verified : run;
+  const selfRun = pair?.scorecard ?? null;
+  const selfScores = selfRun ? (JSON.parse(selfRun.scores) as Record<string, PillarScore>) : null;
+  const findings = await db.cosFinding.findMany({ where: { orgId, auditRunId: { in: [main.id, ...(selfRun ? [selfRun.id] : [])] }, status: { not: "archived" } }, orderBy: [{ severity: "asc" }, { createdAt: "asc" }] });
+  const scores = JSON.parse(main.scores) as Record<string, PillarScore>;
+  const weakest = PILLARS.map((p) => ({ p, s: scores[p.key]?.score ?? selfScores?.[p.key]?.score ?? null })).filter((x) => x.s !== null).sort((a, b) => a.s! - b.s!)[0] ?? null;
+  const summary = JSON.parse(main.summary) as Summary;
   const previous = runs[1] ? (JSON.parse(runs[1].scores) as Record<string, PillarScore>) : null;
   const base = baselines[0] ? (JSON.parse(baselines[0].snapshot) as { scores?: Record<string, PillarScore> }).scores ?? null : null;
   const compare = previous ?? base;
 
   return (
     <div className="max-w-[1100px]">
-      <PageHeader title="Growth Audit" sub={`${run.url} · ${human(run.kind)} audit · ${day(run.createdAt)} · scoring ${run.scoringVersion}`} />
+      <PageHeader title="Growth Audit" sub={`${main.url} · ${human(main.kind)} audit · ${day(main.createdAt)} · scoring ${main.scoringVersion}${selfRun ? ` · self-reported scorecard ${day(selfRun.createdAt)}${selfRun.pairedRunId === main.id ? " (same site)" : " (unpaired)"}` : ""}`} />
+      {weakest && (
+        <div className="mb-4"><GrowthStep done="Audit finished." note={`weakest: ${weakest.p.label}`} step={{ pillar: AUDIT_CATEGORY_PILLAR[weakest.p.key] ?? "market_intelligence", metric: `audit.${weakest.p.key}`, metricLabel: `${weakest.p.label} score`, action: { kind: "goal", label: `Set a goal for ${weakest.p.label}`, title: `Raise ${weakest.p.label} from ${weakest.s}`, unit: "score", target: Math.min(100, (weakest.s ?? 0) + 20), horizon: "90 days" } }} /></div>
+      )}
 
       <div className="mb-5 grid grid-cols-2 gap-4 lg:grid-cols-6">
         {PILLARS.map((p) => {
@@ -55,6 +67,9 @@ export default async function AuditPage() {
                 {delta !== null && delta !== 0 && <span className={`ml-1 text-[12.5px] ${delta > 0 ? "text-[var(--los-success)]" : "text-[var(--los-danger)]"}`}>{delta > 0 ? "+" : ""}{delta}</span>}
               </div>
               <EvidenceBadge label={s.label} />
+              {selfScores && main.kind !== SCORECARD_RUN_KIND && (() => { const sr = selfScores[p.key]; const d = sr?.score !== null && sr?.score !== undefined && s.score !== null ? sr.score - s.score : null; return (
+                <div className="mt-2 border-t border-dashed border-[var(--los-line)] pt-1.5 text-[12.5px]"><span className="text-[var(--los-muted)]">Self-reported: </span><b>{sr?.score ?? "—"}</b>{d !== null && <span className="ml-1 text-[var(--los-faint)]">({d > 0 ? "+" : ""}{d} vs verified)</span>}</div>
+              ); })()}
             </Card>
           );
         })}
@@ -88,7 +103,7 @@ export default async function AuditPage() {
             {baselines.map((b) => (
               <div key={b.id} className="mb-1 flex justify-between"><span>v{b.version}{b.supersedesId ? " (correction)" : ""}</span><span className="text-[var(--los-faint)]">{day(b.createdAt)}</span></div>
             ))}
-            {baselines.length === 0 && <p className="text-[var(--los-muted)]">Not recorded yet.</p>}
+            {baselines.length === 0 && <p className="text-[var(--los-muted)]">Not recorded yet.{selfRun && !pair?.verified ? " The first scorecard run can be recorded as the starting baseline (self-reported)." : ""}</p>}
             {baselines[0]?.reason && <p className="text-[12.5px] text-[var(--los-muted)]">Latest correction: {baselines[0].reason}</p>}
             {strategist && (
               <details className="mt-2">
@@ -112,7 +127,7 @@ export default async function AuditPage() {
             <li key={f.id} className="px-5 py-3 text-[13.5px]">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="font-medium">{f.text}</div>
+                  <div className="font-medium">{f.text}{f.label === "self_reported" && <span className="ml-1 text-[11px] font-normal text-[var(--los-faint)]">(scorecard answer)</span>}</div>
                   <div className="text-[12.5px] text-[var(--los-muted)]">Evidence: {f.evidence} · observed {day(f.observedAt)}{f.sourceUrl ? <> · <a className="hover:underline" href={f.sourceUrl} target="_blank" rel="noopener noreferrer">source</a></> : null}</div>
                   {f.statusNote && <div className="text-[12.5px] text-[var(--los-faint)]">{f.statusNote}</div>}
                 </div>
@@ -121,7 +136,7 @@ export default async function AuditPage() {
               <div className="mt-2 flex flex-wrap items-end gap-2">
                 {strategist && f.status === "identified" && (
                   <ActionForm action={findingMove} submit="Evidence checked" tone="ghost" hidden={{ id: f.id, to: "evidence_checked" }} className="flex items-end gap-2">
-                    <select name="label" defaultValue={f.label} className={`${field} !w-auto`} aria-label="Evidence label">{["verified", "detected", "assumed", "unavailable"].map((l) => <option key={l}>{l}</option>)}</select>
+                    <select name="label" defaultValue={f.label} className={`${field} !w-auto`} aria-label="Evidence label">{["verified", "detected", "assumed", "unavailable", "self_reported"].map((l) => <option key={l}>{l}</option>)}</select>
                   </ActionForm>
                 )}
                 {strategist && (f.status === "evidence_checked" || f.status === "deferred") && <ActionForm action={findingMove} submit="Propose to client" hidden={{ id: f.id, to: "proposed" }} />}

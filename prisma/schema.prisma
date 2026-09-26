@@ -1585,8 +1585,13 @@ model CosAuditRun {
   orgId          String
   sourceLeadId   String?
   url            String
-  // initial | quarterly | service
+  // initial | quarterly | service | scorecard (self-reported, WP-10b)
   kind           String   @default("initial")
+  // WP-10b: the LosFormSubmission this scorecard run came from (one run per submission), and the verified run it pairs with
+  sourceSubmissionId String?
+  pairedRunId    String?
+  // self_reported for scorecard runs; null = verified pipeline
+  label          String?
   scoringVersion String
   // JSON {pillarKey: {score|null, label}} — null = unavailable, never 0
   scores         String
@@ -1597,6 +1602,7 @@ model CosAuditRun {
   demo           Boolean  @default(false)
 
   @@index([orgId, createdAt])
+  @@index([sourceSubmissionId])
 }
 
 // A finding carries its own evidence. ponytail: one evidence per finding inline;
