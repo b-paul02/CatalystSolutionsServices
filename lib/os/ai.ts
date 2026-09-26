@@ -93,6 +93,26 @@ export function validateCalendar(raw: unknown, allowedChannels: string[], days: 
   return { items, dropped };
 }
 
+// ── structured output (WP-27) ────────────────────────────────────────────────
+
+/**
+ * Model text → JSON → shape check → validated value. Malformed JSON or a failed check is a validation failure
+ * (WorkError), never a draft. `check` receives the parsed value and returns the validated result or throws.
+ */
+export function parseJsonOutput<T>(text: string, check: (raw: unknown) => T): T {
+  let raw: unknown;
+  try { raw = JSON.parse(text.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "")); }
+  catch (e) { throw new AiOutputError(`The model did not return valid JSON (${(e as Error).message.slice(0, 80)}).`); }
+  try { return check(raw); } catch (e) { if (e instanceof AiOutputError) throw e; throw new AiOutputError(e instanceof Error ? e.message : "The model output did not match the expected shape."); }
+}
+export class AiOutputError extends Error {}
+
+/** Strings the model cited that are not in the allowed list (case-insensitive) — the string-valued twin of inventedNumbers. */
+export function inventedStrings(cited: string[], allowed: string[]): string[] {
+  const ok = new Set(allowed.map((a) => a.trim().toLowerCase()));
+  return [...new Set(cited.map((c) => c.trim()).filter((c) => c && !ok.has(c.toLowerCase())))];
+}
+
 // ── tenant-scoped context ────────────────────────────────────────────────────
 
 /** `sourceIds`: when the person picked sources for this run, ONLY those are given to the model (approved claims always are). */

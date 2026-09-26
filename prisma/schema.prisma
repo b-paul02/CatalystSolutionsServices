@@ -2967,3 +2967,19 @@ model CosShortLink {
 
   @@index([orgId])
 }
+
+// WP-14 · Search Console query × page rows (28-day window, one snapshot per sync day). Impressions, clicks and position
+// are real first-party numbers; search VOLUME is never stored or shown.
+model CosSearchQuery {
+  id          String   @id @default(cuid())
+  orgId       String
+  day         DateTime
+  query       String
+  page        String
+  impressions Int
+  clicks      Int
+  position    Float
+
+  @@unique([orgId, day, query, page])
+  @@index([orgId, day])
+}

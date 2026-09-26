@@ -293,6 +293,21 @@ export async function syncSearchConsole(orgId: string, days = 28): Promise<numbe
       });
     }
   }
+  // WP-14: query × page rows for the same window (one snapshot per sync day). No volumes exist in this API.
+  const qp = await api(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, token, {
+    method: "POST", body: JSON.stringify({ startDate: iso(start), endDate: iso(end), dimensions: ["query", "page"], rowLimit: 1000 }),
+  });
+  if (qp.ok) {
+    const day = new Date(`${iso(end)}T00:00:00.000Z`);
+    for (const r of ((await qp.json()) as { rows?: { keys: string[]; clicks: number; impressions: number; position: number }[] }).rows ?? []) {
+      const [query, page] = r.keys;
+      if (!query || !page) continue;
+      await db.cosSearchQuery.upsert({ where: { orgId_day_query_page: { orgId, day, query: query.slice(0, 300), page: page.slice(0, 500) } }, update: { impressions: Math.round(r.impressions), clicks: Math.round(r.clicks), position: r.position }, create: { orgId, day, query: query.slice(0, 300), page: page.slice(0, 500), impressions: Math.round(r.impressions), clicks: Math.round(r.clicks), position: r.position } });
+    }
+    // keep the last 8 snapshots
+    const keep = await db.cosSearchQuery.findMany({ where: { orgId }, distinct: ["day"], orderBy: { day: "desc" }, take: 8, select: { day: true } });
+    if (keep.length === 8) await db.cosSearchQuery.deleteMany({ where: { orgId, day: { lt: keep[7].day } } });
+  }
   await db.cosConnection.update({ where: { id: conn.id }, data: { lastCheckedAt: new Date(), lastError: null } });
   return rows.length;
 }

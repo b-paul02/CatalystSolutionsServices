@@ -18,7 +18,10 @@ export default async function SearchPage() {
       note="AI-citation checks are dated observations, not guarantees."
       extras={can(actor.role, "work.manage") ? (
         <Card className="p-4">
-          <div className="mb-2 text-[15px] font-bold">New content brief</div>
+          <div className="mb-2 text-[15px] font-bold">Keyword opportunities</div>
+          <p className="mb-2 text-[13px] text-[var(--los-muted)]">Striking-distance, cannibalisation and no-click queries from Search Console, and topic clusters you can add to a brief. No search volumes.</p>
+          <a className="text-[13px] font-semibold text-[var(--los-brand)] hover:underline" href="/app/search/keywords">Open keyword opportunities →</a>
+          <div className="mb-2 mt-4 text-[15px] font-bold">New content brief</div>
           {aiAvailable() ? (
             <ActionForm action={newSeoBrief} submit="Draft brief" className="space-y-2 text-[13px]">
               <div><Label>Target keyword</Label><Input name="keyword" required placeholder="b2b lead generation agency india" /></div>
