@@ -15,7 +15,7 @@ const QUALITY_LABELS: Record<keyof ScoringWeights["quality"], string> = {
 const INTENT_LABELS: Record<keyof ScoringWeights["intent"], string> = {
   base: "Base score", qualifyingAnswer: "Per answered profile question",
   hasBudget: "Declared a budget", hasTimeline: "Declared a timeline",
-  engagedStatus: "Actively engaged stage", recentActivity7d: "Recent activity",
+  engagedStatus: "Actively engaged stage", recentActivity7d: "Recent activity", scorecardBand: "Scorecard band (top band = full weight, self-reported)",
 };
 
 export default function ScoringForm({ weights, canManage }: { weights: ScoringWeights; canManage: boolean }) {

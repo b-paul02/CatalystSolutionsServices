@@ -53,5 +53,5 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ publicId: 
   if (result.outcome === "invalid") {
     return NextResponse.json({ error: result.problem }, { status: 422 });
   }
-  return NextResponse.json({ message: result.message });
+  return NextResponse.json({ message: result.message, ...(result.score ? { score: result.score, resultUrl: `/c/${publicId}/r/${result.submissionId}` } : {}) });
 }

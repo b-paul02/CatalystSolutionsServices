@@ -1316,6 +1316,8 @@ model LosFormSubmission {
   utm        String? // JSON utm/tracking params
   trackingCode String?
   ip         String?
+  // WP-10a scorecard result JSON {total, max, pct, band, bandIndex, categories:[{key,label,pillar,points,max,pct}]} — self-reported
+  score      String?
   // accepted | duplicate_updated | invalid | spam | pending_verification
   status     String
   leadId     String?

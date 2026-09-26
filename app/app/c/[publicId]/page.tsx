@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/audit/db";
 import type { FormSpec, PageSpec } from "@/lib/leados/campaigns";
 import PublicLeadForm from "./PublicLeadForm";
+import PublicScorecard from "./PublicScorecard";
 
 export async function generateMetadata({ params }: { params: Promise<{ publicId: string }> }) {
   const { publicId } = await params;
@@ -62,6 +63,9 @@ export default async function PublicCampaignPage({
             </a>
           )}
         </div>
+        {campaign.type === "scorecard" && formSpec.scorecard ? (
+          <PublicScorecard publicId={publicId} formSpec={formSpec} spec={formSpec.scorecard} cta={pageSpec.cta} brandColor={pageSpec.brandColor} trackingCode={trackingCode} utm={utm} turnstileSiteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? process.env.TURNSTILE_SITE_KEY_PUBLIC ?? null} orgName={org?.name ?? ""} />
+        ) : (
         <PublicLeadForm
           publicId={publicId}
           formSpec={formSpec}
@@ -73,6 +77,7 @@ export default async function PublicCampaignPage({
           thankYouRedirect={pageSpec.thankYouRedirect ?? null}
           turnstileSiteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? process.env.TURNSTILE_SITE_KEY_PUBLIC ?? null}
         />
+        )}
       </div>
     </div>
   );

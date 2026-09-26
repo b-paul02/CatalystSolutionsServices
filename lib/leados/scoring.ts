@@ -21,6 +21,7 @@ export type ScoringWeights = {
     hasTimeline: number;
     engagedStatus: number; // reached engaged/qualified
     recentActivity7d: number;
+    scorecardBand: number; // WP-10a: full weight for the top scorecard band, scaled down by band rank
   };
   hotThreshold: number;
   warmThreshold: number;
@@ -33,7 +34,7 @@ export const DEFAULT_WEIGHTS: ScoringWeights = {
   },
   intent: {
     base: 20, qualifyingAnswer: 10, hasBudget: 15, hasTimeline: 15,
-    engagedStatus: 20, recentActivity7d: 15,
+    engagedStatus: 20, recentActivity7d: 15, scorecardBand: 15,
   },
   hotThreshold: 70,
   warmThreshold: 40,
@@ -52,6 +53,8 @@ export type LeadForScoring = {
   createdAt: Date;
   updatedAt: Date;
   b2c?: { productInterest: string | null; budgetBand: string | null; purchaseTimeline: string | null } | null;
+  /** 0..1 rank of the latest scorecard band (top band = 1); null when the lead never took one */
+  scorecardBandRank?: number | null;
 };
 
 export type ScoreResult = {
@@ -89,6 +92,7 @@ export function scoreLead(lead: LeadForScoring, weights: ScoringWeights = DEFAUL
   if (lead.b2c?.purchaseTimeline) intent += add("Declared a timeline", w.intent.hasTimeline);
   if (["engaged", "qualified", "converted"].includes(lead.status)) intent += add("Actively engaged", w.intent.engagedStatus);
   if (now.getTime() - lead.updatedAt.getTime() < 7 * 86_400_000) intent += add("Recent activity", w.intent.recentActivity7d);
+  if (typeof lead.scorecardBandRank === "number") intent += add("Scorecard band (self-reported)", Math.round(w.intent.scorecardBand * lead.scorecardBandRank));
 
   const q = cap(quality);
   const i = cap(intent);

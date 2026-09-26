@@ -87,9 +87,9 @@ describe("catalogue and templates", () => {
     }
     expect(Object.keys(RUNNERS).every((k) => BLOCKS[k])).toBe(true);
   });
-  it("all 31 templates are valid and preview cleanly", () => {
-    expect(TEMPLATES).toHaveLength(31);
-    expect(new Set(TEMPLATES.map((t) => t.key)).size).toBe(31);
+  it("all 32 templates are valid and preview cleanly", () => {
+    expect(TEMPLATES).toHaveLength(32);
+    expect(new Set(TEMPLATES.map((t) => t.key)).size).toBe(32);
     for (const t of TEMPLATES) {
       expect(validateDefinition(t.definition, BLOCKS), t.key).toEqual([]);
       expect(simulate(t.definition, BLOCKS, {}).steps.length, t.key).toBeGreaterThan(1);

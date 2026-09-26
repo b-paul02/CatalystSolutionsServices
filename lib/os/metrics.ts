@@ -10,7 +10,7 @@ import { decryptField } from "@/lib/leados/crypto";
 import { WorkError, type WorkActor } from "./work";
 import { adapterFor, ga4CampaignReport, AdapterError } from "./adapters";
 
-import type { Pillar } from "./pillars";
+import type { Pillar } from "./pillarDefs";
 export type MetricDef = { label: string; definition: string; unit: "count" | "minutes" | "seconds" | "currency" | "percent"; additive: boolean; pillar: Pillar };
 export const METRICS: Record<string, MetricDef> = {
   impressions: { label: "Impressions", definition: "Times the content was shown, as reported by the platform. Not people.", unit: "count", additive: true, pillar: "digital_visibility" },
@@ -28,6 +28,11 @@ export const METRICS: Record<string, MetricDef> = {
   key_events: { label: "Key events", definition: "GA4 key events (conversions configured on the website).", unit: "count", additive: true, pillar: "client_acquisition" },
   clicks: { label: "Search clicks", definition: "Clicks from Google Search results (Search Console). Not website sessions.", unit: "count", additive: true, pillar: "digital_visibility" },
   spend: { label: "Ad spend", definition: "Spend in the ad account's currency.", unit: "currency", additive: true, pillar: "business_operations" },
+  // WP-10d · scorecard funnel (self-reported answers; counts only)
+  "scorecard.starts": { label: "Scorecard starts", definition: "Visitors who answered the first question.", unit: "count", additive: true, pillar: "client_acquisition" },
+  "scorecard.completions": { label: "Scorecard completions", definition: "Results shown.", unit: "count", additive: true, pillar: "client_acquisition" },
+  "scorecard.leads": { label: "Scorecard leads", definition: "Completions that became a new lead.", unit: "count", additive: true, pillar: "client_acquisition" },
+  "scorecard.score_sum": { label: "Scorecard score sum", definition: "Sum of scores (average = sum ÷ completions, computed at read).", unit: "count", additive: true, pillar: "market_intelligence" },
 };
 export const SOURCE_LABEL: Record<string, string> = { api: "Synced from the platform", manual: "Entered by a team member", import: "Imported from a file" };
 

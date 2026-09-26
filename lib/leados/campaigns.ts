@@ -1,6 +1,7 @@
 // Campaign domain: spec types, field library, and the pre-launch validation
 // gate (blueprint §5.7 step 6). Pure — UI and actions both use it.
 import { isSensitiveFieldName } from "./compliance";
+import { sanitizeScorecard, type ScorecardSpec } from "./scorecard";
 
 export type FormField = {
   key: string;
@@ -17,6 +18,8 @@ export type FormSpec = {
   emailVerify: boolean; // double opt-in style email confirm
   consentPurposes: string[];
   consentChannels: string[];
+  /** scorecard campaigns (WP-10a): categories, questions with points, result bands, gate. Absent on other types. */
+  scorecard?: ScorecardSpec;
 };
 
 export type PageSpec = {
@@ -47,6 +50,8 @@ export const CAMPAIGN_TYPES = [
   { value: "whatsapp", label: "WhatsApp click-to-chat" },
   { value: "qr_offline", label: "QR / offline event" },
   { value: "referral", label: "Referral / partner links" },
+  { value: "scorecard", label: "Scorecard / assessment (score → result page)" },
+  { value: "survey", label: "Survey (answers → business profile, no score)" },
 ] as const;
 
 export const OBJECTIVES = [
@@ -157,5 +162,6 @@ export function sanitizeFormSpec(raw: unknown): FormSpec {
     emailVerify: Boolean(r.emailVerify),
     consentPurposes: (Array.isArray(r.consentPurposes) ? r.consentPurposes : d.consentPurposes).slice(0, 6).map(String),
     consentChannels: (Array.isArray(r.consentChannels) ? r.consentChannels : d.consentChannels).slice(0, 6).map(String),
+    ...(r.scorecard ? { scorecard: sanitizeScorecard(r.scorecard) } : {}),
   };
 }

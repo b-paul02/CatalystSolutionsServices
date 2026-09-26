@@ -229,8 +229,10 @@ describe("GrowthOS v2 acceptance", { timeout: 120_000 }, () => {
     const done = await db.cosPublication.findUniqueOrThrow({ where: { id: pub.id }, include: { attempts: true } });
     expect([done.status, done.attempts.length, done.attemptCount]).toEqual(["published", 1, 1]);
     const posted = testAdapterPosts().get(done.externalId!)![0];
-    expect(posted).toContain("utm_campaign=spring-consult-drive");
-    expect(posted).toContain(`utm_content=${variantId}`);
+    expect(posted).toMatch(/\/l\/[A-Za-z0-9_-]+/); // WP-05: a short link is what gets posted…
+    const shortTarget = (await db.cosShortLink.findFirst({ where: { code: posted.match(/\/l\/([A-Za-z0-9_-]+)/)![1] } }))!.url; // …and it opens the tagged destination
+    expect(shortTarget).toContain("utm_campaign=spring-consult-drive");
+    expect(shortTarget).toContain(`utm_content=${variantId}`);
     expect(await P.executePublication(pub.id)).toBe("skipped");
     await expect(P.schedulePublication(specialist, variantId, { now: true })).rejects.toThrow("approved"); // published variants cannot go again
   });

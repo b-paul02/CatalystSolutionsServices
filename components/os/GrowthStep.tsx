@@ -3,7 +3,7 @@
 // outcome — it says what will be measured.
 import { Card } from "@/components/leados/ui";
 import ActionForm from "@/components/os/ActionForm";
-import { PILLAR_LABEL, type GrowthStep as Step } from "@/lib/os/pillars";
+import { PILLAR_LABEL, type GrowthStep as Step } from "@/lib/os/pillarDefs";
 import { advancePillarAction } from "@/app/app/(shell)/_os/growth";
 
 export default function GrowthStep({ step, done, note }: { step: Step; done?: string; note?: string }) {

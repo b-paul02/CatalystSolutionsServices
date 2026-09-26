@@ -316,7 +316,8 @@ export async function recomputeScore(leadId: string): Promise<void> {
   if (!lead) return;
   const { scoreLead, parseWeights } = await import("@/lib/leados/scoring");
   const config = await db.losScoringConfig.findUnique({ where: { orgId: actor.orgId } });
-  const result = scoreLead(lead, parseWeights(config?.weights));
+  const { latestBandRank } = await import("@/lib/leados/submission");
+  const result = scoreLead({ ...lead, scorecardBandRank: await latestBandRank(leadId) }, parseWeights(config?.weights));
   await db.losLead.update({ where: { id: leadId }, data: { qualityScore: result.quality, intentScore: result.intent } });
   await db.losScoreEvent.create({
     data: { orgId: actor.orgId, leadId, quality: result.quality, intent: result.intent, explanation: JSON.stringify(result.explanation) },

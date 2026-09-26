@@ -25,6 +25,9 @@ const T = (key: string, category: string, name: string, description: string, def
 
 export const TEMPLATES: Template[] = [
   // ── leads & sales ──
+  T("T32", "Leads & sales", "Scorecard follow-up", "When a scorecard is completed, low-band results get a call-back task within the hour; everyone else gets a note with their band. Contact still goes through consent rules.",
+    wf([["trigger.form_submitted"], ["logic.condition", { left: "{{trigger.band}}", operator: "equals", right: "Getting started" }], ["crm.create_task", { title: `Call ${LEAD} — scorecard "{{trigger.band}}" ({{trigger.score}}%)`, dueInHours: "1" }], ["crm.add_note", { text: "Scorecard result: {{trigger.band}} ({{trigger.score}}%). Self-reported answers, not verified." }]],
+      { at: 1, no: [["crm.add_note", { text: "Scorecard result: {{trigger.band}} ({{trigger.score}}%). Self-reported answers, not verified." }]] })),
   T("T01", "Leads & sales", "Payment received → client onboarding", "When a deposit lands, check it is paid, assign onboarding and tell the deal owner. If it is still open, wait and nudge.",
     wf([["trigger.webhook", { label: "Stripe / Razorpay payment" }], ["logic.condition", { left: "{{trigger.body.status}}", operator: "equals", right: "paid" }], ["os.create_work_item", { title: "Onboard {{trigger.body.customer_name}}", details: "Deposit {{trigger.body.amount}} received. Kick-off call, access checklist, baseline." }], ["notify.email", { to: "owner@yourcompany.com", subject: "Deposit received — {{trigger.body.customer_name}}", body: "Payment of {{trigger.body.amount}} is in. Onboarding work item created." }]],
       { at: 1, no: [["logic.wait", { amount: "2", unit: "days" }], ["notify.email", { to: "owner@yourcompany.com", subject: "Payment still open — {{trigger.body.customer_name}}", body: "No payment after 2 days. Follow up." }]] })),

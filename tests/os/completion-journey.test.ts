@@ -114,7 +114,8 @@ describe("delivery journey through entry points", () => {
     const done = await db.cosPublication.findUniqueOrThrow({ where: { id: pub.id }, include: { attempts: true } });
     expect([done.status, done.attempts.length]).toEqual(["published", 1]);
     const posted = testAdapterPosts().get(done.externalId!)![0];
-    expect(posted).toContain(`utm_campaign=${campaignCode}`); expect(posted).toContain(`utm_content=${variantId}`);
+    const short = (await db.cosShortLink.findFirst({ where: { code: posted.match(/\/l\/([A-Za-z0-9_-]+)/)![1] } }))!.url; // WP-05: short link posted, tagged destination behind it
+    expect(short).toContain(`utm_campaign=${campaignCode}`); expect(short).toContain(`utm_content=${variantId}`);
   });
 
   it("a provider refusal AFTER the media upload: the retry reuses the original upload, posts once, and a finished publication forgets it", async () => {

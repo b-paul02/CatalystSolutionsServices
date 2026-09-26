@@ -41,12 +41,15 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
   const b2c = lead.b2c;
   const parse = (s: string | null | undefined): string[] => { try { return s ? JSON.parse(s) : []; } catch { return []; } };
 
+  const latestScored = await db.losFormSubmission.findFirst({ where: { leadId: lead.id, score: { not: null } }, orderBy: { createdAt: "desc" }, select: { score: true } });
+  const scorecard = latestScored?.score ? (JSON.parse(latestScored.score) as { band: string; pct: number }) : null;
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <Link href="/app/leads" className="text-[13px] text-[var(--los-muted)] hover:text-[var(--los-fg)]">← Leads</Link>
         <h1 className="text-[22px] font-extrabold tracking-tight">{name}</h1>
         <Badge tone="brand">{lead.leadType.toUpperCase()}</Badge>
+        {scorecard && <Badge tone="warn">Scorecard: {scorecard.band} · {scorecard.pct}% (self-reported)</Badge>}
         {b2c?.suppressedAt && <Badge tone="danger">suppressed</Badge>}
         {b2c?.withdrawnAt && <Badge tone="danger">consent withdrawn</Badge>}
       </div>

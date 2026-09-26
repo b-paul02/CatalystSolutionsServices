@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { clicksFor, shortUrl } from "@/lib/os/links";
+import GrowthStep from "@/components/os/GrowthStep";
 import { notFound } from "next/navigation";
 import { requireOrgPage } from "@/lib/os/guard";
 import { can } from "@/lib/leados/rbac";
@@ -47,6 +48,11 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
       {campaign.status === "rejected" && campaign.reviewNote && (
         <div className="mb-4 rounded-lg bg-[var(--los-danger-soft)] px-4 py-2.5 text-[13.5px] text-[var(--los-danger)]">
           Rejected by review: {campaign.reviewNote}
+        </div>
+      )}
+      {campaign.status === "active" && (
+        <div className="mb-4">
+          <GrowthStep done={campaign.type === "scorecard" ? "Scorecard is live." : "Lead capture is live."} step={{ pillar: "client_acquisition", metric: campaign.type === "scorecard" ? "scorecard.leads" : "key_events", metricLabel: campaign.type === "scorecard" ? "Scorecard leads" : "Enquiries", action: { kind: "goal", label: "Set a lead goal", title: `Leads from ${campaign.name}`, unit: "per month", horizon: "90 days" } }} />
         </div>
       )}
       <CampaignEditor
