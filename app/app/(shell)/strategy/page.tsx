@@ -9,7 +9,10 @@ import { PILLAR_LABEL, PILLARS5 } from "@/lib/os/pillars";
 import { Card, Input, Label } from "@/components/leados/ui";
 import ActionForm from "@/components/os/ActionForm";
 import { day, Empty, EvidenceBadge, field, human, PageHeader, SectionTitle } from "@/components/os/bits";
-import { archiveGoal, decidePlan, draftPlan, proposeLearning, reviewLearning, saveGoal, submitPlan } from "../_os/actions";
+import { acceptGoal, archiveGoal, decidePlan, draftPlan, proposeLearning, reviewLearning, saveGoal, submitPlan } from "../_os/actions";
+import { pairedRuns, whereYouAreFacts } from "@/lib/os/scorecardAudit";
+import { factualNarrative } from "@/lib/os/ai";
+import { PILLARS, type PillarScore } from "@/lib/os/audit";
 
 export const metadata = { title: "Strategy" };
 
@@ -28,6 +31,9 @@ export default async function StrategyPage({ searchParams }: { searchParams: Pro
   const strategist = can(actor.role, "strategy.manage");
   const decider = can(actor.role, "approvals.decide");
   const approved = plans.find((p) => p.status === "approved");
+  const pair = await pairedRuns(orgId);
+  const accepted = goals.filter((g) => g.agreedAt);
+  const where = pair ? { facts: whereYouAreFacts(pair.scorecard, pair.verified, accepted), sc: JSON.parse(pair.scorecard.scores) as Record<string, PillarScore>, v: pair.verified ? (JSON.parse(pair.verified.scores) as Record<string, PillarScore>) : null } : null;
   const evidenceText = (id: string) => findingIds.find((f) => f.id === id);
 
   return (
@@ -35,6 +41,16 @@ export default async function StrategyPage({ searchParams }: { searchParams: Pro
       <PageHeader title="Growth Plan" sub="Goals you agree, a plan that cites its evidence, and a diff before anything changes." />
       <Tabs active="plan" items={[{ key: "plan", label: "Goals and plan", href: "/app/strategy" }, { key: "profile", label: "Business profile", href: "/app/strategy/profile" }, { key: "audit", label: "Diagnosis", href: "/app/audit" }]} />
 
+      {where && (
+        <Card className="mb-5 p-5 text-[13.5px]">
+          <div className="mb-1 text-[15px] font-bold">Where you are</div>
+          <p className="mb-3 text-[12.5px] text-[var(--los-muted)]">Self-reported scorecard answers next to the verified audit{where.v ? "" : " (no verified audit of the same site yet)"}. Numbers only — no causes are inferred.</p>
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-6">
+            {PILLARS.map((p) => <div key={p.key} className="rounded-lg border border-[var(--los-line)] p-2"><div className="text-[12px] text-[var(--los-muted)]">{p.label}</div><div className="text-[13px]"><span className="text-[var(--los-faint)]">self </span><b>{where.sc[p.key]?.score ?? "—"}</b>{where.v && <> · <span className="text-[var(--los-faint)]">verified </span><b>{where.v[p.key]?.score ?? "—"}</b></>}</div></div>)}
+          </div>
+          <pre className="mt-3 whitespace-pre-wrap text-[12.5px] text-[var(--los-muted)]">{factualNarrative("latest scorecard and audit", where.facts, "Self-reported scores are the person's own answers; verified scores come from the audit pipeline. Missing means not measured.")}</pre>
+        </Card>
+      )}
       <Card className="mb-5">
         <SectionTitle>Goals</SectionTitle>
         <ul className="divide-y divide-[var(--los-line)]">
@@ -43,6 +59,8 @@ export default async function StrategyPage({ searchParams }: { searchParams: Pro
               <div>{g.pillar && <span className="mr-1 rounded bg-[var(--los-surface-2)] px-1.5 py-0.5 text-[11px] text-[var(--los-muted)]">{PILLAR_LABEL[g.pillar as keyof typeof PILLAR_LABEL] ?? g.pillar}</span>}<span className="font-medium">{g.metric}</span> · target {g.target.toLocaleString()} {g.unit} in {g.horizon}{g.definition ? <span className="text-[var(--los-muted)]"> — {g.definition}</span> : null}</div>
               <div className="flex items-center gap-2 text-[12.5px]">
                 <span>{g.currentValue === null ? "Not connected" : `${g.currentValue.toLocaleString()} now`}</span><EvidenceBadge label={g.currentLabel} />
+                {!g.agreedAt && <span className="rounded bg-[var(--los-surface-2)] px-1.5 py-0.5 text-[11px]">suggested · draft</span>}
+                {!g.agreedAt && (decider || strategist) && <ActionForm action={acceptGoal} submit="Accept" hidden={{ id: g.id }} />}
                 {(strategist || can(actor.role, "org.manage")) && <ActionForm action={archiveGoal} submit="Archive" tone="ghost" hidden={{ id: g.id }} />}
               </div>
             </li>

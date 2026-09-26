@@ -269,6 +269,16 @@ export async function saveGoal(_p: State, form: FormData): Promise<State> {
   return { ok: "Goal saved." };
 }
 
+/** WP-10c · a suggested (draft) goal becomes agreed only when a person accepts it. */
+export async function acceptGoal(_p: State, form: FormData): Promise<State> {
+  const actor = await orgOrDeny("approvals.decide", "strategy.manage"); if ("error" in actor) return actor;
+  const r = await db.cosGoal.updateMany({ where: { id: str(form, "id", 60), orgId: actor.orgId, agreedAt: null, archivedAt: null }, data: { agreedAt: new Date(), agreedById: actor.userId } });
+  if (r.count === 0) return { error: "Goal not found or already accepted." };
+  await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "goal.accepted", entity: "CosGoal", entityId: str(form, "id", 60) });
+  revalidatePath("/app/strategy");
+  return { ok: "Goal accepted." };
+}
+
 export async function archiveGoal(_p: State, form: FormData): Promise<State> {
   const actor = await orgOrDeny("strategy.manage", "org.manage"); if ("error" in actor) return actor;
   await db.cosGoal.updateMany({ where: { id: str(form, "id", 60), orgId: actor.orgId }, data: { archivedAt: new Date() } });
