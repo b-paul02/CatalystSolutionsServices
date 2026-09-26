@@ -8,7 +8,8 @@ import { Card, Input } from "@/components/leados/ui";
 import ActionForm from "@/components/os/ActionForm";
 import { day, field, PageHeader } from "@/components/os/bits";
 import { Notice, Pill } from "@/components/os/v2";
-import { assetUpdate } from "../_os/v2";
+import { assetUpdate, derivativesMake } from "../_os/v2";
+import { DERIVATIVE_SIZES } from "@/lib/os/graphicsMake";
 import { generateImage } from "./actions";
 import UploadForm from "./UploadForm";
 
@@ -47,6 +48,11 @@ export default async function AssetsPage({ searchParams }: { searchParams: Promi
                         {a.versions.length > 1 && <span className="text-[12px] text-[var(--los-faint)]">Earlier: {a.versions.slice(1, 5).map((x) => <a key={x.version} href={`/api/os/assets/${a.id}?v=${x.version}&download=1`} className="mr-1 underline">v{x.version}</a>)}</span>}
                         {writable && <Link href={`/app/assets?open=${a.id}`} className="text-[12.5px] hover:underline">Details / new version</Link>}
                         {writable && approve && <ActionForm action={assetUpdate} submit="Approve" tone="ghost" hidden={{ id: a.id, status: "approved" }} />}
+                        {writable && staff && a.kind === "image" && !a.tags.some((t) => t.startsWith("derivative-of:")) && (
+                          <details className="text-[12.5px]"><summary className="cursor-pointer hover:underline">Channel sizes</summary>
+                            <ActionForm action={derivativesMake} submit="Render" tone="ghost" hidden={{ id: a.id }} className="mt-1 flex flex-wrap gap-x-3 gap-y-1">{Object.entries(DERIVATIVE_SIZES).map(([k, s]) => <label key={k} className="flex items-center gap-1"><input type="checkbox" name="sizes" value={k} defaultChecked={k === "instagram:square" || k === "linkedin:landscape"} />{s.label} ({s.w}×{s.h})</label>)}<span className="w-full text-[11.5px] text-[var(--los-faint)]">Cover-cropped PNG copies as separate assets (tagged). Sources up to 4 MB, PNG/JPEG.</span></ActionForm>
+                          </details>
+                        )}
                       </div>
                       {sp.open === a.id && writable && (
                         <div className="mt-3 grid gap-4 rounded-lg border border-[var(--los-line)] p-3 md:grid-cols-2">

@@ -20,6 +20,7 @@ import { walletSummary } from "@/lib/os/credits";
 const tag = `rzp-${Date.now()}`;
 let orgId: string, owner: string, engagementId: string, recordId: string;
 const orders: string[] = [];
+const pid = (n: string) => `pay_${n}_${tag.replace(/\W/g, "")}`;
 
 beforeAll(async () => {
   process.env.RAZORPAY_KEY_ID = "rzp_test_abc"; process.env.RAZORPAY_KEY_SECRET = "ksecret"; process.env.RAZORPAY_WEBHOOK_SECRET = "whsecret";
@@ -70,16 +71,16 @@ describe("WP-17 Razorpay", () => {
     const orderId = new URL(url).searchParams.get("order")!;
     const created = JSON.parse(orders.find((o) => o.includes(orderId))!) as { amount: number; notes: Record<string, string> };
     expect(created.amount).toBe(499900); expect(created.notes).toMatchObject({ kind: "growthos_record", recordId });
-    expect((await hook(captured("pay_rec1", orderId, 499900, created.notes), "0".repeat(64))).status).toBe(400);
-    const r1 = await (await hook(captured("pay_rec1", orderId, 499900, created.notes))).json() as { appliedTo: string; duplicate: boolean };
+    expect((await hook(captured(pid("rec1"), orderId, 499900, created.notes), "0".repeat(64))).status).toBe(400);
+    const r1 = await (await hook(captured(pid("rec1"), orderId, 499900, created.notes))).json() as { appliedTo: string; duplicate: boolean };
     expect(r1).toMatchObject({ appliedTo: "commercial_record", duplicate: false });
     expect((await db.cosCommercialRecord.findUniqueOrThrow({ where: { id: recordId } })).status).toBe("paid");
-    const r2 = await (await hook(captured("pay_rec1", orderId, 499900, created.notes))).json() as { duplicate: boolean };
+    const r2 = await (await hook(captured(pid("rec1"), orderId, 499900, created.notes))).json() as { duplicate: boolean };
     expect(r2.duplicate).toBe(true);
-    expect((await db.cosPaymentEvent.findFirst({ where: { providerEventId: "rzp_pay:pay_rec1" } }))!.provider).toBe("razorpay");
+    expect((await db.cosPaymentEvent.findFirst({ where: { providerEventId: `rzp_pay:${pid("rec1")}` } }))!.provider).toBe("razorpay");
     // an amount that does not match is never applied
     const other = await db.cosCommercialRecord.create({ data: { orgId, engagementId, kind: "recurring", description: `${tag} month`, amountMinor: 100000n, currency: "INR", status: "issued", demo: true } });
-    const r3 = await (await hook(captured("pay_rec2", "order_zzz", 5, { kind: "growthos_record", recordId: other.id, orgId }))).json() as { appliedTo: string };
+    const r3 = await (await hook(captured(pid("rec2"), "order_zzz", 5, { kind: "growthos_record", recordId: other.id, orgId }))).json() as { appliedTo: string };
     expect(r3.appliedTo).toBe("unmatched"); expect((await db.cosCommercialRecord.findUniqueOrThrow({ where: { id: other.id } })).status).toBe("issued");
   });
 
@@ -90,10 +91,10 @@ describe("WP-17 Razorpay", () => {
     const order = await db.cosCreditOrder.findUniqueOrThrow({ where: { id: orderId } });
     expect(order.providerMode).toBe("test"); expect(order.providerSessionId).toMatch(/^order_/);
     const notes = { kind: "ai_credits", orderId, orgId };
-    expect(((await (await hook(captured("pay_cr1", order.providerSessionId!, 99900, notes))).json()) as { appliedTo: string }).appliedTo).toBe("ai_credits");
-    await hook(captured("pay_cr1", order.providerSessionId!, 99900, notes)); // replay
+    expect(((await (await hook(captured(pid("cr1"), order.providerSessionId!, 99900, notes))).json()) as { appliedTo: string }).appliedTo).toBe("ai_credits");
+    await hook(captured(pid("cr1"), order.providerSessionId!, 99900, notes)); // replay
     expect((await walletSummary(orgId)).available).toBe(100);
-    const refund = { event: "refund.processed", payload: { refund: { entity: { payment_id: "pay_cr1", amount: 99900, currency: "INR" } }, payment: { entity: { id: "pay_cr1", amount: 99900, amount_refunded: 99900, currency: "INR", notes } } } };
+    const refund = { event: "refund.processed", payload: { refund: { entity: { payment_id: pid("cr1"), amount: 99900, currency: "INR" } }, payment: { entity: { id: pid("cr1"), amount: 99900, amount_refunded: 99900, currency: "INR", notes } } } };
     expect(((await (await hook(refund)).json()) as { appliedTo: string }).appliedTo).toBe("ai_credits_reversal");
     expect((await walletSummary(orgId)).available).toBe(0);
     // the Stripe route is unchanged and records provider "stripe"
