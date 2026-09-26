@@ -45,6 +45,8 @@ export async function runTick(now = new Date()): Promise<{ skipped: true } | { s
     await import("./errors").then(({ sweepErrors }) => sweepErrors(now)).catch(() => undefined);
     await import("@/lib/leados/contactCheck").then(({ sweepContactChecks }) => sweepContactChecks(now)).catch(() => undefined);
     await import("./indexnow").then(({ tickTrackedPositions }) => tickTrackedPositions(now)).catch(() => undefined); // weekly per org, guarded inside
+    await import("./reports").then(({ monthlyReportMail }) => monthlyReportMail(now)).catch(() => undefined); // WP-28 monthly, guarded inside
+    await import("./monitors").then(({ tickMonitors }) => tickMonitors(now)).catch(() => undefined); // WP-29
     await db.cosHeartbeat.upsert({ where: { key: HEARTBEAT_KEY }, update: { at: now }, create: { key: HEARTBEAT_KEY, at: now } });
     return { skipped: false, published, ai, creditsExpired };
   } finally { await dropLease(); }

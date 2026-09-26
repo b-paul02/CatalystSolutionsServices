@@ -7,6 +7,9 @@ import { campaignContentTotals, metricsFor, METRICS, SOURCE_LABEL } from "@/lib/
 import { businessOutcomes } from "@/lib/os/outcomes";
 import { clicksByVariant } from "@/lib/os/links";
 import { scorecardSummary } from "@/lib/os/scorecardResults";
+import { getLayout, WIDGETS } from "@/lib/os/reports";
+import { widgetSet } from "../_os/v2";
+import { PILLAR_LABEL } from "@/lib/os/pillarDefs";
 import { formatInZone, periodBounds } from "@/lib/os/time";
 import { Card, Input, Label } from "@/components/leados/ui";
 import ActionForm from "@/components/os/ActionForm";
@@ -31,16 +34,22 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
     db.cosGoal.findMany({ where: { orgId: actor.orgId, archivedAt: null } }),
   ]);
   const broken = connections.filter((c) => ["failed", "disconnected"].includes(c.status));
+  const layout = await getLayout(actor.orgId);
+  const lastMonth = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() - 1, 1)).toISOString().slice(0, 7);
 
   return (
     <div className="max-w-[1180px]">
       <PageHeader title="Results" sub={`${range.label}${demo ? " · demo workspace: figures are synthetic" : ""}`}>
-        <div className="flex gap-1 text-[13px]">{([["week", "This week"], ["month", "This month"], ["last30", "Last 30 days"]] as const).map(([k, l]) => <Link key={k} href={href({ period: k })} aria-current={k === period ? "page" : undefined} className={`rounded-lg px-3 py-1.5 ${k === period ? "bg-[var(--los-fg)] font-semibold text-[var(--los-surface)]" : "border border-[var(--los-line)]"}`}>{l}</Link>)}</div>
+        <div className="flex flex-wrap gap-1 text-[13px]"><Link href={`/app/reports/print?month=${lastMonth}`} className="rounded-lg border border-[var(--los-line)] px-3 py-1.5">Monthly report (print)</Link>{([["week", "This week"], ["month", "This month"], ["last30", "Last 30 days"]] as const).map(([k, l]) => <Link key={k} href={href({ period: k })} aria-current={k === period ? "page" : undefined} className={`rounded-lg px-3 py-1.5 ${k === period ? "bg-[var(--los-fg)] font-semibold text-[var(--los-surface)]" : "border border-[var(--los-line)]"}`}>{l}</Link>)}</div>
       </PageHeader>
       <Tabs active={view} items={[{ key: "business", label: "Business outcomes", href: href({ view: "business" }) }, { key: "campaigns", label: "Campaigns", href: href({ view: "campaigns" }) }, { key: "content", label: "Content", href: href({ view: "content" }) }]} />
       {broken.length > 0 && <div role="status" className="mb-4 rounded-lg border border-[var(--los-warn)] px-4 py-2.5 text-[13px]">{broken.map((c) => `${c.accountLabel ?? c.provider}: ${c.status}${c.lastError ? ` (${c.lastError})` : ""}`).join(" · ")} — numbers from these accounts are not updating. <Link className="font-semibold underline" href="/app/settings/connections">Reconnect</Link></div>}
 
-      {view === "business" && <Business orgId={actor.orgId} range={range} demo={demo} goals={goals} />}
+      {view === "business" && <><Business orgId={actor.orgId} range={range} demo={demo} goals={goals} />
+        <details className="mt-4 rounded-xl border border-[var(--los-line)] p-4 text-[13px]"><summary className="cursor-pointer font-semibold">Report widgets (hide / reorder)</summary>
+          <ul className="mt-2 divide-y divide-[var(--los-line)]">{layout.map((w, i) => { const def = WIDGETS.find((x) => x.key === w.key)!; return <li key={w.key} className="flex flex-wrap items-center justify-between gap-2 py-1.5"><span className={w.hidden ? "text-[var(--los-faint)] line-through" : ""}>{def.label} <span className="text-[11.5px] text-[var(--los-faint)]">· {PILLAR_LABEL[def.pillar]}</span></span><span className="flex gap-1">{i > 0 && <ActionForm action={widgetSet} submit="↑" tone="ghost" hidden={{ key: w.key, op: "up" }} />}{i < layout.length - 1 && <ActionForm action={widgetSet} submit="↓" tone="ghost" hidden={{ key: w.key, op: "down" }} />}<ActionForm action={widgetSet} submit={w.hidden ? "Show" : "Hide"} tone="ghost" hidden={{ key: w.key, op: w.hidden ? "show" : "hide" }} /></span></li>; })}</ul>
+          <p className="mt-2 text-[12px] text-[var(--los-faint)]">The order and hidden widgets apply to the monthly print report too.</p>
+        </details></>}
       {view === "campaigns" && <><Scorecards orgId={actor.orgId} range={range} demo={demo} period={period} /><Campaigns orgId={actor.orgId} range={range} demo={demo} campaigns={campaigns} /></>}
       {view === "content" && <Content orgId={actor.orgId} range={range} demo={demo} tz={tz} />}
 

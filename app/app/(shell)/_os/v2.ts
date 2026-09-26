@@ -298,6 +298,15 @@ export async function publicationManual(_p: State, form: FormData): Promise<Stat
 
 // ── assets, results, outcomes ────────────────────────────────────────────────
 
+/** WP-28 · Results widget layout: hide / show / reorder. */
+export async function widgetSet(_p: State, form: FormData): Promise<State> {
+  return run(async () => {
+    const a = await actorFor("results");
+    const { setWidget } = await import("@/lib/os/reports");
+    const op = str(form, "op", 10);
+    await setWidget(a, str(form, "key", 40), op === "hide" ? { hidden: true } : op === "show" ? { hidden: false } : { move: op === "up" ? "up" : "down" });
+  }, ["/app/results"]);
+}
 /** WP-26 · newsletter test send to the signed-in member's own address. */
 export async function newsletterTest(_p: State, form: FormData): Promise<State> {
   return run(async () => {

@@ -1539,6 +1539,11 @@ model CosWorkspace {
   currency     String?
   // active | read_only (handover: history visible, nothing editable) | revoked
   accessMode   String    @default("active")
+  // WP-31 · per-workspace sending domain on Resend: domain, provider id, status (pending | verified | failed), DNS records JSON
+  emailDomain        String?
+  emailDomainId      String?
+  emailDomainStatus  String?
+  emailDomainRecords String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   demo         Boolean   @default(false)
@@ -3092,4 +3097,29 @@ model CosTrackedKeyword {
   createdAt   DateTime @default(now())
 
   @@unique([orgId, query])
+}
+
+// WP-28 · which Results widgets a workspace shows, in what order (client-editable layout).
+model CosReportLayout {
+  orgId     String   @id
+  // JSON [{key, hidden, order}]
+  widgets   String   @default("[]")
+  updatedAt DateTime @updatedAt
+}
+
+// WP-29 · uptime monitors pinged from the scheduler tick (HEAD, 10 s), alert after 3 consecutive failures.
+model CosMonitor {
+  id          String    @id @default(cuid())
+  orgId       String
+  url         String
+  everyMin    Int       @default(5)
+  // ok | down | unknown
+  lastStatus  String    @default("unknown")
+  lastAt      DateTime?
+  failures    Int       @default(0)
+  alertedAt   DateTime?
+  createdById String?
+  createdAt   DateTime  @default(now())
+
+  @@index([orgId])
 }
