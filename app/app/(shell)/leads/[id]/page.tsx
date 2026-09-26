@@ -41,6 +41,8 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
   const b2c = lead.b2c;
   const parse = (s: string | null | undefined): string[] => { try { return s ? JSON.parse(s) : []; } catch { return []; } };
 
+  const verdicts = await import("@/lib/leados/contactCheck").then((m) => m.contactVerdicts(lead.email, lead.phone));
+  const verdictBadge = (v: { verdict: string; reason: string | null } | null) => v ? <Badge tone={v.verdict === "ok" ? "success" : v.verdict === "risky" ? "warn" : "danger"}>{v.verdict === "ok" ? "checked" : v.verdict}{v.reason ? ` · ${v.reason.replace(/_/g, " ")}` : ""}</Badge> : null;
   const latestScored = await db.losFormSubmission.findFirst({ where: { leadId: lead.id, score: { not: null } }, orderBy: { createdAt: "desc" }, select: { score: true } });
   const scorecard = latestScored?.score ? (JSON.parse(latestScored.score) as { band: string; pct: number }) : null;
   return (
@@ -60,8 +62,8 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
         <Card className="p-5">
           <h2 className="mb-3 text-[14px] font-bold">Contact</h2>
           <dl className="space-y-2 text-[13.5px]">
-            <div><dt className="text-[var(--los-faint)]">Email</dt><dd>{lead.email ?? "—"} {lead.emailStatus !== "unverified" && <Badge tone={lead.emailStatus === "valid" ? "success" : "danger"}>{lead.emailStatus}</Badge>}</dd></div>
-            <div><dt className="text-[var(--los-faint)]">Phone</dt><dd>{lead.phone ?? "—"} {lead.phoneStatus !== "unverified" && <Badge tone={lead.phoneStatus === "valid" ? "success" : "danger"}>{lead.phoneStatus}</Badge>}</dd></div>
+            <div><dt className="text-[var(--los-faint)]">Email</dt><dd>{lead.email ?? "—"} {lead.emailStatus !== "unverified" && <Badge tone={lead.emailStatus === "valid" ? "success" : "danger"}>{lead.emailStatus}</Badge>} {verdictBadge(verdicts.email)}</dd></div>
+            <div><dt className="text-[var(--los-faint)]">Phone</dt><dd>{lead.phone ?? "—"} {lead.phoneStatus !== "unverified" && <Badge tone={lead.phoneStatus === "valid" ? "success" : "danger"}>{lead.phoneStatus}</Badge>} {verdictBadge(verdicts.phone)}</dd></div>
             <div><dt className="text-[var(--los-faint)]">Location</dt><dd>{[lead.city, lead.state, lead.country].filter(Boolean).join(", ") || "—"}</dd></div>
             <div><dt className="text-[var(--los-faint)]">Language</dt><dd>{lead.language ?? "—"}</dd></div>
             <div><dt className="text-[var(--los-faint)]">Source</dt><dd>{lead.source}{lead.sourceRef ? ` · ${lead.sourceRef.slice(0, 12)}…` : ""}</dd></div>

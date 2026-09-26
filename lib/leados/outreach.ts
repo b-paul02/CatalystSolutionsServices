@@ -8,6 +8,7 @@ import { contactHashes, isSuppressed } from "./suppression";
 import { randomToken } from "./crypto";
 import { APP_URL, sendLosMail } from "./email";
 import { logLosAudit } from "./audit";
+import { checkContact } from "./contactCheck";
 
 const DAILY_CAP_PER_CHANNEL = 500; // per org — ponytail: env/plan-based caps when a customer needs more
 const DAILY_CAP_PER_LEAD = 3;
@@ -103,6 +104,13 @@ export async function sendOutreachMessage(opts: {
 
   const to = opts.channel === "email" ? lead.normalizedEmail : lead.normalizedPhone;
   if (!to) return { outcome: "blocked", reason: `no_${opts.channel === "email" ? "email" : "phone"}` };
+  // WP-15: silent contact check before the transport (cached 90 days). Invalid ⇒ refused and logged; risky still goes.
+  const check = await checkContact(opts.channel === "email" ? "email" : "phone", to, opts.orgId);
+  if (check.verdict === "invalid") {
+    await recordBlocked(opts, lead.id, `contact_invalid:${check.reason ?? "unknown"}`);
+    await db.losLead.update({ where: { id: lead.id }, data: opts.channel === "email" ? { emailStatus: "invalid" } : { phoneStatus: "invalid" } }).catch(() => undefined);
+    return { outcome: "blocked", reason: `contact_invalid:${check.reason ?? "unknown"}` };
+  }
 
   // Sending caps
   const since = new Date(Date.now() - 86_400_000);

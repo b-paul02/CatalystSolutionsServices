@@ -2983,3 +2983,19 @@ model CosSearchQuery {
   @@unique([orgId, day, query, page])
   @@index([orgId, day])
 }
+
+// WP-15 · contact verification before the first send. Keyed by the contact hash (never the address); 90-day TTL.
+// ponytail: no mailbox-level probe — Vercel has no outbound port 25; syntax + MX + disposable list + role detection only.
+model LosContactCheck {
+  id          String   @id @default(cuid())
+  contactHash String   @unique
+  // email | phone
+  kind        String
+  // ok | risky | invalid
+  verdict     String
+  reason      String?
+  provider    String
+  checkedAt   DateTime @default(now())
+
+  @@index([checkedAt])
+}
