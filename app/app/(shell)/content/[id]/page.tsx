@@ -12,7 +12,8 @@ import ActionForm from "@/components/os/ActionForm";
 import { field, PageHeader, StateBadge } from "@/components/os/bits";
 import { Notice, Pill } from "@/components/os/v2";
 import { saveWorkItem } from "../../_os/actions";
-import { claimPropose, publicationCancel, publicationManual, publicationReconcile, publicationSchedule, sourceAdd, variantAckSource, variantComment, variantCreate, variantEdit, variantMove, variantsAiDraft } from "../../_os/v2";
+import { claimPropose, graphicMake, publicationCancel, publicationManual, publicationReconcile, publicationSchedule, sourceAdd, variantAckSource, variantComment, variantCreate, variantEdit, variantMove, variantsAiDraft } from "../../_os/v2";
+import { TEMPLATES as GRAPHIC_TEMPLATES } from "@/lib/os/graphics";
 
 export const metadata = { title: "Content piece" };
 
@@ -143,6 +144,9 @@ export default async function MasterPage({ params }: { params: Promise<{ id: str
                     </details>
                   )}
 
+                  {staff && make && !spec?.video && (
+                    <div className="flex flex-wrap items-center gap-2 text-[12.5px]"><span className="text-[var(--los-muted)]">Make a graphic from this copy:</span>{(Object.keys(GRAPHIC_TEMPLATES) as (keyof typeof GRAPHIC_TEMPLATES)[]).filter((k) => k !== "scorecard_share").map((k) => <ActionForm key={k} action={graphicMake} submit={GRAPHIC_TEMPLATES[k].label} tone="ghost" hidden={{ variantId: v.id, template: k }} />)}</div>
+                  )}
                   {prevBody !== null && prevBody !== undefined && (
                     <details><summary className="cursor-pointer font-semibold">Compare with v{v.version - 1} ({revs.length} saved revision{revs.length === 1 ? "" : "s"})</summary>
                       <div className="mt-2 grid gap-2 md:grid-cols-2"><div className="rounded-lg border border-[var(--los-line)] p-2"><div className="mb-1 text-[11.5px] font-semibold text-[var(--los-faint)]">v{v.version - 1}</div><p className="whitespace-pre-wrap text-[12.5px]">{prevBody}</p></div><div className="rounded-lg border border-[var(--los-brand)] p-2"><div className="mb-1 text-[11.5px] font-semibold text-[var(--los-faint)]">v{v.version} (current)</div><p className="whitespace-pre-wrap text-[12.5px]">{v.body || v.parts.join("\n\n")}</p></div></div>

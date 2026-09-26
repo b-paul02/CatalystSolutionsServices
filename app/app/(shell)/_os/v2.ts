@@ -283,6 +283,25 @@ export async function publicationManual(_p: State, form: FormData): Promise<Stat
 
 // ── assets, results, outcomes ────────────────────────────────────────────────
 
+/** WP-22 · render a template from a variant's copy into Assets (a person attaches it: attaching is a material edit). */
+export async function graphicMake(_p: State, form: FormData): Promise<State> {
+  return run(async () => {
+    const a = await actorFor("content", "work.execute");
+    const { makeGraphicForVariant } = await import("@/lib/os/graphicsMake");
+    const r = await makeGraphicForVariant(a, str(form, "variantId", 60), str(form, "template", 30) as never);
+    return { ok: r.created ? "Graphic saved to Assets. Attach it to the version when you are happy with it." : `Graphic re-rendered as v${r.version} in Assets.`, href: "/app/assets" };
+  }, ["/app/content", "/app/assets"]);
+}
+/** WP-23 · per-channel sizes of an image as separate tagged assets. */
+export async function derivativesMake(_p: State, form: FormData): Promise<State> {
+  return run(async () => {
+    const a = await actorFor("assets", "work.execute");
+    const { makeDerivatives } = await import("@/lib/os/graphicsMake");
+    const made = await makeDerivatives(a, str(form, "id", 60), form.getAll("sizes").map(String));
+    return { ok: `${made.length} size(s) rendered (PNG).` };
+  }, ["/app/assets"]);
+}
+
 export async function assetUpdate(_p: State, form: FormData): Promise<State> {
   return run(async () => { const a = await actorFor("assets"); await updateAsset(a, str(form, "id", 60), { name: opt(form, "name", 200), category: opt(form, "category", 20), rightsNote: opt(form, "rightsNote", 600), sourceNote: opt(form, "sourceNote", 600), status: opt(form, "status", 12), tags: form.has("tags") ? str(form, "tags", 300).split(",") : undefined, clientVisible: form.has("visibilitySent") ? form.get("clientVisible") === "on" : undefined }); }, ["/app/assets"]);
 }
