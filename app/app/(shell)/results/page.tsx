@@ -6,6 +6,7 @@ import { CHANNELS } from "@/lib/os/channels";
 import { campaignContentTotals, metricsFor, METRICS, SOURCE_LABEL } from "@/lib/os/metrics";
 import { businessOutcomes } from "@/lib/os/outcomes";
 import { clicksByVariant } from "@/lib/os/links";
+import { scorecardSummary } from "@/lib/os/scorecardResults";
 import { formatInZone, periodBounds } from "@/lib/os/time";
 import { Card, Input, Label } from "@/components/leados/ui";
 import ActionForm from "@/components/os/ActionForm";
@@ -40,7 +41,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
       {broken.length > 0 && <div role="status" className="mb-4 rounded-lg border border-[var(--los-warn)] px-4 py-2.5 text-[13px]">{broken.map((c) => `${c.accountLabel ?? c.provider}: ${c.status}${c.lastError ? ` (${c.lastError})` : ""}`).join(" · ")} — numbers from these accounts are not updating. <Link className="font-semibold underline" href="/app/settings/connections">Reconnect</Link></div>}
 
       {view === "business" && <Business orgId={actor.orgId} range={range} demo={demo} goals={goals} />}
-      {view === "campaigns" && <Campaigns orgId={actor.orgId} range={range} demo={demo} campaigns={campaigns} />}
+      {view === "campaigns" && <><Scorecards orgId={actor.orgId} range={range} demo={demo} period={period} /><Campaigns orgId={actor.orgId} range={range} demo={demo} campaigns={campaigns} /></>}
       {view === "content" && <Content orgId={actor.orgId} range={range} demo={demo} tz={tz} />}
 
       {staff && can(actor.role, "work.execute") && ent.accessMode === "active" && (
@@ -94,6 +95,30 @@ async function Business({ orgId, range, demo, goals }: { orgId: string; range: R
         {goals.length === 0 ? <Notice title="No goals agreed yet" href="/app/strategy" action="Open Growth Plan">Goals give every campaign and project something to be measured against.</Notice> : <ul className="divide-y divide-[var(--los-line)] text-[13.5px]">{goals.map((g) => <li key={g.id} className="flex flex-wrap items-center justify-between gap-2 px-5 py-2.5"><span className="font-medium">{g.metric}</span><span className="text-[var(--los-muted)]">{g.currentValue === null ? "current value not available" : `${g.currentValue.toLocaleString("en")} (${g.currentLabel})`} → target {g.target.toLocaleString("en")} {g.unit} · {g.horizon}</span></li>)}</ul>}
       </Card>
     </>
+  );
+}
+
+async function Scorecards({ orgId, range, demo, period }: { orgId: string; range: Range; demo: boolean; period: string }) {
+  const [rows, byLink] = await Promise.all([
+    scorecardSummary(orgId, range, demo),
+    db.losFormSubmission.groupBy({ by: ["campaignId", "trackingCode"], where: { orgId, score: { not: null }, createdAt: { gte: range.start, lt: range.end } }, _count: true }),
+  ]);
+  if (rows.length === 0) return null;
+  return (
+    <Card className="mb-4 p-5 text-[13.5px]">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><div className="text-[15px] font-bold">Scorecards</div><a className="text-[12.5px] font-semibold text-[var(--los-brand)] hover:underline" href={`/api/os/export/scorecard?period=${period}`}>Download CSV</a></div>
+      <div className="grid gap-3 md:grid-cols-2">
+        {rows.map((r) => (
+          <div key={r.campaignId} className="rounded-lg border border-[var(--los-line)] p-3">
+            <div className="font-semibold">{r.name}</div>
+            <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[13px]"><span>Starts <b>{r.starts}</b></span><span>→ completions <b>{r.completions}</b>{r.starts ? <span className="text-[var(--los-faint)]"> ({Math.round((r.completions / r.starts) * 100)}%)</span> : null}</span><span>→ leads <b>{r.leads}</b></span><span>Average score {r.averageScore === null ? <span className="text-[var(--los-faint)]">n/a</span> : <b>{r.averageScore}</b>}</span></div>
+            <div className="mt-1 text-[12.5px] text-[var(--los-muted)]">Bands: {Object.entries(r.bands).map(([b, n]) => `${b.replace(/_/g, " ")} ${n}`).join(" · ") || "—"}</div>
+            {byLink.filter((l) => l.campaignId === r.campaignId).length > 0 && <div className="mt-1 text-[12.5px] text-[var(--los-muted)]">By link: {byLink.filter((l) => l.campaignId === r.campaignId).map((l) => `${l.trackingCode ?? "direct"} ${l._count}`).join(" · ")}</div>}
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 text-[12px] text-[var(--los-faint)]">Self-reported answers; counts and averages of stored scores only. Band counts are never added to reach or sessions.</p>
+    </Card>
   );
 }
 

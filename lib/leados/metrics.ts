@@ -74,16 +74,40 @@ registerJobHandler(WEEKLY_REPORT_JOB, async () => {
       },
       { leads: 0, delivered: 0, converted: 0, tokens: 0 },
     );
-    if (sum.leads + sum.delivered === 0) continue;
+    const scorecard = await weeklyScorecardSection(org.id, new Date(since));
+    if (sum.leads + sum.delivered === 0 && !scorecard) continue;
     const owner = await db.losMembership.findFirst({ where: { orgId: org.id, role: "owner" }, include: { user: true } });
     if (!owner) continue;
     await sendLosMail({
       to: owner.user.email,
       subject: `${org.name} — your LeadOS week`,
-      text: `This week at ${org.name}:\n\n• ${sum.leads} new leads\n• ${sum.delivered} leads delivered\n• ${sum.converted} conversions\n• ${sum.tokens.toLocaleString()} tokens used\n\nFull reports: ${APP_URL}/reports`,
+      text: `This week at ${org.name}:\n\n• ${sum.leads} new leads\n• ${sum.delivered} leads delivered\n• ${sum.converted} conversions\n• ${sum.tokens.toLocaleString()} tokens used${scorecard ? `\n\n${scorecard}` : ""}\n\nFull reports: ${APP_URL}/reports`,
     }).catch(() => {});
   }
 });
+
+/** WP-10d · scorecard bands per campaign, completion rate, leads by band → stage. Counts only. */
+export async function weeklyScorecardSection(orgId: string, since: Date): Promise<string | null> {
+  const subs = await db.losFormSubmission.findMany({ where: { orgId, score: { not: null }, createdAt: { gte: since } }, select: { campaignId: true, score: true, leadId: true } });
+  if (subs.length === 0) return null;
+  const [camps, leads] = await Promise.all([
+    db.losCampaign.findMany({ where: { id: { in: [...new Set(subs.map((s) => s.campaignId))] } }, select: { id: true, name: true } }),
+    db.losLead.findMany({ where: { id: { in: subs.map((s) => s.leadId).filter((x): x is string => Boolean(x)) } }, select: { id: true, status: true } }),
+  ]);
+  const lines: string[] = ["Scorecards this week (self-reported answers):"];
+  for (const c of camps) {
+    const mine = subs.filter((s) => s.campaignId === c.id);
+    const bands = new Map<string, number>();
+    for (const s of mine) { const b = (JSON.parse(s.score!) as { band: string }).band; bands.set(b, (bands.get(b) ?? 0) + 1); }
+    const starts = await db.cosMetricSnapshot.aggregate({ where: { orgId, provider: "scorecard", metric: "scorecard.starts", url: `los:${c.id}`, periodStart: { gte: since } }, _sum: { value: true } });
+    const st = starts._sum.value ?? null;
+    lines.push(`• ${c.name}: ${mine.length} completed${st ? ` of ${st} started (${Math.round((mine.length / st) * 100)}%)` : ""} — ${[...bands].map(([b, n]) => `${b}: ${n}`).join(", ")}`);
+    const byStage = new Map<string, number>();
+    for (const s of mine) { const l = leads.find((x) => x.id === s.leadId); if (l) byStage.set(l.status, (byStage.get(l.status) ?? 0) + 1); }
+    if (byStage.size) lines.push(`  leads now: ${[...byStage].map(([s, n]) => `${s} ${n}`).join(", ")}`);
+  }
+  return lines.join("\n");
+}
 
 export async function enqueueMetricsJobs(now = new Date()): Promise<void> {
   // Roll up yesterday (finalized) once per day; also refresh today every ~2h.
