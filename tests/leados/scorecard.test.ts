@@ -78,7 +78,7 @@ describe("scorecard: public route → stored score → lead → Results", () => 
     const res = await post({ firstName: "Priya", email: `${tag}-priya@example.com`, phone: "+919876543210", sc_q_search: "0", sc_q_reviews: "1", sc_q_form: "0", sc_q_booking: "0", sc_q_search_hack: "0" });
     expect(res.status).toBe(200);
     const body = (await res.json()) as { score: { pct: number; band: string }; resultUrl: string };
-    expect(body.score.pct).toBe(88); expect(body.score.band).toBe("Established"); expect(body.resultUrl).toMatch(new RegExp(`^/c/${publicId}/r/`));
+    expect(body.score.pct).toBe(88); expect(body.score.band).toBe("Established"); expect(body.resultUrl).toMatch(new RegExp(`^/app/c/${publicId}/r/`));
     const sub = (await db.losFormSubmission.findFirst({ where: { campaignId }, orderBy: { createdAt: "desc" } }))!;
     expect(JSON.parse(sub.score!).pct).toBe(88);
     expect(JSON.parse(sub.data)).not.toHaveProperty("sc_q_search_hack"); // only real question keys are kept

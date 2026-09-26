@@ -23,7 +23,7 @@ export default async function ScorecardResultPage({ params }: { params: Promise<
       <div className="w-full max-w-[480px] rounded-2xl border border-[var(--los-line)] bg-[var(--los-surface)] p-6 sm:p-8" style={{ borderTopColor: page.brandColor, borderTopWidth: 4 }}>
         <div className="mb-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--los-faint)]">{org?.name} · assessment result</div>
         <ResultView spec={spec} score={JSON.parse(sub.score) as ScoreResult} brandColor={page.brandColor} shareUrl={null} orgName={org?.name ?? ""} />
-        <p className="mt-4 text-center text-[13px]"><a className="font-semibold underline" href={`/c/${publicId}`}>Take the assessment yourself →</a></p>
+        <p className="mt-4 text-center text-[13px]"><a className="font-semibold underline" href={`/app/c/${publicId}`}>Take the assessment yourself →</a></p>
       </div>
     </div>
   );

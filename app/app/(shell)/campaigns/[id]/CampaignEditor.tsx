@@ -12,6 +12,7 @@ import type { Distribution, FormField, FormSpec, PageSpec } from "@/lib/leados/c
 import { Badge, Card, GhostButton, Input, Label, Select, SubmitButton } from "@/components/leados/ui";
 import { useActionState } from "react";
 import ScorecardBuilder from "./ScorecardBuilder";
+import EmbedPanel from "./EmbedPanel";
 
 type Campaign = {
   id: string; status: string; type: string; publicUrl: string;
@@ -34,7 +35,7 @@ export default function CampaignEditor(props: {
 }) {
   const { campaign: c, canManage } = props;
   const router = useRouter();
-  const [tab, setTab] = useState<"offer" | "form" | "scorecard" | "page" | "distribution" | "launch">(c.type === "scorecard" ? "scorecard" : "offer");
+  const [tab, setTab] = useState<"offer" | "form" | "scorecard" | "page" | "distribution" | "launch" | "embed">(c.type === "scorecard" ? "scorecard" : "offer");
   const [pending, start] = useTransition();
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const [problems, setProblems] = useState<{ severity: string; message: string }[]>([]);
@@ -68,7 +69,7 @@ export default function CampaignEditor(props: {
     { key: "page", label: "3 · Landing page" },
     { key: "distribution", label: "4 · Follow-up" },
     { key: "launch", label: "5 · Review & launch" },
-  ]) as { key: typeof tab; label: string }[];
+  ].concat(c.status === "active" || c.status === "paused" ? [{ key: "embed", label: "6 · Embed" }] : [])) as { key: typeof tab; label: string }[];
 
   const field = (f: FormField, list: "fields" | "qualifying", i: number) => (
     <div key={`${list}-${i}`} className="flex flex-wrap items-center gap-2 rounded-lg bg-[var(--los-surface-2)] px-3 py-2 text-[13px]">
@@ -153,6 +154,8 @@ export default function CampaignEditor(props: {
           {canManage && <button className="inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--los-brand)] px-4 py-2 text-[14px] font-semibold text-white hover:opacity-90 disabled:opacity-50" disabled={pending} onClick={() => save("offer", offer)}>Save offer</button>}
         </Card>
       )}
+
+      {tab === "embed" && <EmbedPanel publicId={c.publicUrl.split("/c/")[1] ?? ""} publicUrl={c.publicUrl} />}
 
       {tab === "scorecard" && c.formSpec.scorecard && (
         <ScorecardBuilder spec={c.formSpec.scorecard} canManage={canManage} brandColor={page.brandColor} pending={pending} onSave={(spec) => save("scorecard", spec)} />

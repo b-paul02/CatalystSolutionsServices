@@ -5,6 +5,7 @@ import { db } from "@/lib/audit/db";
 import type { FormSpec, PageSpec } from "@/lib/leados/campaigns";
 import PublicLeadForm from "./PublicLeadForm";
 import PublicScorecard from "./PublicScorecard";
+import EmbedResize from "./EmbedResize";
 
 export async function generateMetadata({ params }: { params: Promise<{ publicId: string }> }) {
   const { publicId } = await params;
@@ -46,6 +47,7 @@ export default async function PublicCampaignPage({
   const split = pageSpec.template === "split";
   return (
     <div className={embed ? "" : "flex min-h-dvh items-center justify-center px-4 py-8"} style={{ background: "var(--los-bg)" }}>
+      {embed && <EmbedResize id={publicId} />}
       <div
         className={`w-full ${split ? "grid max-w-[880px] gap-8 md:grid-cols-2" : "max-w-[480px]"} rounded-2xl border border-[var(--los-line)] bg-[var(--los-surface)] p-6 sm:p-8`}
         style={{ borderTopColor: pageSpec.brandColor, borderTopWidth: 4 }}

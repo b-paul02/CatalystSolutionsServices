@@ -19,6 +19,8 @@ export function leadosCanonicalPath(pathname: string): string | null {
   if (
     pathname.startsWith("/app") ||
     pathname.startsWith("/api") ||
+    pathname.startsWith("/l/") || // short links (WP-05)
+    pathname.startsWith("/s/") || // public embed scripts (WP-12)
     pathname.startsWith("/_next") ||
     pathname.includes(".") // static files: icon.png, robots.txt, etc.
   ) {
