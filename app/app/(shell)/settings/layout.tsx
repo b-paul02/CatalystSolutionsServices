@@ -13,6 +13,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
     { href: "/app/settings/notifications", label: "Notifications", icon: "notifications" },
     { href: "/app/settings/booking", label: "Booking", icon: "event_available" },
     { href: "/app/settings/brand-voice", label: "Brand voice", icon: "record_voice_over" },
+    { href: "/app/settings/monitoring", label: "Monitoring", icon: "monitor_heart" },
     { href: "/app/settings/api-keys", label: "API keys", icon: "key" },
     { href: "/app/settings/billing", label: "Tokens & billing", icon: "toll", anyOf: ["org.billing"] },
     { href: "/app/settings/ai-credits", label: "AI credits", icon: "auto_awesome", anyOf: ["ai.use", "org.billing"] },
