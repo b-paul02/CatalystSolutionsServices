@@ -9,3 +9,13 @@ export async function register() {
     process.exit(1);
   }
 }
+
+// WP-03 · every unhandled request error lands in CosErrorEvent (fingerprinted, counted), staff notified on a new one.
+// Only the route path is recorded — never the query string, headers, cookies or body.
+export async function onRequestError(err: unknown, request: { path: string; method: string }, context: { routePath?: string; routeType?: string }) {
+  if (process.env.NEXT_RUNTIME !== "nodejs") return;
+  try {
+    const { captureError } = await import("./lib/os/errors");
+    await captureError(err, { route: `${request.method} ${context.routePath ?? request.path.split("?")[0]}` });
+  } catch { /* capturing must never throw inside the error path */ }
+}
