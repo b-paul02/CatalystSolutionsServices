@@ -47,6 +47,11 @@ export async function runTick(now = new Date()): Promise<{ skipped: true } | { s
     await import("./indexnow").then(({ tickTrackedPositions }) => tickTrackedPositions(now)).catch(() => undefined); // weekly per org, guarded inside
     await import("./reports").then(({ monthlyReportMail }) => monthlyReportMail(now)).catch(() => undefined); // WP-28 monthly, guarded inside
     await import("./monitors").then(({ tickMonitors }) => tickMonitors(now)).catch(() => undefined); // WP-29
+    await import("./beacon").then(({ sweepBehavior }) => sweepBehavior(now)).catch(() => undefined); // WP-43 30 d
+    await import("./chat").then(({ sweepChat }) => sweepChat(now)).catch(() => undefined); // WP-44 365 d
+    await import("./competitors").then(({ tickCompetitors }) => tickCompetitors(now)).catch(() => undefined); // WP-47 weekly per domain
+    await import("./aiVisibility").then(({ tickAiVisibility }) => tickAiVisibility(now)).catch(() => undefined); // WP-48 Tuesdays
+    await import("./reviews").then(({ tickReviews }) => tickReviews(now)).catch(() => undefined); // WP-49 daily 05:00 UTC when enabled
     await db.cosHeartbeat.upsert({ where: { key: HEARTBEAT_KEY }, update: { at: now }, create: { key: HEARTBEAT_KEY, at: now } });
     return { skipped: false, published, ai, creditsExpired };
   } finally { await dropLease(); }

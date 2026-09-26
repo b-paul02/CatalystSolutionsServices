@@ -8,6 +8,9 @@ import { businessOutcomes } from "@/lib/os/outcomes";
 import { clicksByVariant } from "@/lib/os/links";
 import { scorecardSummary } from "@/lib/os/scorecardResults";
 import { getLayout, WIDGETS } from "@/lib/os/reports";
+import { reviewsSummary } from "@/lib/os/reviews";
+import { approvalProviderEnabled } from "@/lib/os/connections";
+import { reviewsSync } from "../_os/phase3";
 import { widgetSet } from "../_os/v2";
 import { PILLAR_LABEL } from "@/lib/os/pillarDefs";
 import { formatInZone, periodBounds } from "@/lib/os/time";
@@ -40,12 +43,12 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
   return (
     <div className="max-w-[1180px]">
       <PageHeader title="Results" sub={`${range.label}${demo ? " · demo workspace: figures are synthetic" : ""}`}>
-        <div className="flex flex-wrap gap-1 text-[13px]"><Link href={`/app/reports/print?month=${lastMonth}`} className="rounded-lg border border-[var(--los-line)] px-3 py-1.5">Monthly report (print)</Link>{([["week", "This week"], ["month", "This month"], ["last30", "Last 30 days"]] as const).map(([k, l]) => <Link key={k} href={href({ period: k })} aria-current={k === period ? "page" : undefined} className={`rounded-lg px-3 py-1.5 ${k === period ? "bg-[var(--los-fg)] font-semibold text-[var(--los-surface)]" : "border border-[var(--los-line)]"}`}>{l}</Link>)}</div>
+        <div className="flex flex-wrap gap-1 text-[13px]"><Link href={`/app/reports/print?month=${lastMonth}`} className="rounded-lg border border-[var(--los-line)] px-3 py-1.5">Monthly report (print)</Link><Link href="/app/results/heatmap" className="rounded-lg border border-[var(--los-line)] px-3 py-1.5">Heatmap</Link>{([["week", "This week"], ["month", "This month"], ["last30", "Last 30 days"]] as const).map(([k, l]) => <Link key={k} href={href({ period: k })} aria-current={k === period ? "page" : undefined} className={`rounded-lg px-3 py-1.5 ${k === period ? "bg-[var(--los-fg)] font-semibold text-[var(--los-surface)]" : "border border-[var(--los-line)]"}`}>{l}</Link>)}</div>
       </PageHeader>
       <Tabs active={view} items={[{ key: "business", label: "Business outcomes", href: href({ view: "business" }) }, { key: "campaigns", label: "Campaigns", href: href({ view: "campaigns" }) }, { key: "content", label: "Content", href: href({ view: "content" }) }]} />
       {broken.length > 0 && <div role="status" className="mb-4 rounded-lg border border-[var(--los-warn)] px-4 py-2.5 text-[13px]">{broken.map((c) => `${c.accountLabel ?? c.provider}: ${c.status}${c.lastError ? ` (${c.lastError})` : ""}`).join(" · ")} — numbers from these accounts are not updating. <Link className="font-semibold underline" href="/app/settings/connections">Reconnect</Link></div>}
 
-      {view === "business" && <><Business orgId={actor.orgId} range={range} demo={demo} goals={goals} />
+      {view === "business" && <><Business orgId={actor.orgId} range={range} demo={demo} goals={goals} /><Reviews orgId={actor.orgId} canSync={can(actor.role, "os.settings") || can(actor.role, "work.execute")} />
         <details className="mt-4 rounded-xl border border-[var(--los-line)] p-4 text-[13px]"><summary className="cursor-pointer font-semibold">Report widgets (hide / reorder)</summary>
           <ul className="mt-2 divide-y divide-[var(--los-line)]">{layout.map((w, i) => { const def = WIDGETS.find((x) => x.key === w.key)!; return <li key={w.key} className="flex flex-wrap items-center justify-between gap-2 py-1.5"><span className={w.hidden ? "text-[var(--los-faint)] line-through" : ""}>{def.label} <span className="text-[11.5px] text-[var(--los-faint)]">· {PILLAR_LABEL[def.pillar]}</span></span><span className="flex gap-1">{i > 0 && <ActionForm action={widgetSet} submit="↑" tone="ghost" hidden={{ key: w.key, op: "up" }} />}{i < layout.length - 1 && <ActionForm action={widgetSet} submit="↓" tone="ghost" hidden={{ key: w.key, op: "down" }} />}<ActionForm action={widgetSet} submit={w.hidden ? "Show" : "Hide"} tone="ghost" hidden={{ key: w.key, op: w.hidden ? "show" : "hide" }} /></span></li>; })}</ul>
           <p className="mt-2 text-[12px] text-[var(--los-faint)]">The order and hidden widgets apply to the monthly print report too.</p>
@@ -173,6 +176,23 @@ async function Content({ orgId, range, demo, tz }: { orgId: string; range: Range
           </li>
         ))}
       </ul>
+    </Card>
+  );
+}
+
+// WP-49 · Google Business Profile reviews: lifetime count + average (latest sync), never summed across periods.
+async function Reviews({ orgId, canSync }: { orgId: string; canSync: boolean }) {
+  const enabled = approvalProviderEnabled("gbp");
+  const r = enabled ? await reviewsSummary(orgId) : null;
+  return (
+    <Card className="mt-4 p-4 text-[13.5px]">
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-2"><div className="text-[15px] font-bold">Google reviews</div>{enabled && canSync && <ActionForm action={reviewsSync} submit="Sync now" tone="ghost" />}</div>
+      {!enabled ? <p className="text-[var(--los-faint)]">Awaiting approval — Google Business Profile API access is not enabled on this server yet.</p> : !r ? <p className="text-[var(--los-faint)]">No reviews synced yet. Connect Google (Settings → Connections) and press Sync.</p> : (
+        <>
+          <div className="text-[22px] font-extrabold">{r.average} <span className="text-[13px] font-normal text-[var(--los-muted)]">average · {r.count} reviews · synced {r.syncedAt?.toISOString().slice(0, 10)}</span></div>
+          <ul className="mt-2 space-y-1 text-[13px]">{r.latest.map((x) => <li key={x.id}><b>{"★".repeat(x.rating)}</b> <span className="text-[var(--los-faint)]">{x.at.toISOString().slice(0, 10)}</span>{x.snippet ? ` — ${x.snippet}` : ""}</li>)}</ul>
+        </>
+      )}
     </Card>
   );
 }
