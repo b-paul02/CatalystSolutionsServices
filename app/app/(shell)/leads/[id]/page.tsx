@@ -7,6 +7,7 @@ import { db } from "@/lib/audit/db";
 import { Badge, Card } from "@/components/leados/ui";
 import LeadControls from "./LeadControls";
 import LeadWorkspace from "./LeadWorkspace";
+import EnrichmentPanel from "./EnrichmentPanel";
 
 export const metadata = { title: "Lead" };
 
@@ -151,6 +152,7 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
         members={members.map((m) => ({ userId: m.userId, label: m.user.name ?? m.user.email }))}
         permittedChannels={lead.leadType === "b2c" ? (JSON.parse(lead.b2c?.permittedChannels ?? "[]") as string[]) : null}
       />
+      {lead.leadType === "b2b" && <EnrichmentPanel leadId={lead.id} canEdit={can(actor.role, "leads.edit")} />}
     </div>
   );
 }
