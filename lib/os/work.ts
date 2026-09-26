@@ -5,7 +5,8 @@
 import { db } from "@/lib/audit/db";
 import { can, isStaffRole, type Permission } from "@/lib/leados/rbac";
 import { logLosAudit } from "@/lib/leados/audit";
-import { canDecideApproval, canTransition, contentHash, gateAction, type Capability } from "./workflow";
+import { canDecideApproval, canTransition, contentHash, type Capability } from "./workflow";
+import { gateWithFlags } from "./flags";
 import { serviceBySlug } from "./catalog";
 import { entitlements } from "./entitlements";
 import { templateFor } from "./templates";
@@ -238,7 +239,8 @@ export async function transitionWorkItem(actor: WorkActor, id: string, to: strin
       db.cosWorkspace.findUnique({ where: { orgId: actor.orgId } }),
       currentApproval(item.id, item.version),
     ]);
-    const gate = gateAction({
+    const gate = await gateWithFlags({
+      feature: "publish", orgId: actor.orgId,
       tier: item.riskTier,
       killSwitch: ws?.killSwitch ?? false,
       currentHash: item.contentHash ?? "",
@@ -491,7 +493,7 @@ export async function publishWorkItem(actor: WorkActor, id: string) {
   if (!payload.body?.trim()) throw new WorkError("Nothing to publish — the body is empty.");
 
   const [ws, approval] = await Promise.all([db.cosWorkspace.findUnique({ where: { orgId: actor.orgId } }), currentApproval(item.id, item.version)]);
-  const gate = gateAction({ tier: Math.max(2, item.riskTier), killSwitch: ws?.killSwitch ?? false, currentHash: item.contentHash ?? "", approval });
+  const gate = await gateWithFlags({ feature: "publish", orgId: actor.orgId, tier: Math.max(2, item.riskTier), killSwitch: ws?.killSwitch ?? false, currentHash: item.contentHash ?? "", approval });
   const log = (data: unknown, toState?: string) => db.cosWorkEvent.create({ data: { orgId: actor.orgId, workItemId: item.id, actorId: actor.userId, actorType: "user", kind: "execution", fromState: item.state, toState: toState ?? null, data: json(data) } });
   if (!gate.allowed) { await log({ blocked: gate.reason, attempted: "publish" }); throw new WorkError(gate.reason); }
 

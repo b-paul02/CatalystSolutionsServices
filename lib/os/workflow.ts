@@ -130,10 +130,13 @@ export function gateAction(opts: {
   currentHash: string;
   approval: { status: string; contentHash: string; expiresAt?: Date | null } | null;
   autonomyEnabled?: boolean;
+  /** WP-06 feature flag (lib/os/flags.ts): false = the feature is switched off by the operator */
+  featureEnabled?: boolean;
   now?: Date;
 }): ActionGate {
   const now = opts.now ?? new Date();
   if (opts.tier >= 2 && opts.killSwitch) return { allowed: false, reason: "Kill switch is on for this workspace." };
+  if (opts.featureEnabled === false) return { allowed: false, reason: "This feature is switched off by the Catalyst team at the moment." };
   if (opts.tier <= 1) return { allowed: true };
   if (opts.tier === 2 && opts.autonomyEnabled) return { allowed: true };
   const a = opts.approval;

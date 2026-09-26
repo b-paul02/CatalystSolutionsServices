@@ -13,7 +13,8 @@ import { logLosAudit } from "@/lib/leados/audit";
 import { decryptField } from "@/lib/leados/crypto";
 import { enqueueJob, registerJobHandler } from "@/lib/leados/jobs";
 import { assertWritable, WorkError, type WorkActor } from "./work";
-import { gateAction } from "./workflow";
+
+import { gateWithFlags } from "./flags";
 import { entitlements } from "./entitlements";
 import { AdapterError, adapterFor, type PublishResult } from "./adapters";
 import { CHANNELS, renderBody } from "./channels";
@@ -103,7 +104,7 @@ async function preflight(orgId: string, v: { id: string; channel: string; format
   const [ent, ws, approval] = await Promise.all([entitlements(orgId), db.cosWorkspace.findUnique({ where: { orgId } }), currentVariantApproval(orgId, v.id, v.version)]);
   if (ent.accessMode !== "active") return { ok: false, reason: "The workspace is in handover (read-only)." };
   if (!ent.modules.has("content")) return { ok: false, reason: "Content is no longer in this workspace's scope." };
-  const gate = gateAction({ tier: 2, killSwitch: ws?.killSwitch ?? false, currentHash: v.contentHash, approval, autonomyEnabled: !v.clientReviewRequired });
+  const gate = await gateWithFlags({ feature: "publish", orgId, tier: 2, killSwitch: ws?.killSwitch ?? false, currentHash: v.contentHash, approval, autonomyEnabled: !v.clientReviewRequired });
   if (!gate.allowed) return { ok: false, reason: gate.reason };
   const check = await variantCheck(orgId, v);
   if (check.problems.length) return { ok: false, reason: check.problems.join(" ") };
@@ -253,7 +254,7 @@ export async function recordManualPublication(actor: WorkActor, variantId: strin
   if (!["approved", "failed", "needs_review"].includes(v.state)) throw new WorkError("Only an approved variant can be recorded as published.");
   if (!/^https:\/\//i.test(externalUrl)) throw new WorkError("Paste the https link to the live post.");
   const [ws, approval] = await Promise.all([db.cosWorkspace.findUnique({ where: { orgId: actor.orgId } }), currentVariantApproval(actor.orgId, v.id, v.version)]);
-  const gate = gateAction({ tier: 2, killSwitch: false, currentHash: v.contentHash, approval, autonomyEnabled: !v.clientReviewRequired });
+  const gate = await gateWithFlags({ feature: "publish", orgId: actor.orgId, tier: 2, killSwitch: false, currentHash: v.contentHash, approval, autonomyEnabled: !v.clientReviewRequired });
   if (!gate.allowed) throw new WorkError(gate.reason);
   const key = `${v.id}:v${v.version}`;
   const existing = await db.cosPublication.findUnique({ where: { idempotencyKey: key } });
