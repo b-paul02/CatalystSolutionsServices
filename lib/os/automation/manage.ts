@@ -79,7 +79,7 @@ export async function activateWorkflow(actor: WorkActor, id: string) {
   const needed = [...new Set(def.nodes.map((n) => BLOCKS[n.type]?.provider).filter((p): p is string => Boolean(p)))];
   const ready = await db.cosConnection.findMany({ where: { orgId: actor.orgId, provider: { in: needed }, status: "verified" }, select: { provider: true } });
   const missing = needed.filter((p) => !ready.some((r) => r.provider === p));
-  if (missing.length) throw new WorkError(`Connect ${missing.map((p) => KEY_PROVIDERS[p]?.label ?? p).join(", ")} first (Workflows → Connections).`);
+  if (missing.length) throw new WorkError(`Connect ${missing.map((p) => KEY_PROVIDERS[p]?.label ?? p).join(", ")} first (Settings → Connections).`);
   const updated = await db.cosWorkflow.update({ where: { id: wf.id }, data: { status: "active", activeHash: definitionHash(def), activatedById: actor.userId, activatedAt: new Date() } });
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "workflow.activated", entity: "CosWorkflow", entityId: wf.id, data: { version: wf.version, external: def.nodes.filter((n) => BLOCKS[n.type]?.external).length, contacts: def.nodes.filter((n) => BLOCKS[n.type]?.contacts).length } });
   return updated;

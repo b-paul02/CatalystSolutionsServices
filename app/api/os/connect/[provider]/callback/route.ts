@@ -5,7 +5,7 @@ import { completeConnection, isProvider, providerEnabled } from "@/lib/os/connec
 export async function GET(req: NextRequest, ctx: { params: Promise<{ provider: string }> }) {
   const { provider } = await ctx.params;
   const back = (q: string) => {
-    const res = NextResponse.redirect(new URL(`/app/settings/workspace?connect=${q}`, req.nextUrl.origin));
+    const res = NextResponse.redirect(new URL(`/app/settings/connections?connect=${q}`, req.nextUrl.origin));
     res.cookies.delete({ name: "cos_oauth", path: "/api/os/connect" });
     return res;
   };

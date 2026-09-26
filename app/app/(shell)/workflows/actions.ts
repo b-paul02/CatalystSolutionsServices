@@ -80,15 +80,15 @@ export async function connectKey(_p: State, form: FormData): Promise<State> {
   const actor = await requireOrgAction("automations.manage"); if ("error" in actor) return actor;
   try {
     const conn = await saveKeyConnection(actor, str(form, "provider", 20), String(form.get("secret") ?? ""));
-    revalidatePath("/app/workflows/connections");
+    revalidatePath("/app/settings/connections");
     return { ok: `Connected${conn.accountLabel ? ` — ${conn.accountLabel}` : ""}.` };
-  } catch (e) { revalidatePath("/app/workflows/connections"); return fail(e); }
+  } catch (e) { revalidatePath("/app/settings/connections"); return fail(e); }
 }
 
 export async function disconnectKey(_p: State, form: FormData): Promise<State> {
   const actor = await requireOrgAction("automations.manage"); if ("error" in actor) return actor;
   if (!can(actor.role, "automations.manage")) return { error: "Forbidden." };
   await db.cosConnection.updateMany({ where: { orgId: actor.orgId, provider: str(form, "provider", 20) }, data: { status: "disconnected", accessTokenEnc: null, lastError: null, lastCheckedAt: new Date() } });
-  revalidatePath("/app/workflows/connections");
+  revalidatePath("/app/settings/connections");
   return { ok: "Disconnected — the stored key was destroyed." };
 }

@@ -18,14 +18,14 @@ export async function addWebhook(_prev: FormState, form: FormData): Promise<Form
     data: { orgId: actor.orgId, url: url.slice(0, 500), secret, events: JSON.stringify(events) },
   });
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "webhook.create", entity: "LosWebhook", data: { events } });
-  revalidatePath("/app/settings/integrations");
+  revalidatePath("/app/settings/connections");
   return { ok: "Webhook added. Copy the signing secret now — it won't be shown again.", secret };
 }
 
 export async function deleteWebhook(id: string): Promise<void> {
   const actor = await requireOrgOrRedirect("org.manage");
   await db.losWebhook.deleteMany({ where: { id, orgId: actor.orgId } });
-  revalidatePath("/app/settings/integrations");
+  revalidatePath("/app/settings/connections");
 }
 
 export async function toggleWebhook(id: string): Promise<void> {
@@ -33,7 +33,7 @@ export async function toggleWebhook(id: string): Promise<void> {
   const hook = await db.losWebhook.findFirst({ where: { id, orgId: actor.orgId } });
   if (!hook) return;
   await db.losWebhook.update({ where: { id }, data: { active: !hook.active, failCount: 0 } });
-  revalidatePath("/app/settings/integrations");
+  revalidatePath("/app/settings/connections");
 }
 
 export async function saveSlack(_prev: FormState, form: FormData): Promise<FormState> {
@@ -47,6 +47,6 @@ export async function saveSlack(_prev: FormState, form: FormData): Promise<FormS
     update: { config: JSON.stringify({ slackWebhookUrl: url || undefined }) },
     create: { orgId: actor.orgId, config: JSON.stringify({ slackWebhookUrl: url || undefined }) },
   });
-  revalidatePath("/app/settings/integrations");
+  revalidatePath("/app/settings/connections");
   return { ok: url ? "Slack notifications on — new leads will ping your channel." : "Slack notifications off." };
 }

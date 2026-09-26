@@ -51,7 +51,7 @@ export default async function OpsPage() {
         <Box title="Waiting for the client" count={client.length} empty="No decisions outstanding">{client.map((a) => <Row key={a.id} href="/app/approvals" title={a.summary} right={<>since {day(a.createdAt)} · expires {day(a.expiresAt)}</>} />)}</Box>
         <Box title="Blocked, failed or sent back" count={blocked.length + variantsQa.filter((v) => v.state !== "internal_qa").length} empty="Nothing is stuck">{blocked.map((w) => <Row key={w.id} href={`/app/work/${w.id}`} title={w.title} right={<StateBadge state={w.state} />} />)}{variantsQa.filter((v) => v.state !== "internal_qa").map((v) => <Row key={v.id} href={`/app/content/${v.workItemId}#v-${v.id}`} title={`${v.workItem.title} — ${CHANNELS[v.channel]?.label}`} right={<Pill value={v.state} />} />)}</Box>
         <Box title="Publishing" count={pubs.length} empty="Nothing scheduled or failed">{pubs.map((p) => <Row key={p.id} href={`/app/content/${p.variant.workItemId}`} title={`${p.variant.workItem.title} — ${CHANNELS[p.channel]?.label}`} right={<>{formatInZone(p.scheduledAt, tz)}<Pill value={p.status} /></>} />)}</Box>
-        <Box title="Connection issues" count={conns.length} empty="All connected accounts are healthy">{conns.map((c) => <Row key={c.id} href="/app/settings/workspace" title={c.accountLabel ?? c.provider} right={<>{c.lastError?.slice(0, 60)}<Pill value={c.status} /></>} />)}</Box>
+        <Box title="Connection issues" count={conns.length} empty="All connected accounts are healthy">{conns.map((c) => <Row key={c.id} href="/app/settings/connections" title={c.accountLabel ?? c.provider} right={<>{c.lastError?.slice(0, 60)}<Pill value={c.status} /></>} />)}</Box>
       </div>
     </div>
   );

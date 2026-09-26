@@ -28,7 +28,7 @@ export default async function WorkflowsPage() {
   return (
     <div className="max-w-[1100px]">
       <PageHeader title="Workflows" sub="When this happens → check that → do this. Build your own or start from a template.">
-        <Link href="/app/workflows/connections" className="rounded-lg border border-[var(--los-line)] px-3 py-1.5 text-[13px] font-medium hover:bg-[var(--los-surface-2)]">Connections</Link>
+        <Link href="/app/settings/connections" className="rounded-lg border border-[var(--los-line)] px-3 py-1.5 text-[13px] font-medium hover:bg-[var(--los-surface-2)]">Connections</Link>
       </PageHeader>
 
       <Card className="mb-6">

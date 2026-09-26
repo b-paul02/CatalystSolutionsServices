@@ -8,8 +8,7 @@ import { programs } from "@/lib/programs";
 import { Badge, Card, Label } from "@/components/leados/ui";
 import ActionForm from "@/components/os/ActionForm";
 import { day, field } from "@/components/os/bits";
-import { PROVIDERS, providerDef, providerEnabled } from "@/lib/os/connectors";
-import { connectionAction, saveBrandProfile, setKillSwitch } from "../../_os/actions";
+import { saveBrandProfile, setKillSwitch } from "../../_os/actions";
 
 export const metadata = { title: "Workspace" };
 
@@ -59,33 +58,7 @@ export default async function WorkspaceSettingsPage() {
 
       <Card className="p-5 text-[13.5px]">
         <div className="mb-1 text-[15px] font-bold">Connections</div>
-        <p className="mb-3 text-[13px] text-[var(--los-muted)]">&quot;Verified&quot; means a live access test passed — never just a stored token. Disconnecting destroys the stored tokens.</p>
-        {PROVIDERS.map((p) => {
-          const def = providerDef(p);
-          const c = connections.find((x) => x.provider === p);
-          const live = c && c.status !== "disconnected";
-          return (
-            <div key={p} className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--los-line)] py-2.5">
-              <div className="min-w-0">
-                <div className="font-medium">{def.label} {live && <Badge tone={c.status === "verified" ? "success" : "danger"}>{c.status}</Badge>}</div>
-                <div className="text-[12.5px] text-[var(--los-muted)]">{live && c.accountLabel ? `${c.accountLabel} · ` : ""}{def.capability}</div>
-                {live && <div className="text-[12px] text-[var(--los-faint)]">checked {day(c.lastCheckedAt)}{c.lastError ? ` · ${c.lastError}` : ""}</div>}
-              </div>
-              {settings && (
-                <div className="flex items-center gap-2">
-                  {def.comingSoon ? <Badge>Coming soon</Badge>
-                    : !providerEnabled(p) ? <span className="text-[12px] text-[var(--los-faint)]">not configured on this server</span>
-                    : !live ? <a href={`/api/os/connect/${p}/start`} className="rounded-lg bg-[var(--los-brand)] px-3 py-1.5 text-[13px] font-semibold text-white">Connect</a>
-                    : <>
-                        {p === "gsc" && c.status === "verified" && <ActionForm action={connectionAction} submit="Sync now" tone="ghost" hidden={{ provider: p, op: "sync" }} />}
-                        <ActionForm action={connectionAction} submit="Test" tone="ghost" hidden={{ provider: p, op: "test" }} />
-                        <ActionForm action={connectionAction} submit="Disconnect" tone="danger" hidden={{ provider: p, op: "disconnect" }} confirm={`Disconnect ${def.label}?`} />
-                      </>}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        <p className="text-[13px] text-[var(--los-muted)]">{connections.filter((c) => c.status === "verified").length} verified account{connections.filter((c) => c.status === "verified").length === 1 ? "" : "s"}. Manage every sign-in, workflow key and lead source on <a className="font-semibold text-[var(--los-brand)] hover:underline" href="/app/settings/connections">Settings → Connections</a>.</p>
       </Card>
 
       <AccountsPanel orgId={actor.orgId} role={actor.role} timezone={ent.timezone} currency={ent.currency} />

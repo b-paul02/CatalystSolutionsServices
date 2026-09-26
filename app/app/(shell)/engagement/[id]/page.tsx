@@ -99,7 +99,7 @@ export default async function EngagementPage({ params }: { params: Promise<{ id:
                   <li key={c.id} className="px-5 py-2.5">
                     <div className="flex flex-wrap items-start justify-between gap-2"><div className="min-w-0"><div className="font-medium">{c.label}</div><div className="text-[12px] text-[var(--los-faint)]">{c.ownerSide === "client" ? "From you" : "From Catalyst"}{c.serviceSlug ? ` · ${serviceBySlug[c.serviceSlug]?.title ?? c.serviceSlug}` : ""}{c.dueAt ? ` · due ${day(c.dueAt)}` : ""}{c.dependents.length ? ` · ${c.dependents.length} task(s) wait on this` : ""}</div>{c.note && <div className="text-[12px] text-[var(--los-muted)]">{c.note}</div>}</div><Pill value={c.status} /></div>
                     {mine && open && !["available", "not_needed"].includes(c.status) && (
-                      c.kind === "access" && c.provider ? <Link href="/app/settings/workspace" className="mt-1 inline-block text-[12.5px] font-semibold text-[var(--los-brand)] hover:underline">Connect the account → this completes itself</Link> : (
+                      c.kind === "access" && c.provider ? <Link href="/app/settings/connections" className="mt-1 inline-block text-[12.5px] font-semibold text-[var(--los-brand)] hover:underline">Connect the account → this completes itself</Link> : (
                         <ActionForm action={checklistResolve} submit="Mark as provided" tone="ghost" hidden={{ id: c.id, status: "available" }} className="mt-1 flex items-end gap-2"><Input name="note" placeholder={c.kind === "access" ? "How access was granted (never a password)" : "Where it is / note"} aria-label="Note" /></ActionForm>
                       )
                     )}

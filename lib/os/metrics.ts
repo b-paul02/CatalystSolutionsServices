@@ -10,23 +10,24 @@ import { decryptField } from "@/lib/leados/crypto";
 import { WorkError, type WorkActor } from "./work";
 import { adapterFor, ga4CampaignReport, AdapterError } from "./adapters";
 
-export type MetricDef = { label: string; definition: string; unit: "count" | "minutes" | "seconds" | "currency" | "percent"; additive: boolean };
+import type { Pillar } from "./pillars";
+export type MetricDef = { label: string; definition: string; unit: "count" | "minutes" | "seconds" | "currency" | "percent"; additive: boolean; pillar: Pillar };
 export const METRICS: Record<string, MetricDef> = {
-  impressions: { label: "Impressions", definition: "Times the content was shown, as reported by the platform. Not people.", unit: "count", additive: true },
-  reach: { label: "Reach", definition: "Accounts that saw the content, per platform. Cannot be added across posts or platforms.", unit: "count", additive: false },
-  views: { label: "Views", definition: "Views as the platform counts them; definitions differ by platform.", unit: "count", additive: true },
-  likes: { label: "Likes", definition: "Likes / reactions.", unit: "count", additive: true },
-  comments: { label: "Comments", definition: "Comments and replies.", unit: "count", additive: true },
-  shares: { label: "Shares", definition: "Shares / reposts.", unit: "count", additive: true },
-  quotes: { label: "Quotes", definition: "Quote posts.", unit: "count", additive: true },
-  saves: { label: "Saves", definition: "Saves / bookmarks.", unit: "count", additive: true },
-  link_clicks: { label: "Link clicks", definition: "Clicks on the link, as reported by the platform.", unit: "count", additive: true },
-  watch_time_minutes: { label: "Watch time", definition: "Estimated minutes watched (YouTube Analytics).", unit: "minutes", additive: true },
-  avg_view_duration_sec: { label: "Average view duration", definition: "Average seconds watched per view.", unit: "seconds", additive: false },
-  sessions: { label: "Website sessions", definition: "Sessions recorded by website analytics (GA4). Not search clicks.", unit: "count", additive: true },
-  key_events: { label: "Key events", definition: "GA4 key events (conversions configured on the website).", unit: "count", additive: true },
-  clicks: { label: "Search clicks", definition: "Clicks from Google Search results (Search Console). Not website sessions.", unit: "count", additive: true },
-  spend: { label: "Ad spend", definition: "Spend in the ad account's currency.", unit: "currency", additive: true },
+  impressions: { label: "Impressions", definition: "Times the content was shown, as reported by the platform. Not people.", unit: "count", additive: true, pillar: "digital_visibility" },
+  reach: { label: "Reach", definition: "Accounts that saw the content, per platform. Cannot be added across posts or platforms.", unit: "count", additive: false, pillar: "digital_visibility" },
+  views: { label: "Views", definition: "Views as the platform counts them; definitions differ by platform.", unit: "count", additive: true, pillar: "digital_visibility" },
+  likes: { label: "Likes", definition: "Likes / reactions.", unit: "count", additive: true, pillar: "digital_visibility" },
+  comments: { label: "Comments", definition: "Comments and replies.", unit: "count", additive: true, pillar: "digital_visibility" },
+  shares: { label: "Shares", definition: "Shares / reposts.", unit: "count", additive: true, pillar: "digital_visibility" },
+  quotes: { label: "Quotes", definition: "Quote posts.", unit: "count", additive: true, pillar: "digital_visibility" },
+  saves: { label: "Saves", definition: "Saves / bookmarks.", unit: "count", additive: true, pillar: "digital_visibility" },
+  link_clicks: { label: "Link clicks", definition: "Clicks on the link, as reported by the platform.", unit: "count", additive: true, pillar: "client_acquisition" },
+  watch_time_minutes: { label: "Watch time", definition: "Estimated minutes watched (YouTube Analytics).", unit: "minutes", additive: true, pillar: "digital_visibility" },
+  avg_view_duration_sec: { label: "Average view duration", definition: "Average seconds watched per view.", unit: "seconds", additive: false, pillar: "digital_visibility" },
+  sessions: { label: "Website sessions", definition: "Sessions recorded by website analytics (GA4). Not search clicks.", unit: "count", additive: true, pillar: "digital_presence" },
+  key_events: { label: "Key events", definition: "GA4 key events (conversions configured on the website).", unit: "count", additive: true, pillar: "client_acquisition" },
+  clicks: { label: "Search clicks", definition: "Clicks from Google Search results (Search Console). Not website sessions.", unit: "count", additive: true, pillar: "digital_visibility" },
+  spend: { label: "Ad spend", definition: "Spend in the ad account's currency.", unit: "currency", additive: true, pillar: "business_operations" },
 };
 export const SOURCE_LABEL: Record<string, string> = { api: "Synced from the platform", manual: "Entered by a team member", import: "Imported from a file" };
 

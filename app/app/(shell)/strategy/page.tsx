@@ -5,6 +5,7 @@ import { requireModule } from "@/lib/os/guard";
 import { aiAvailable } from "@/lib/os/ai";
 import type { PlanPayload } from "@/lib/os/ai";
 import { allocationDiff } from "@/lib/os/workflow";
+import { PILLAR_LABEL, PILLARS5 } from "@/lib/os/pillars";
 import { Card, Input, Label } from "@/components/leados/ui";
 import ActionForm from "@/components/os/ActionForm";
 import { day, Empty, EvidenceBadge, field, human, PageHeader, SectionTitle } from "@/components/os/bits";
@@ -14,7 +15,8 @@ export const metadata = { title: "Strategy" };
 
 // AI CMO (blueprint §6.1): goals → evidence-cited plan → strategist review →
 // client approval, with a visible allocation diff against the approved plan.
-export default async function StrategyPage() {
+export default async function StrategyPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const sp = await searchParams;
   const { actor } = await requireModule("strategy", "work.view");
   const orgId = actor.orgId;
   const [goals, plans, learnings, findingIds] = await Promise.all([
@@ -38,7 +40,7 @@ export default async function StrategyPage() {
         <ul className="divide-y divide-[var(--los-line)]">
           {goals.map((g) => (
             <li key={g.id} className="flex flex-wrap items-center justify-between gap-2 px-5 py-2.5 text-[13.5px]">
-              <div><span className="font-medium">{g.metric}</span> · target {g.target.toLocaleString()} {g.unit} in {g.horizon}{g.definition ? <span className="text-[var(--los-muted)]"> — {g.definition}</span> : null}</div>
+              <div>{g.pillar && <span className="mr-1 rounded bg-[var(--los-surface-2)] px-1.5 py-0.5 text-[11px] text-[var(--los-muted)]">{PILLAR_LABEL[g.pillar as keyof typeof PILLAR_LABEL] ?? g.pillar}</span>}<span className="font-medium">{g.metric}</span> · target {g.target.toLocaleString()} {g.unit} in {g.horizon}{g.definition ? <span className="text-[var(--los-muted)]"> — {g.definition}</span> : null}</div>
               <div className="flex items-center gap-2 text-[12.5px]">
                 <span>{g.currentValue === null ? "Not connected" : `${g.currentValue.toLocaleString()} now`}</span><EvidenceBadge label={g.currentLabel} />
                 {(strategist || can(actor.role, "org.manage")) && <ActionForm action={archiveGoal} submit="Archive" tone="ghost" hidden={{ id: g.id }} />}
@@ -49,8 +51,9 @@ export default async function StrategyPage() {
         </ul>
         {(strategist || can(actor.role, "org.manage")) && (
           <ActionForm action={saveGoal} submit="Add goal" className="grid gap-3 border-t border-[var(--los-line)] px-5 py-4 text-[13.5px] md:grid-cols-5">
-            <div><Label>Metric</Label><Input name="metric" required placeholder="Qualified leads" /></div>
-            <div><Label>Target</Label><Input name="target" type="number" step="any" required /></div>
+            <div><Label>Pillar</Label><select name="pillar" className={field} defaultValue={sp.pillar ?? ""}><option value="">—</option>{PILLARS5.map((p) => <option key={p} value={p}>{PILLAR_LABEL[p]}</option>)}</select></div>
+            <div><Label>Metric</Label><Input name="metric" required placeholder="Qualified leads" defaultValue={sp.metric ?? ""} /></div>
+            <div><Label>Target</Label><Input name="target" type="number" step="any" required defaultValue={sp.target ?? ""} /></div>
             <div><Label>Unit</Label><Input name="unit" placeholder="per month" /></div>
             <div><Label>Horizon</Label><Input name="horizon" placeholder="90 days" /></div>
             <div><Label>Current (if known)</Label><Input name="currentValue" type="number" step="any" /></div>

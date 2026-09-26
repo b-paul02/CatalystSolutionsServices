@@ -14,7 +14,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
     { href: "/app/settings/billing", label: "Tokens & billing", icon: "toll", anyOf: ["org.billing"] },
     { href: "/app/settings/ai-credits", label: "AI credits", icon: "auto_awesome", anyOf: ["ai.use", "org.billing"] },
     { href: "/app/settings/scoring", label: "Scoring", icon: "speed", anyOf: ["reports.view"] },
-    { href: "/app/settings/integrations", label: "Integrations", icon: "cable" },
+    { href: "/app/settings/connections", label: "Connections", icon: "cable" },
   ];
   return (
     <div>

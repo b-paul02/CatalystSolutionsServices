@@ -1644,6 +1644,8 @@ model CosGoal {
   engagementId String?
   // visibility | acquisition | retention | operations | product
   focus        String?
+  // growth pillar (lib/os/pillars.ts): market_intelligence | client_acquisition | digital_visibility | digital_presence | business_operations
+  pillar       String?
   metric       String
   target       Float
   unit         String

@@ -275,7 +275,7 @@ export async function syncAccessFromConnection(orgId: string, provider: string, 
     if (it.status === to) continue;
     await db.cosChecklistItem.update({ where: { id: it.id }, data: { status: to, connectionId, resolvedAt: to === "available" ? new Date() : null } });
     if (to === "available") await releaseDependents(orgId, { checklistId: it.id });
-    else await notify({ orgId, audience: "client", kind: "access_needed", title: `Access needed: ${it.label}`, href: "/app/settings/workspace", dedupeKey: `access:${it.id}:${to}:${new Date().toISOString().slice(0, 10)}` });
+    else await notify({ orgId, audience: "client", kind: "access_needed", title: `Access needed: ${it.label}`, href: "/app/settings/connections", dedupeKey: `access:${it.id}:${to}:${new Date().toISOString().slice(0, 10)}` });
   }
 }
 

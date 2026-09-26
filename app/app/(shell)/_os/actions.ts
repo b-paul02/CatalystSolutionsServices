@@ -18,6 +18,7 @@ import { aiAvailable, aiModel, copyProblems, draftContent, generateCalendar, gen
 import { allocationDiff, type Allocation } from "@/lib/os/workflow";
 import { entitlements } from "@/lib/os/entitlements";
 import { serviceBySlug } from "@/lib/os/catalog";
+import { isPillar } from "@/lib/os/pillars";
 
 type State = { error?: string; ok?: string };
 const str = (form: FormData, key: string, max = 4000) => String(form.get(key) ?? "").trim().slice(0, max);
@@ -256,6 +257,7 @@ export async function saveGoal(_p: State, form: FormData): Promise<State> {
   const goal = await db.cosGoal.create({
     data: {
       orgId: actor.orgId, metric: str(form, "metric", 80), target, unit: str(form, "unit", 20) || "count", horizon: str(form, "horizon", 40) || "90 days",
+      pillar: isPillar(str(form, "pillar", 40)) ? str(form, "pillar", 40) : null,
       definition: str(form, "definition", 500) || null,
       // an entered number without a connected source is an estimate, never "measured"
       currentValue: current ? Number(current) : null, currentLabel: current ? "estimated" : "unavailable",
