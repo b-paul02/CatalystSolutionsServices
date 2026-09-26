@@ -3068,3 +3068,17 @@ model CosBooking {
   @@index([orgId, startAt])
   @@index([hostId, startAt])
 }
+
+// WP-21 · brand-voice rules per workspace, evaluated deterministically in copy checks (reading grade is a syllable
+// heuristic and labelled as such). `color` also feeds the WP-22 graphic templates.
+model CosBrandRules {
+  orgId           String   @id
+  bannedPhrases   String[] @default([])
+  requiredPhrases String[] @default([])
+  maxReadingGrade Int?
+  toneNotes       String?
+  // #rrggbb used by the graphic templates
+  color           String?
+  updatedById     String?
+  updatedAt       DateTime @updatedAt
+}

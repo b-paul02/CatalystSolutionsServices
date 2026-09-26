@@ -227,7 +227,10 @@ async function mediaFor(orgId: string, ids: string[]) {
 export async function variantCheck(orgId: string, v: { channel: string; format: string; title: string | null; body: string; parts: string[]; cta: string | null; destinationUrl: string | null; mediaAssetIds: string[] }) {
   const base = validateVariant(v.channel, v.format, contentOf(v), await mediaFor(orgId, v.mediaAssetIds));
   const claims = [v.title ?? "", v.body, ...v.parts].flatMap((t) => copyProblems(t));
-  return { problems: [...base.problems, ...new Set(claims)], warnings: base.warnings };
+  // WP-21: brand-voice rules are warnings shown inline in the editor — they never block on their own
+  const { brandProblems, getBrandRules } = await import("./brand");
+  const brand = brandProblems([v.title ?? "", v.body, ...v.parts].join("\n"), await getBrandRules(orgId));
+  return { problems: [...base.problems, ...new Set(claims)], warnings: [...base.warnings, ...brand] };
 }
 
 /** Same copy already live or queued on the same channel → warn before it goes out twice. */

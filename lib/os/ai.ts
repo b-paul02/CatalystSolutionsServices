@@ -129,6 +129,7 @@ export function inventedStrings(cited: string[], allowed: string[]): string[] {
 
 /** `sourceIds`: when the person picked sources for this run, ONLY those are given to the model (approved claims always are). */
 export async function tenantContext(orgId: string, opts: { sourceIds?: string[] } = {}) {
+  const brandRules = await db.cosBrandRules.findUnique({ where: { orgId }, select: { toneNotes: true, bannedPhrases: true, requiredPhrases: true } });
   const [org, ws, goals, run, findings, learnings, profile, claims, sources] = await Promise.all([
     db.losOrg.findUnique({ where: { id: orgId }, select: { name: true, industry: true, market: true, website: true } }),
     db.cosWorkspace.findUnique({ where: { orgId }, select: { brandProfile: true } }),
@@ -146,6 +147,7 @@ export async function tenantContext(orgId: string, opts: { sourceIds?: string[] 
   const text = JSON.stringify({
     business: org,
     brand: ws?.brandProfile ? JSON.parse(ws.brandProfile) : null,
+    brandVoiceRules: brandRules ? { tone: brandRules.toneNotes, neverSay: brandRules.bannedPhrases, includeWhenItFits: brandRules.requiredPhrases } : null,
     profile: profile ? { businessModel: profile.businessModel, audience: profile.audience, offers: profile.offers, geography: profile.geography, brandVoice: profile.brandVoice, contentPillars: profile.contentPillars, constraints: profile.constraints, competitors: profile.competitors } : null,
     approvedClaims: claims.map((c) => ({ id: c.id, text: c.text })),
     sources: sources.map((s) => ({ id: s.id, title: s.title, url: s.url, excerpt: s.excerpt?.slice(0, 600) ?? null })),

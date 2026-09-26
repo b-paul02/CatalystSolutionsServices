@@ -13,6 +13,7 @@ import { imageGenStatus, renderImage } from "./imagegen";
 import { uploadAsset } from "./assets";
 import { renderTemplate } from "./graphics";
 import { flagOn } from "./flags";
+import { brandProblems, getBrandRules } from "./brand";
 import { notify } from "./notify";
 import { periodBounds } from "./time";
 import { assertWritable, WorkError, type WorkActor } from "./work";
@@ -82,7 +83,7 @@ async function draftText(orgId: string, item: { title: string }, p: Payload, not
   const d = await draftContent(orgId, { channel: p.channel ?? "linkedin", topic: item.title, hook: p.hook, persona: p.persona, format: p.format, cta: p.cta, notes });
   const ctx = await tenantContext(orgId);
   // banned claims reject the draft; numbers/superlatives without a source are FLAGS the editor resolves (as in draftVariants)
-  const flags = [...d.expertiseFlags, ...unsupportedClaims(d.body, ctx.grounding).map((s) => `Needs a source or an approved claim: "${s.slice(0, 140)}"`)];
+  const flags = [...d.expertiseFlags, ...unsupportedClaims(d.body, ctx.grounding).map((s) => `Needs a source or an approved claim: "${s.slice(0, 140)}"`), ...brandProblems(d.body, await getBrandRules(orgId))];
   return { body: d.body, meta: d.meta, flags, problems: d.problems };
 }
 
