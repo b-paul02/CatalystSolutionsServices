@@ -14,5 +14,8 @@ import "@/lib/os/studio";
 import "@/lib/os/siteAudit";
 import "@/lib/os/contentPipeline";
 import "@/lib/os/adsSync";
+import "@/lib/os/qaRun";
+import "./enrich";
+import "@/lib/os/competitors";
 
 export {};

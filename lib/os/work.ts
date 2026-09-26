@@ -232,6 +232,9 @@ export async function transitionWorkItem(actor: WorkActor, id: string, to: strin
   if (item.state === "internal_qa" && (to === "client_review" || to === "approved")) {
     const checklist = parse<{ checklist?: { done: boolean }[] }>(item.payload, {}).checklist ?? [];
     if (checklist.some((c) => !c.done)) throw new WorkError("Complete the QA checklist before passing review.");
+    // WP-41: a failed automated QA run blocks the hand-off until it is re-run green
+    const qa = parse<{ qa?: { passed: boolean; ranAt: string } }>(item.payload, {}).qa;
+    if (qa && !qa.passed) throw new WorkError(`Automated QA failed on ${qa.ranAt.slice(0, 10)} — fix the issues and run it again.`);
   }
   // External action gate — checked immediately before scheduling / delivering (§9.2).
   if (item.state === "approved" || (item.state === "failed" && to === "scheduled")) {
@@ -443,7 +446,9 @@ export async function decideApproval(actor: WorkActor, approvalId: string, decis
     const fresh = await db.cosWorkItem.findUniqueOrThrow({ where: { id: item.id } });
     await snapshotRevision(actor.orgId, "work_item", item.id, fresh.version, fresh.contentHash ?? "", { title: fresh.title, payload: parse(fresh.payload, null), editedByClient: true }, actor.userId);
   }
-  if (decision === "rejected") await notify({ orgId: actor.orgId, userId: item.assigneeId ?? item.ownerId, audience: "staff", kind: "revision_requested", title: `Revision requested: ${item.title}`, body: opts.reason ?? null, href: `/app/work/${item.id}`, dedupeKey: `revision:${approval.id}` });
+  // WP-42: open pins ride along with the revision request
+  const pinText = decision === "rejected" ? await import("./pins").then((m) => m.pinsSummary(actor.orgId, "work_item", item.id)).catch(() => "") : "";
+  if (decision === "rejected") await notify({ orgId: actor.orgId, userId: item.assigneeId ?? item.ownerId, audience: "staff", kind: "revision_requested", title: `Revision requested: ${item.title}`, body: [opts.reason, pinText].filter(Boolean).join("\n") || null, href: `/app/work/${item.id}`, dedupeKey: `revision:${approval.id}` });
   // An approved PAID scope change becomes a commercial record — once (unique per change request).
   if (decision !== "rejected" && commercial.inScope === false && (commercial.incrementalCharge ?? 0) > 0 && item.engagementId) {
     await import("./commercial").then(({ recordApprovedChange }) => recordApprovedChange(actor.orgId, item.engagementId!, item.id, item.title, commercial.incrementalCharge!, actor.userId));

@@ -12,10 +12,14 @@ import ActionForm from "@/components/os/ActionForm";
 import { day, Empty, EvidenceBadge, field, human, SectionTitle, StateBadge, TierBadge } from "@/components/os/bits";
 import { PUBLISHABLE } from "@/lib/os/connectors";
 import { aiDraft, logWorkEvent, moveWorkItem, newDeliverable, publishNow, requestChangeApproval, saveWorkItem, tickChecklist } from "../../_os/actions";
+import { pinAdd, pinResolve, qaStart } from "../../_os/phase3";
+import PinLayer from "@/components/os/PinLayer";
+import { openPins } from "@/lib/os/pins";
+import type { QaReport } from "@/lib/os/qaRun";
 
 export const metadata = { title: "Work item" };
 
-type Payload = { body?: string; channel?: string; hook?: string; cta?: string; persona?: string; keyword?: string; expertiseFlags?: string[]; checklist?: { key: string; label: string; done: boolean }[]; brief?: { intent?: string; outline?: string[]; questions?: string[] } };
+type Payload = { body?: string; channel?: string; hook?: string; cta?: string; persona?: string; keyword?: string; expertiseFlags?: string[]; checklist?: { key: string; label: string; done: boolean }[]; brief?: { intent?: string; outline?: string[]; questions?: string[] }; stagingUrl?: string; qa?: QaReport; previewUrl?: string };
 type Decision = { problem?: string; objective?: string; successMeasure?: string; evidence?: { findingId: string; label: string }[] };
 
 export default async function WorkItemPage({ params }: { params: Promise<{ id: string }> }) {
@@ -32,6 +36,8 @@ export default async function WorkItemPage({ params }: { params: Promise<{ id: s
     db.losMembership.findMany({ where: { orgId: actor.orgId }, include: { user: { select: { id: true, name: true, email: true } } } }),
   ]);
   const payload: Payload = item.payload ? JSON.parse(item.payload) : {};
+  const pins = await openPins(actor.orgId, "work_item", id);
+  const previewImg = payload.previewUrl ?? deliverables.map((d) => d.url ?? "").find((u) => /\.(png|jpe?g|webp|gif)(\?|$)/i.test(u)) ?? null;
   const decision: Decision = item.decision ? JSON.parse(item.decision) : {};
   const commercial: { inScope?: boolean; estMinutes?: number; incrementalCharge?: number } = item.commercial ? JSON.parse(item.commercial) : {};
   const caps: Capability[] = (["manage", "execute", "review"] as const).filter((c) => can(actor.role, `work.${c}`));
@@ -151,6 +157,28 @@ export default async function WorkItemPage({ params }: { params: Promise<{ id: s
             </Card>
           )}
 
+          {(item.type === "project" || payload.stagingUrl || payload.qa) && (
+            <Card>
+              <SectionTitle>Staging QA · automated</SectionTitle>
+              <div className="px-5 py-3 text-[13.5px]">
+                {payload.qa ? (
+                  <div className="mb-2 rounded-lg border border-[var(--los-line)] p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2"><b>{payload.qa.passed ? "Passed" : "Failed"}</b> · {payload.qa.ranAt.slice(0, 16).replace("T", " ")}Z · {payload.qa.linksChecked} links · PSI mobile {payload.qa.psi.mobile ?? "n/a"} / desktop {payload.qa.psi.desktop ?? "n/a"}{payload.qa.assetId && <a href={`/api/os/assets/${payload.qa.assetId}`} className="text-[12.5px] underline">raw report</a>}</div>
+                    <ul className="mt-1 list-disc pl-5 text-[13px]">{payload.qa.issues.map((i, k) => <li key={k} className={i.severity === "error" ? "text-[var(--los-danger)]" : ""}>{i.detail}</li>)}{payload.qa.issues.length === 0 && <li>No issues found by the heuristics.</li>}</ul>
+                    <p className="mt-1 text-[12px] text-[var(--los-faint)]">{payload.qa.label}</p>
+                  </div>
+                ) : <p className="mb-2 text-[var(--los-faint)]">No automated run yet. {payload.stagingUrl ? "" : "Add the staging URL and run it."} A failing run blocks the hand-off to client review.</p>}
+                {staff && (caps.includes("review") || caps.includes("execute")) && <ActionForm action={qaStart} submit={payload.qa ? "Run again" : "Run automated QA"} tone="ghost" hidden={{ id }} className="flex flex-wrap items-end gap-2"><div className="min-w-[240px] flex-1"><Label>Staging URL</Label><Input name="stagingUrl" type="url" defaultValue={payload.stagingUrl ?? ""} placeholder="https://staging.example.com" /></div></ActionForm>}
+                {item.type === "project" && <Link href={`/app/work/${id}/site-copy`} className="mt-2 inline-block text-[12.5px] underline">Site copy editor</Link>}
+              </div>
+            </Card>
+          )}
+          {(previewImg || pins.length > 0) && (
+            <Card>
+              <SectionTitle>Preview pins</SectionTitle>
+              <div className="px-5 py-3">{previewImg ? <PinLayer src={previewImg} subject="work_item" subjectId={id} pins={pins.map((p) => ({ id: p.id, n: p.n, x: p.x, y: p.y, text: p.text }))} canPin={open} addAction={pinAdd} resolveAction={pinResolve} /> : <ol className="text-[13px]">{pins.map((p) => <li key={p.id}>#{p.n} ({Math.round(p.x)}%, {Math.round(p.y)}%): {p.text}</li>)}</ol>}</div>
+            </Card>
+          )}
           <Card>
             <SectionTitle>Deliverables</SectionTitle>
             <ul className="divide-y divide-[var(--los-line)]">
