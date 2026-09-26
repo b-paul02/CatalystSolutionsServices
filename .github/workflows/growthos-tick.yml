@@ -1,0 +1,28 @@
+# Calls the authenticated GrowthOS scheduler endpoint every 5 minutes.
+# INACTIVE until BOTH repository secrets exist:  GROWTHOS_TICK_URL  (https://app.<domain>/api/os/tick)  and  CRON_SECRET.
+# Without them the job exits 0 with a notice, so an unconfigured repo is quiet — and NOT scheduled.
+# GitHub's cron is best-effort (runs can start several minutes late). For tighter timing use Vercel Pro cron or any
+# external scheduler instead — see GROWTHOS_COMPLETION_HANDOFF.md → Scheduler. Use exactly one trigger in production;
+# a second one is harmless (the tick takes a lease) but wasteful.
+name: growthos-tick
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
+concurrency:
+  group: growthos-tick
+  cancel-in-progress: false
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Call the scheduler endpoint
+        env:
+          TICK_URL: ${{ secrets.GROWTHOS_TICK_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$TICK_URL" ] || [ -z "$CRON_SECRET" ]; then echo "::notice::GrowthOS tick is not configured (set GROWTHOS_TICK_URL and CRON_SECRET). Nothing was scheduled."; exit 0; fi
+          code=$(curl -sS -o /tmp/out -w "%{http_code}" --max-time 90 -H "Authorization: Bearer $CRON_SECRET" "$TICK_URL")
+          if [ "$code" != "200" ]; then echo "::error::Scheduler endpoint answered $code"; exit 1; fi
+          echo "tick ok"

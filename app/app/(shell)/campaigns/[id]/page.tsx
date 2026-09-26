@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { can } from "@/lib/leados/rbac";
 import { db } from "@/lib/audit/db";
 import { APP_URL } from "@/lib/leados/email";
@@ -15,7 +15,7 @@ const TONE: Record<string, "neutral" | "brand" | "success" | "warn" | "danger"> 
 };
 
 export default async function CampaignPage({ params }: { params: Promise<{ id: string }> }) {
-  const actor = await requireOrg("campaigns.view");
+  const actor = await requireOrgPage("campaigns.view");
   const { id } = await params;
   const campaign = await db.losCampaign.findFirst({
     where: { id, orgId: actor.orgId },

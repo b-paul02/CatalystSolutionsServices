@@ -10,6 +10,7 @@ import { TERMS_VERSION } from "@/lib/leados/terms";
 
 export async function createOrg(_prev: FormState, form: FormData): Promise<FormState> {
   const actor = await requireLosUser();
+  if (process.env.GROWTHOS_SELF_SERVICE !== "on") return { error: "Workspaces are set up by Catalyst as part of an engagement. Ask your account lead for an invitation." };
 
   const name = String(form.get("name") ?? "").trim().slice(0, 160);
   const intendedUse = String(form.get("intendedUse") ?? "both");

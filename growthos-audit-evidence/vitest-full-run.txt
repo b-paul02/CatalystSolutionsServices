@@ -1,0 +1,79 @@
+
+[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90mC:/CatalystSolutionsServices[39m
+
+[90mstdout[2m | tests/os/e2e-slice.test.ts[2m > [22m[2mOS acceptance slice[2m > [22m[2mMANDATORY NEGATIVE: kill switch also blocks LeadOS outreach sends for the workspace
+[22m[39m[leados outreach:dev] whatsapp to=+917000112299 body="hi…"
+
+ [32m✓[39m tests/leados/e2e-slice.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 3111[2mms[22m[39m
+   [33m[2m✓[22m[39m §23 acceptance slice[2m > [22mruns the full vertical slice [33m 2826[2mms[22m[39m
+ [32m✓[39m tests/leados/allocation.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 3407[2mms[22m[39m
+   [33m[2m✓[22m[39m allocation engine[2m > [22mpreviews and executes a quota, creates leads, debits tokens, is idempotent [33m 2487[2mms[22m[39m
+ [32m✓[39m tests/os/e2e-slice.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 4009[2mms[22m[39m
+   [33m[2m✓[22m[39m OS acceptance slice[2m > [22mdelivery → QA → client review; clients can't move work, staff can't approve [33m 2116[2mms[22m[39m
+   [33m[2m✓[22m[39m OS acceptance slice[2m > [22mMANDATORY NEGATIVE: publishing refuses unapproved, unsupported, kill-switched and unconnected items — and never double-claims [33m 382[2mms[22m[39m
+ [32m✓[39m tests/roles.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 609[2mms[22m[39m
+   [33m[2m✓[22m[39m passwords[2m > [22mround-trips and rejects the wrong password [33m 351[2mms[22m[39m
+ [32m✓[39m tests/leados/leadWrite.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 658[2mms[22m[39m
+   [33m[2m✓[22m[39m createLead[2m > [22mcreates, then dedupes within the same org+type, allows across orgs [33m 333[2mms[22m[39m
+ [32m✓[39m tests/os/automation-db.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 1620[2mms[22m[39m
+ [32m✓[39m tests/leados/b2bDiscovery.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 651[2mms[22m[39m
+   [33m[2m✓[22m[39m b2b discovery[2m > [22mreveal debits once, creates the lead, and is idempotent [33m 373[2mms[22m[39m
+ [32m✓[39m tests/os/v2-acceptance.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 5350[2mms[22m[39m
+   [33m[2m✓[22m[39m GrowthOS v2 acceptance[2m > [22m2. the client receives the correct scope and onboarding requests; only their signature accepts [33m 336[2mms[22m[39m
+   [33m[2m✓[22m[39m GrowthOS v2 acceptance[2m > [22m3. missing access blocks dependent work while independent work continues [33m 1053[2mms[22m[39m
+   [33m[2m✓[22m[39m GrowthOS v2 acceptance[2m > [22m5. source-grounded master content becomes separately editable channel variants [33m 362[2mms[22m[39m
+   [33m[2m✓[22m[39m GrowthOS v2 acceptance[2m > [22m7. editing an approved variant invalidates ITS approval — shared-source changes only flag [33m 317[2mms[22m[39m
+   [33m[2m✓[22m[39m GrowthOS v2 acceptance[2m > [22m8. an approved variant schedules in the workspace zone and publishes exactly once [33m 368[2mms[22m[39m
+   [33m[2m✓[22m[39m GrowthOS v2 acceptance[2m > [22m8b. provider outcomes: retry only when safe, never after an ambiguous answer, resume threads without re-posting [33m 754[2mms[22m[39m
+   [33m[2m✓[22m[39m GrowthOS v2 acceptance[2m > [22m10. a campaign link generates an enquiry on the hosted form [33m 306[2mms[22m[39m
+[90mstdout[2m | tests/leados/outreach.test.ts[2m > [22m[2moutreach guards[2m > [22m[2msends on the consented channel (dev transport) and moves lead to contacted
+[22m[39m[leados outreach:dev] whatsapp to=+917000112233 body="Hi Guard…"
+
+[90mstdout[2m | tests/leados/outreach.test.ts[2m > [22m[2moutreach guards[2m > [22m[2mper-lead daily cap blocks the 4th message
+[22m[39m[leados outreach:dev] whatsapp to=+917000112233 body="2…"
+
+[90mstdout[2m | tests/leados/outreach.test.ts[2m > [22m[2moutreach guards[2m > [22m[2mper-lead daily cap blocks the 4th message
+[22m[39m[leados outreach:dev] whatsapp to=+917000112233 body="3…"
+
+ [32m✓[39m tests/leados/outreach.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 616[2mms[22m[39m
+ [32m✓[39m tests/leados/tenancy.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 376[2mms[22m[39m
+ [32m✓[39m tests/leados/suppression.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 579[2mms[22m[39m
+   [33m[2m✓[22m[39m suppression lifecycle[2m > [22mwithdrawal marks the lead, writes the ledger, and blocks re-import [33m 353[2mms[22m[39m
+ [32m✓[39m tests/os/v2-rules.test.ts [2m([22m[2m18 tests[22m[2m)[22m[33m 340[2mms[22m[39m
+ [32m✓[39m tests/leados/jobs.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 183[2mms[22m[39m
+ [32m✓[39m tests/leados/totp-crypto.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 139[2mms[22m[39m
+ [32m✓[39m tests/leados/metrics.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 80[2mms[22m[39m
+ [32m✓[39m tests/leados/allocationRules.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 56[2mms[22m[39m
+ [32m✓[39m tests/os/automation.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+ [32m✓[39m tests/os/v2-console.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[33m 734[2mms[22m[39m
+   [33m[2m✓[22m[39m operator console[2m > [22mrenders engagements, queues, capacity, renewals and AI usage — unknown AI cost is said, not shown as 0 [33m 492[2mms[22m[39m
+ [32m✓[39m tests/commission-lifecycle.test.ts [2m([22m[2m28 tests[22m[2m)[22m[32m 46[2mms[22m[39m
+ [32m✓[39m tests/earnings-estimate.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 38[2mms[22m[39m
+ [32m✓[39m tests/custom-price.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 65[2mms[22m[39m
+ [32m✓[39m tests/os/v2-adapters.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 53[2mms[22m[39m
+ [32m✓[39m tests/rates.test.ts [2m([22m[2m28 tests[22m[2m)[22m[32m 43[2mms[22m[39m
+ [32m✓[39m tests/money.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 41[2mms[22m[39m
+ [32m✓[39m tests/os/workflow.test.ts [2m([22m[2m26 tests[22m[2m)[22m[32m 36[2mms[22m[39m
+ [32m✓[39m tests/admin-authz.test.ts [2m([22m[2m35 tests[22m[2m)[22m[32m 50[2mms[22m[39m
+ [32m✓[39m tests/ledger.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 33[2mms[22m[39m
+ [32m✓[39m tests/deal-registration.test.ts [2m([22m[2m25 tests[22m[2m)[22m[32m 33[2mms[22m[39m
+ [32m✓[39m tests/quote.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m tests/dashboard.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/partner-status.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/leados/leads.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/applicant-edit.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m tests/domain.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/leados/compliance.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/leados/campaigns.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/scoring.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/leados/rbac.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/partner-layout.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/leados/scoring.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/leados/hosts.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+
+
+[2m Test Files [22m [1m[32m41 passed[39m[22m[90m (41)[39m
+[2m      Tests [22m [1m[32m465 passed[39m[22m[90m (465)[39m
+[2m   Start at [22m 08:03:52
+[2m   Duration [22m 17.48s[2m (transform 2.53s, setup 790ms, collect 14.85s, tests 23.22s, environment 18ms, prepare 13.88s)[22m
+

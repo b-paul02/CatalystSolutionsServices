@@ -10,6 +10,10 @@ export const MODULES = {
   overview: { label: "Overview", core: true },
   audit: { label: "Growth Audit", core: true },
   approvals: { label: "Approvals", core: true },
+  // v2 core areas: every workspace sees its engagement, assets and results
+  engagement: { label: "Engagement", core: true },
+  assets: { label: "Assets", core: true },
+  results: { label: "Results", core: true },
   strategy: { label: "Strategy", core: false },
   content: { label: "Content Studio", core: false },
   search: { label: "Search Studio", core: false },
@@ -51,7 +55,7 @@ export const SERVICES: ServiceDef[] = [
   {
     slug: "website", title: "Website Design & Development", studio: "Website", modules: ["projects"],
     aiRole: "Briefs and QA suggestions", humanRole: "Designer / developer implement and test",
-    milestones: [m("discovery", "Discovery & sitemap", true), m("wireframe", "Wireframes", true), m("design", "Visual design", true), m("build", "Responsive build on staging"), m("qa", "Accessibility, speed and device QA"), m("launch", "Launch", true, 3), m("care", "Handover & care plan")],
+    milestones: [m("discovery", "Discovery", true), m("sitemap", "Sitemap", true), m("copy", "Page copy", true), m("design", "Visual design", true), m("build", "Responsive build on staging"), m("qa", "Accessibility, speed and device QA"), m("acceptance", "Client acceptance of staging", true), m("launch", "Launch", true, 3), m("care", "Handover & care plan")],
     qa: [q("design_signoff", "Client design sign-off recorded"), q("staging", "Staging QA passed on mobile + desktop"), q("a11y", "Accessibility basics checked"), q("speed", "Core Web Vitals measured"), q("deploy_auth", "Deployment authorized by named approver"), q("rollback", "Rollback plan documented")],
   },
   {
@@ -63,7 +67,7 @@ export const SERVICES: ServiceDef[] = [
   {
     slug: "paid-ads", title: "Paid Advertising", studio: "Ads", modules: ["ads", "intelligence"],
     aiRole: "Reads and recommends", humanRole: "Media buyer executes; client governs spend",
-    milestones: [m("tracking", "Conversion tracking verified"), m("structure", "Account structure & budget proposal", true, 3), m("launch", "Campaign launch", true, 3), m("optimise", "Weekly optimisation notes")],
+    milestones: [m("tracking", "Conversion tracking verified"), m("structure", "Objective, structure & budget proposal", true, 3), m("creative", "Creative", true), m("launch", "Campaign launch", true, 3), m("optimise", "Weekly optimisation notes")],
     qa: [q("caps", "Hard spend caps set"), q("approval", "Spend change approved by named client approver"), q("no_auto_increase", "No automated budget increase configured"), q("pause_rule", "Pre-authorized pause rules documented")],
   },
   {
@@ -77,6 +81,18 @@ export const SERVICES: ServiceDef[] = [
     aiRole: "Brief to article / email draft", humanRole: "Editor owns expertise and factual QA",
     milestones: [m("brief", "Brief & outline"), m("draft", "Draft"), m("edit", "Editorial + factual review"), m("publish", "Published", true, 2)],
     qa: [q("facts", "Facts and statistics sourced"), q("expertise", "Human-expertise flags resolved"), q("seo", "SEO review done"), q("claims", "No unsupported performance claims")],
+  },
+  {
+    slug: "video", title: "Video Production", studio: "Content", modules: ["content"],
+    aiRole: "Research, script and shot-list drafts — never a finished video", humanRole: "Producer, videographer and editor record, edit and render",
+    milestones: [m("research", "Research & angle"), m("script", "Script", true), m("storyboard", "Storyboard / shot list"), m("recording", "Recording / footage upload"), m("edit", "Editing & rendering"), m("captions", "Captions & thumbnail"), m("qa", "Video QA"), m("publish", "Published", true, 2)],
+    qa: [q("rights", "Music, footage and likeness rights cleared"), q("captions", "Captions checked by a person"), q("brand", "On-brand titles, lower thirds and thumbnail"), q("claims", "Claims supported; no fabricated proof")],
+  },
+  {
+    slug: "crm", title: "CRM, Qualification & Follow-up", studio: "CRM", modules: ["crm"],
+    aiRole: "Drafts follow-ups and classifies replies", humanRole: "CRM specialist configures; the client's team owns the conversations",
+    milestones: [m("map", "Pipeline & qualification rules", true), m("capture", "Lead capture wired"), m("followup", "Follow-up sequences", true, 2), m("training", "Team training")],
+    qa: [q("consent", "Consent captured on every form"), q("optout", "Opt-out tested"), q("test_lead", "Test lead flows end to end"), q("owners", "Every stage has an owner")],
   },
   {
     slug: "branding", title: "Branding & Creative", studio: "Brand", modules: ["projects"],
@@ -93,7 +109,7 @@ export const SERVICES: ServiceDef[] = [
   {
     slug: "software", title: "Mobile App & Software", studio: "Product", modules: ["projects"],
     aiRole: "Specs / code / test assistance", humanRole: "Engineers own development, QA and releases",
-    milestones: [m("requirements", "Requirements", true), m("ux", "UX", true), m("backlog", "Backlog & estimates", true), m("build", "Build"), m("test", "Test evidence"), m("release", "Release", true, 3), m("support", "Support plan")],
+    milestones: [m("requirements", "Requirements", true), m("ux", "UX", true), m("backlog", "Backlog & estimates", true), m("build", "Implementation milestones"), m("test", "Test evidence"), m("acceptance", "Client acceptance", true), m("release", "Release", true, 3), m("support", "Handover & support plan")],
     qa: [q("security", "Security review done"), q("code_review", "Code review done"), q("tests", "Test evidence attached"), q("release_owner", "Release owner named"), q("acceptance", "Client acceptance recorded")],
   },
   {

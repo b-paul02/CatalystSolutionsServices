@@ -1,4 +1,4 @@
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { can } from "@/lib/leados/rbac";
 import { db } from "@/lib/audit/db";
 import IntegrationsManager from "./IntegrationsManager";
@@ -6,7 +6,7 @@ import IntegrationsManager from "./IntegrationsManager";
 export const metadata = { title: "Integrations" };
 
 export default async function IntegrationsPage() {
-  const actor = await requireOrg();
+  const actor = await requireOrgPage();
   const [webhooks, config] = await Promise.all([
     db.losWebhook.findMany({ where: { orgId: actor.orgId }, orderBy: { createdAt: "desc" } }),
     db.losIntegrationConfig.findUnique({ where: { orgId: actor.orgId } }),

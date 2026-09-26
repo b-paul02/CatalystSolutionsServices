@@ -5,7 +5,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/audit/db";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrg, requireOrgAction } from "@/lib/leados/auth";
 import { can } from "@/lib/leados/rbac";
 import { WorkError } from "@/lib/os/work";
 import { activateWorkflow, createWorkflow, rotateHookToken, saveKeyConnection, saveWorkflow, setWorkflowStatus } from "@/lib/os/automation/manage";
@@ -18,7 +18,7 @@ const fail = (e: unknown): State => { if (e instanceof WorkError || (e instanceo
 const str = (form: FormData, key: string, max = 200) => String(form.get(key) ?? "").trim().slice(0, max);
 
 export async function newWorkflow(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("automations.manage");
+  const actor = await requireOrgAction("automations.manage"); if ("error" in actor) return actor;
   let id: string;
   try { id = (await createWorkflow(actor, { name: str(form, "name", 120), templateKey: str(form, "templateKey", 10) || undefined })).id; } catch (e) { return fail(e); }
   redirect(`/app/workflows/${id}`);
@@ -26,7 +26,7 @@ export async function newWorkflow(_p: State, form: FormData): Promise<State> {
 
 /** Called by the builder (not a form): returns validation problems so the canvas can show them. */
 export async function saveCanvas(id: string, name: string, definition: Definition): Promise<{ error?: string; problems?: string[]; deactivated?: boolean }> {
-  const actor = await requireOrg("automations.manage");
+  const actor = await requireOrgAction("automations.manage"); if ("error" in actor) return actor;
   try {
     const r = await saveWorkflow(actor, id, { name, definition });
     revalidatePath(`/app/workflows/${id}`);
@@ -36,7 +36,7 @@ export async function saveCanvas(id: string, name: string, definition: Definitio
 
 /** Path preview: evaluates the SAVED-or-unsaved canvas against sample data. Runs nothing. */
 export async function previewCanvas(definition: Definition, sampleJson: string): Promise<{ error?: string; steps?: PreviewStep[]; skipped?: string[]; problems?: string[] }> {
-  await requireOrg("work.view");
+  const actor = await requireOrgAction("work.view"); if ("error" in actor) return actor;
   let sample: unknown = {};
   try { sample = sampleJson.trim() ? JSON.parse(sampleJson) : {}; } catch { return { error: "Sample data must be valid JSON." }; }
   const problems = validateDefinition(definition, BLOCKS);
@@ -44,7 +44,7 @@ export async function previewCanvas(definition: Definition, sampleJson: string):
 }
 
 export async function workflowStatus(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("automations.manage");
+  const actor = await requireOrgAction("automations.manage"); if ("error" in actor) return actor;
   const id = str(form, "id", 60), op = str(form, "op", 12);
   try {
     if (op === "activate") await activateWorkflow(actor, id);
@@ -57,7 +57,7 @@ export async function workflowStatus(_p: State, form: FormData): Promise<State> 
 }
 
 export async function runNow(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("automations.manage");
+  const actor = await requireOrgAction("automations.manage"); if ("error" in actor) return actor;
   const id = str(form, "id", 60);
   const wf = await db.cosWorkflow.findFirst({ where: { id, orgId: actor.orgId, status: "active" } });
   if (!wf) return { error: "Activate the workflow first." };
@@ -68,7 +68,7 @@ export async function runNow(_p: State, form: FormData): Promise<State> {
 }
 
 export async function newHookAddress(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("automations.manage");
+  const actor = await requireOrgAction("automations.manage"); if ("error" in actor) return actor;
   try {
     const token = await rotateHookToken(actor, str(form, "id", 60));
     const origin = (process.env.LEADOS_APP_URL ?? "http://localhost:3000/app").replace(/\/app$/, "");
@@ -77,7 +77,7 @@ export async function newHookAddress(_p: State, form: FormData): Promise<State> 
 }
 
 export async function connectKey(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("automations.manage");
+  const actor = await requireOrgAction("automations.manage"); if ("error" in actor) return actor;
   try {
     const conn = await saveKeyConnection(actor, str(form, "provider", 20), String(form.get("secret") ?? ""));
     revalidatePath("/app/workflows/connections");
@@ -86,7 +86,7 @@ export async function connectKey(_p: State, form: FormData): Promise<State> {
 }
 
 export async function disconnectKey(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("automations.manage");
+  const actor = await requireOrgAction("automations.manage"); if ("error" in actor) return actor;
   if (!can(actor.role, "automations.manage")) return { error: "Forbidden." };
   await db.cosConnection.updateMany({ where: { orgId: actor.orgId, provider: str(form, "provider", 20) }, data: { status: "disconnected", accessTokenEnc: null, lastError: null, lastCheckedAt: new Date() } });
   revalidatePath("/app/workflows/connections");

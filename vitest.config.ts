@@ -8,6 +8,11 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
+    // Pins DATABASE_URL to a local disposable "_test" database — fails closed otherwise.
+    setupFiles: ["tests/setup.ts"],
+    // One file at a time: every DB suite shares ONE disposable database, and the scheduler entry points under test
+    // (/api/os/tick, the job queue) sweep all of it, so parallel files could run each other's publications and AI jobs.
+    fileParallelism: false,
     testTimeout: 30_000,
     hookTimeout: 60_000,
     poolOptions: { threads: { maxThreads: 4 }, forks: { maxForks: 4 } },

@@ -2,13 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/audit/db";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgAction, requireOrgOrRedirect } from "@/lib/leados/auth";
 import { randomToken } from "@/lib/leados/crypto";
 import { logLosAudit } from "@/lib/leados/audit";
 import type { FormState } from "../../../(auth)/actions";
 
 export async function addWebhook(_prev: FormState, form: FormData): Promise<FormState & { secret?: string }> {
-  const actor = await requireOrg("org.manage");
+  const actor = await requireOrgAction("org.manage"); if ("error" in actor) return actor;
   const url = String(form.get("url") ?? "").trim();
   if (!/^https:\/\/.+/.test(url)) return { error: "Webhook URLs must be https://." };
   const events = form.getAll("events").map(String).filter((e) => ["lead.created", "lead.status_changed", "leads.delivered"].includes(e));
@@ -23,13 +23,13 @@ export async function addWebhook(_prev: FormState, form: FormData): Promise<Form
 }
 
 export async function deleteWebhook(id: string): Promise<void> {
-  const actor = await requireOrg("org.manage");
+  const actor = await requireOrgOrRedirect("org.manage");
   await db.losWebhook.deleteMany({ where: { id, orgId: actor.orgId } });
   revalidatePath("/app/settings/integrations");
 }
 
 export async function toggleWebhook(id: string): Promise<void> {
-  const actor = await requireOrg("org.manage");
+  const actor = await requireOrgOrRedirect("org.manage");
   const hook = await db.losWebhook.findFirst({ where: { id, orgId: actor.orgId } });
   if (!hook) return;
   await db.losWebhook.update({ where: { id }, data: { active: !hook.active, failCount: 0 } });
@@ -37,7 +37,7 @@ export async function toggleWebhook(id: string): Promise<void> {
 }
 
 export async function saveSlack(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("org.manage");
+  const actor = await requireOrgAction("org.manage"); if ("error" in actor) return actor;
   const url = String(form.get("slackWebhookUrl") ?? "").trim();
   if (url && !/^https:\/\/hooks\.slack\.com\//.test(url)) {
     return { error: "That doesn't look like a Slack incoming-webhook URL (https://hooks.slack.com/…)." };

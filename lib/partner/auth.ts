@@ -35,7 +35,10 @@ export function generatePassword(): string {
 // ── session cookie ───────────────────────────────────────────────────────────
 
 function sign(value: string): string {
-  return createHmac("sha256", process.env.ADMIN_SESSION_SECRET ?? "dev-secret")
+  // No public fallback: an unset secret would make partner sessions forgeable.
+  const secret = process.env.ADMIN_SESSION_SECRET;
+  if (!secret) throw new Error("ADMIN_SESSION_SECRET is not set.");
+  return createHmac("sha256", secret)
     .update(value)
     .digest("base64url");
 }

@@ -1,6 +1,10 @@
 // One-command wipe of ALL demo-flagged LeadOS data (leaves real data alone).
 // Run: node --experimental-strip-types --env-file=.env scripts/wipe-leados-demo.ts
 import { PrismaClient } from "@prisma/client";
+import { assertDisposableDatabase, assertSafeDatabase } from "../lib/dbGuard.ts";
+
+assertSafeDatabase(); // local database only — never production
+await assertDisposableDatabase(); // …and the database itself must carry the disposable marker (a tunnel to a real service will not)
 
 const db = new PrismaClient();
 

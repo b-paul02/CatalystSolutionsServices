@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { db } from "@/lib/audit/db";
 import { Badge, Card } from "@/components/leados/ui";
 import TaskList from "./TaskList";
@@ -9,7 +9,7 @@ export const metadata = { title: "My day" };
 
 // The personal work queue: due tasks first, then untouched assigned leads.
 export default async function TasksPage() {
-  const actor = await requireOrg("leads.view");
+  const actor = await requireOrgPage("leads.view");
   const now = new Date();
   const [tasks, needsAttention] = await Promise.all([
     db.losTask.findMany({

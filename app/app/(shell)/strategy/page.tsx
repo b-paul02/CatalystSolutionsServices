@@ -1,4 +1,5 @@
 import { db } from "@/lib/audit/db";
+import { Tabs } from "@/components/os/v2";
 import { can } from "@/lib/leados/rbac";
 import { requireModule } from "@/lib/os/guard";
 import { aiAvailable } from "@/lib/os/ai";
@@ -29,7 +30,8 @@ export default async function StrategyPage() {
 
   return (
     <div className="max-w-[1100px]">
-      <PageHeader title="Strategy" sub="Goals you agree, a plan that cites its evidence, and a diff before anything changes." />
+      <PageHeader title="Growth Plan" sub="Goals you agree, a plan that cites its evidence, and a diff before anything changes." />
+      <Tabs active="plan" items={[{ key: "plan", label: "Goals and plan", href: "/app/strategy" }, { key: "profile", label: "Business profile", href: "/app/strategy/profile" }, { key: "audit", label: "Diagnosis", href: "/app/audit" }]} />
 
       <Card className="mb-5">
         <SectionTitle>Goals</SectionTitle>

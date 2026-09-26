@@ -2,14 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/audit/db";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireModuleAction } from "@/lib/os/guard";
 import { logLosAudit } from "@/lib/leados/audit";
 import type { FormState } from "../../(auth)/actions";
 
 const REPLACEMENT_WINDOW_DAYS = 7;
 
 export async function requestReplacement(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("leads.edit");
+  const actor = await requireModuleAction("lead_supply", "leads.edit"); if ("error" in actor) return actor;
   const allocationId = String(form.get("allocationId"));
   const reason = String(form.get("reason") ?? "").trim().slice(0, 500);
   if (!reason) return { error: "Tell us what's wrong with the lead." };

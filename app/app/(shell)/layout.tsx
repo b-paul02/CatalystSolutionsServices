@@ -3,7 +3,8 @@ import { db } from "@/lib/audit/db";
 import { currentLosActor } from "@/lib/leados/auth";
 import { cookies } from "next/headers";
 import { entitlements } from "@/lib/os/entitlements";
-import { can } from "@/lib/leados/rbac";
+import { can, isStaffRole } from "@/lib/leados/rbac";
+import { inboxWhere } from "@/lib/os/notify";
 import type { ModuleKey } from "@/lib/os/catalog";
 import LogoutButton from "./LogoutButton";
 import NavLink from "./NavLink";
@@ -29,18 +30,26 @@ export default async function ShellLayout({ children }: { children: React.ReactN
   // modules. `perm` hides areas the member's role can't open (freelancers).
   const ent = await entitlements(active.orgId);
   type Item = { href: string; label: string; icon: string; module: ModuleKey; perm?: Parameters<typeof can>[1]; badge?: number };
+  const staff = isStaffRole(active.role);
+  const unread = await db.cosNotification.count({ where: { ...inboxWhere(active.orgId, actor.userId, staff), readAt: null } });
   const pendingApprovals = can(active.role, "work.view") ? await db.cosApproval.count({ where: { orgId: active.orgId, status: "requested" } }) : 0;
   // Grouped like a product sidebar: everyday items on top, then sections. A
   // section disappears when the workspace isn't entitled to anything in it.
   const groups: { title: string | null; items: Item[] }[] = [
     { title: null, items: [
-      { href: "/app/dashboard", label: "Overview", icon: "space_dashboard", module: "overview" },
+      { href: "/app/dashboard", label: "Home", icon: "space_dashboard", module: "overview", badge: unread },
       { href: "/app/approvals", label: "Approvals", icon: "approval", module: "approvals", perm: "work.view", badge: pendingApprovals },
       { href: "/app/work", label: "Work", icon: "checklist", module: "overview" },
+      { href: "/app/results", label: "Results", icon: "monitoring", module: "results", perm: "work.view" },
+      // TOOL entitlement (not a module, not credits): shown when the engagement grants AI tools, or to staff for delivery
+      ...(ent.aiTools.size > 0 || staff ? [{ href: "/app/studio", label: "AI Studio", icon: "auto_awesome", module: "overview" as ModuleKey, perm: "ai.use" as const }] : []),
     ] },
-    { title: "Growth engine", items: [
+    ...(staff ? [{ title: "Delivery", items: [{ href: "/app/ops", label: "My queue", icon: "inbox", module: "overview" as ModuleKey, perm: "work.execute" as const }] }] : []),
+    { title: "Growth plan", items: [
+      { href: ent.modules.has("strategy") ? "/app/strategy" : "/app/strategy/profile", label: "Growth Plan", icon: "insights", module: "engagement", perm: "work.view" },
       { href: "/app/audit", label: "Growth Audit", icon: "fact_check", module: "audit", perm: "work.view" },
-      { href: "/app/strategy", label: "Strategy", icon: "insights", module: "strategy", perm: "work.view" },
+      { href: "/app/engagement", label: "Engagement", icon: "handshake", module: "engagement", perm: "work.view" },
+      { href: "/app/assets", label: "Assets", icon: "perm_media", module: "assets", perm: "work.view" },
     ] },
     { title: "Automations", items: [
       { href: "/app/workflows", label: "Workflows", icon: "account_tree", module: "automations", perm: "work.view" },
@@ -60,7 +69,7 @@ export default async function ShellLayout({ children }: { children: React.ReactN
       { href: "/app/deliveries", label: "Deliveries", icon: "inventory", module: "lead_supply", perm: "leads.view" },
     ] },
     { title: "Intelligence", items: [
-      { href: "/app/reports", label: "Reports", icon: "monitoring", module: "intelligence", perm: "reports.view" },
+      { href: "/app/reports", label: "Lead reports", icon: "bar_chart", module: "intelligence", perm: "reports.view" },
     ] },
   ];
   const visible = groups
@@ -71,6 +80,8 @@ export default async function ShellLayout({ children }: { children: React.ReactN
 
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
+      {/* keyboard users skip ~25 sidebar links; invisible until focused */}
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-[var(--los-brand)] focus:px-3 focus:py-2 focus:text-[13px] focus:font-semibold focus:text-white">Skip to content</a>
       <aside className="flex items-center justify-between border-b border-[var(--los-line)] bg-[var(--los-surface)] px-4 py-2 md:w-[220px] md:flex-col md:items-stretch md:justify-start md:border-b-0 md:border-r md:px-3 md:py-4">
         <div className="flex items-center gap-2 md:mb-6 md:px-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--los-brand)] text-[13px] font-bold text-white">C</div>
@@ -112,7 +123,12 @@ export default async function ShellLayout({ children }: { children: React.ReactN
         </div>
         <div className="flex items-center gap-1 md:hidden"><NavLink href="/app/settings" label="" icon="settings" /><LogoutButton /></div>
       </aside>
-      <main className="min-w-0 flex-1 px-4 py-5 md:px-8 md:py-6">
+      <main id="main" tabIndex={-1} className="min-w-0 flex-1 px-4 py-5 outline-none md:px-8 md:py-6">
+        {ent.accessMode === "read_only" && (
+          <div role="status" className="mb-4 rounded-lg border border-[var(--los-line)] bg-[var(--los-surface-2)] px-4 py-2.5 text-[13px]">
+            This workspace has been handed over and is read-only. Your history, approvals, content and assets stay available — <a className="font-semibold underline" href="/app/engagement">export everything</a>.
+          </div>
+        )}
         {ent.killSwitch && (
           <div role="alert" className="mb-4 rounded-lg border border-[var(--los-danger)] px-4 py-2.5 text-[13px] font-medium text-[var(--los-danger)]">
             Kill switch is ON — publishing, sends and launches are blocked for this workspace. Turn it off in Settings → Workspace.

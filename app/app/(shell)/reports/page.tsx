@@ -1,4 +1,4 @@
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { db } from "@/lib/audit/db";
 import { rollupOrgDay, type DayMetrics } from "@/lib/leados/metrics";
 import { Card } from "@/components/leados/ui";
@@ -8,7 +8,7 @@ export const metadata = { title: "Reports" };
 const empty: DayMetrics = { leadsCreated: 0, bySource: {}, delivered: 0, contacted: 0, converted: 0, submissions: 0, views: 0, messagesSent: 0, tokensSpent: 0 };
 
 export default async function ReportsPage() {
-  const actor = await requireOrg("reports.view");
+  const actor = await requireOrgPage("reports.view");
   const today = new Date().toISOString().slice(0, 10);
   await rollupOrgDay(actor.orgId, today); // today live-refreshed on view
   const since = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
@@ -36,8 +36,10 @@ export default async function ReportsPage() {
   ]);
   const quotaDue = plans.flatMap((p) => p.runs).reduce((s, r) => s + r.due, 0);
   const quotaDelivered = plans.flatMap((p) => p.runs).reduce((s, r) => s + r.allocated, 0);
+  const org0 = await db.losOrg.findUnique({ where: { id: actor.orgId }, select: { demo: true } });
   const conversionValue = await db.losLead.aggregate({
-    where: { orgId: actor.orgId, status: "converted" },
+    // same 30-day window as every other tile on this page; synthetic rows never reach a real workspace's numbers
+    where: { orgId: actor.orgId, status: "converted", convertedAt: { gte: new Date(since) }, ...(org0?.demo ? {} : { demo: false }) },
     _sum: { conversionValue: true },
   });
   const org = await db.losOrg.findUnique({ where: { id: actor.orgId }, select: { market: true } });

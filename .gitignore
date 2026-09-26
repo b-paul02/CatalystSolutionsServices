@@ -25,3 +25,7 @@ leados-production-env.txt
 .env*
 
 leados-client/
+
+# Local asset storage (development uploads)
+/.data
+/.next-verify

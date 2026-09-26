@@ -1,5 +1,7 @@
+import { includedCreditsOf } from "@/lib/os/credits";
+import { toolByKey } from "@/lib/os/studio";
 import Link from "next/link";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { db } from "@/lib/audit/db";
 import { can, isStaffRole } from "@/lib/leados/rbac";
 import { tokenBalance } from "@/lib/leados/tokens";
@@ -9,13 +11,14 @@ import { Card } from "@/components/leados/ui";
 import ActionForm from "@/components/os/ActionForm";
 import { day, Empty, EvidenceBadge, PageHeader, SectionTitle, StateBadge } from "@/components/os/bits";
 import { signContract } from "../_os/actions";
+import HomeSummary from "./HomeSummary";
 
 export const metadata = { title: "Overview" };
 
 // Executive command (blueprint §4.2): goals, decisions waiting, delivery, usage.
 // Missing data reads "Not connected" — never a fake zero.
 export default async function OverviewPage() {
-  const actor = await requireOrg();
+  const actor = await requireOrgPage();
   const orgId = actor.orgId;
   const viewAll = can(actor.role, "work.view");
   const mine = viewAll ? {} : { assigneeId: actor.userId };
@@ -45,8 +48,9 @@ export default async function OverviewPage() {
     <div className="max-w-[1100px]">
       <PageHeader
         title={`Welcome${actor.name ? `, ${actor.name.split(" ")[0]}` : ""}`}
-        sub={`${org?.name} · ${ent.kind === "prospect" ? "Prospect workspace — audit and routes" : ent.kind === "legacy" ? "Lead workspace" : "Client workspace"}${isStaffRole(actor.role) ? " · you are Catalyst staff here" : ""}`}
+        sub={`${org?.name} · ${ent.kind === "prospect" ? "Getting started" : ent.kind === "legacy" ? "Lead workspace" : "Client workspace"}${isStaffRole(actor.role) ? " · you are Catalyst staff here" : ""}`}
       />
+      {ent.kind !== "legacy" && <HomeSummary orgId={actor.orgId} userId={actor.userId} role={actor.role} />}
 
       {proposed.map((c) => {
         const program = programs.find((p) => p.slug === c.programSlug);
@@ -56,6 +60,8 @@ export default async function OverviewPage() {
             <div className="text-[15px] font-bold">Proposed scope: {program?.name ?? c.kind}{c.tier ? ` · ${c.tier}` : ""}</div>
             <p className="mt-1 text-[13.5px] text-[var(--los-muted)]">Services: {services.join(", ") || "—"}</p>
             {c.scopeDoc && <p className="mt-2 whitespace-pre-wrap text-[13.5px]">{c.scopeDoc}</p>}
+            {(() => { const tools = (JSON.parse(c.aiTools) as string[]).map((k) => toolByKey(k)?.label ?? k), inc = includedCreditsOf(c.allowances); return tools.length > 0 && (
+              <p className="mt-2 text-[13.5px]">AI Studio tools you can run yourselves: {tools.join(", ")}.{inc.credits > 0 && <> Includes <b>{inc.credits} AI credits</b>{inc.expireDays ? `, valid for ${inc.expireDays} days after signing` : ", which do not expire"}.</>} More credits can be bought; they never add tools or services.</p>); })()}
             {c.exclusions && <p className="mt-2 text-[12.5px] text-[var(--los-faint)]">Not included: {c.exclusions}</p>}
             {can(actor.role, "contract.sign") ? (
               <div className="mt-3 flex gap-2">

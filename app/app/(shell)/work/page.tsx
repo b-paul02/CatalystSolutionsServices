@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { db } from "@/lib/audit/db";
 import { can } from "@/lib/leados/rbac";
 import { SERVICES } from "@/lib/os/catalog";
@@ -13,7 +13,7 @@ export const metadata = { title: "Work" };
 
 // The one work ledger: tasks, content, projects, experiments, change requests.
 export default async function WorkPage({ searchParams }: { searchParams: Promise<{ state?: string; studio?: string; request?: string }> }) {
-  const actor = await requireOrg();
+  const actor = await requireOrgPage();
   const sp = await searchParams;
   const viewAll = can(actor.role, "work.view");
   const state = (WORK_STATES as readonly string[]).includes(sp.state ?? "") ? sp.state : undefined;

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { db } from "@/lib/audit/db";
 import { can } from "@/lib/leados/rbac";
 import { Card, Input, Label } from "@/components/leados/ui";
@@ -9,12 +9,12 @@ import { draftReport, publishReport } from "../../_os/actions";
 
 export const metadata = { title: "Reports" };
 
-type Body = { metrics: { name: string; value: number | null; label: string; baseline?: number | null; grade?: string | null; target?: number }[]; delivered: { title: string; studio: string | null }[]; next: { title: string; dueAt: Date | string | null }[]; narrative: string; limitations: string[] };
+type Body = { suggestions?: { text: string; evidence: string }[]; metrics: { name: string; value: number | null; label: string; baseline?: number | null; grade?: string | null; target?: number }[]; delivered: { title: string; studio: string | null }[]; next: { title: string; dueAt: Date | string | null }[]; narrative: string; limitations: string[] };
 
 // Weekly owner brief / monthly note (blueprint §7.2): measured vs estimated vs
 // unavailable, baseline comparison, what was delivered, what's next, limits.
 export default async function ReportNotesPage() {
-  const actor = await requireOrg("reports.view", "work.view");
+  const actor = await requireOrgPage("reports.view", "work.view");
   const reports = await db.cosReport.findMany({ where: { orgId: actor.orgId, ...(can(actor.role, "work.review") || can(actor.role, "strategy.manage") ? {} : { status: "published" }) }, orderBy: { createdAt: "desc" }, take: 12 });
   const author = can(actor.role, "strategy.manage") || can(actor.role, "work.review");
   return (
@@ -49,6 +49,7 @@ export default async function ReportNotesPage() {
                 </tbody>
               </table>
               {b.narrative ? <p className="mb-3 whitespace-pre-wrap">{b.narrative}</p> : null}
+              {b.suggestions?.length ? <ul className="mb-3 list-disc pl-5 text-[13px]">{b.suggestions.map((s, i) => <li key={i}>{s.text} <span className="text-[var(--los-faint)]">— based on {s.evidence}</span></li>)}</ul> : null}
               <div className="grid gap-3 md:grid-cols-2">
                 <div><div className="font-semibold">Delivered</div><ul className="ml-4 list-disc text-[13px]">{b.delivered.map((d) => <li key={d.title}>{d.title}{d.studio ? ` (${d.studio})` : ""}</li>)}{b.delivered.length === 0 && <li className="text-[var(--los-faint)]">nothing in period</li>}</ul></div>
                 <div><div className="font-semibold">Next</div><ul className="ml-4 list-disc text-[13px]">{b.next.map((n) => <li key={n.title}>{n.title}{n.dueAt ? ` · due ${String(n.dueAt).slice(0, 10)}` : ""}</li>)}</ul></div>

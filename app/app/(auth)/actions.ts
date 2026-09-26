@@ -40,6 +40,10 @@ export async function register(_prev: FormState, form: FormData): Promise<FormSt
     return { error: "Too many attempts. Try again later." };
   }
 
+  // Managed model: a new account needs a pending invitation unless public sign-up is switched on.
+  if (process.env.GROWTHOS_SELF_SERVICE !== "on" && !(await db.losInvitation.findFirst({ where: { email, acceptedAt: null, expiresAt: { gt: new Date() } } }))) {
+    return { error: "Accounts are created by invitation. Ask your Catalyst account lead to invite you." };
+  }
   const existing = await db.losUser.findUnique({ where: { email } });
   if (!existing) {
     const user = await db.losUser.create({

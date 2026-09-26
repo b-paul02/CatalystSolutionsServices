@@ -10,10 +10,14 @@
     "lint": "next lint",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "seed:price-book": "node --experimental-strip-types scripts/seed-price-book.ts"
+    "seed:price-book": "node --experimental-strip-types scripts/seed-price-book.ts",
+    "seed:growthos-demo": "vitest run --config vitest.seed.config.ts",
+    "tick:local": "node scripts/local-scheduler.mjs",
+    "test:pure": "vitest run tests/os/v2-rules.test.ts tests/os/v2-adapters.test.ts tests/os/workflow.test.ts tests/os/automation.test.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "@vercel/blob": "^2.8.0",
     "@xyflow/react": "^12.11.6",
     "next": "^15.5.20",
     "prisma": "^6.19.3",

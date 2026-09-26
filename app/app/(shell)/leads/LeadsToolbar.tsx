@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { exportLeadsCsv } from "./actions";
 import { GhostButton, Input, Select } from "@/components/leados/ui";
 
@@ -14,6 +14,7 @@ export default function LeadsToolbar(props: {
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
+  const [denied, setDenied] = useState<string | null>(null);
   const apply = (patch: Partial<typeof props.filters>) => {
     const f = { ...props.filters, ...patch };
     const qs = new URLSearchParams();
@@ -49,7 +50,10 @@ export default function LeadsToolbar(props: {
           disabled={pending}
           onClick={() =>
             start(async () => {
-              const csv = await exportLeadsCsv({ leadType: props.filters.type, status: props.filters.status, q: props.filters.q });
+              const r = await exportLeadsCsv({ leadType: props.filters.type, status: props.filters.status, q: props.filters.q });
+              if ("error" in r) return setDenied(r.error);
+              setDenied(null);
+              const csv = r.csv;
               const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
               const a = document.createElement("a");
               a.href = url;
@@ -72,6 +76,7 @@ export default function LeadsToolbar(props: {
           Add lead
         </Link>
       )}
+      {denied && <p role="alert" className="w-full text-[13px] text-[var(--los-danger)]">{denied}</p>}
     </div>
   );
 }

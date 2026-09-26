@@ -8,5 +8,8 @@ import "./metrics";
 import "./webhooksOut";
 import "@/lib/os/syncJob";
 import "@/lib/os/automation/engine";
+import "@/lib/os/publishing";
+import "@/lib/os/metrics";
+import "@/lib/os/studio";
 
 export {};

@@ -1,4 +1,4 @@
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { can } from "@/lib/leados/rbac";
 import { db } from "@/lib/audit/db";
 import TeamManager from "./TeamManager";
@@ -6,7 +6,7 @@ import TeamManager from "./TeamManager";
 export const metadata = { title: "Team" };
 
 export default async function TeamPage() {
-  const actor = await requireOrg("leads.view"); // any member can see the roster
+  const actor = await requireOrgPage("leads.view"); // any member can see the roster
   const [members, invites] = await Promise.all([
     db.losMembership.findMany({
       where: { orgId: actor.orgId },

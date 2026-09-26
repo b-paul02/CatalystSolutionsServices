@@ -30,7 +30,7 @@ const TIMEOUT = 15_000;
 const needLead = (env: RunEnv): string => { if (!env.leadId) throw new Error("This step needs a lead, but the workflow has none at this point."); return env.leadId; };
 
 async function secret(env: RunEnv, provider: string): Promise<string> {
-  const c = await db.cosConnection.findUnique({ where: { orgId_provider: { orgId: env.orgId, provider } } });
+  const c = await db.cosConnection.findFirst({ where: { orgId: env.orgId, provider }, orderBy: { createdAt: "asc" } });
   if (!c?.accessTokenEnc || c.status === "disconnected") throw new Error(`${provider} is not connected — add it in Workflows → Connections.`);
   return decryptField(c.accessTokenEnc);
 }

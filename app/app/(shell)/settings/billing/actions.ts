@@ -1,12 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgAction } from "@/lib/leados/auth";
 import { createSubscriptionCheckout, createTokenCheckout } from "@/lib/leados/billing";
 import type { FormState } from "../../../(auth)/actions";
 
 export async function buyTokens(packId: string): Promise<FormState> {
-  const actor = await requireOrg("org.billing");
+  const actor = await requireOrgAction("org.billing"); if ("error" in actor) return actor;
   let url: string;
   try {
     url = await createTokenCheckout(actor.orgId, packId, actor.email);
@@ -17,7 +17,7 @@ export async function buyTokens(packId: string): Promise<FormState> {
 }
 
 export async function subscribe(packageId: string): Promise<FormState> {
-  const actor = await requireOrg("org.billing");
+  const actor = await requireOrgAction("org.billing"); if ("error" in actor) return actor;
   let url: string;
   try {
     url = await createSubscriptionCheckout(actor.orgId, packageId, actor.email);

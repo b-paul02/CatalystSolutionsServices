@@ -1,8 +1,8 @@
 // Stripe billing: token packs (one-time) and package subscriptions.
 // Plain REST with inline price_data (repo pattern — no SDK, no product catalog).
-// Payment confirmation happens on the success redirect: the server fetches the
-// session and credits idempotently (ledger refId = session id). No webhook
-// secret needed. ponytail: add the Stripe webhook if reconciliation ever lags.
+// Payment is confirmed TWICE, idempotently (ledger refId = session id): by the signed
+// Stripe webhook (/api/stripe/webhook → lib/os/commercial.ts), which is authoritative and
+// works even if the buyer closes the tab, and on the success redirect as a fast path.
 import { db } from "@/lib/audit/db";
 import { creditTokens } from "./tokens";
 import { APP_URL } from "./email";
@@ -42,7 +42,7 @@ export const PACKAGES: Package[] = [
   { id: "enterprise", label: "Enterprise", monthlyMinor: null, blurb: "SSO, custom retention, API limits, audit exports. Talk to us.", selfServe: false },
 ];
 
-async function stripePost(path: string, params: URLSearchParams): Promise<Record<string, unknown>> {
+export async function stripePost(path: string, params: URLSearchParams): Promise<Record<string, unknown>> {
   const res = await fetch(`${STRIPE}${path}`, {
     method: "POST",
     headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/x-www-form-urlencoded" },
@@ -118,13 +118,23 @@ export async function settleCheckoutSession(orgId: string, sessionId: string): P
   };
   if (session.metadata?.orgId !== orgId) return { ok: false, message: "Session does not belong to this organization." };
   if (session.payment_status !== "paid") return { ok: false, message: "Payment not completed yet." };
+  return applyPaidCheckout(orgId, sessionId, session.metadata, session.subscription ?? null);
+}
 
+/** Credit a PAID checkout session. Shared by the redirect path and the verified webhook; safe to call twice. */
+export async function applyPaidCheckout(orgId: string, sessionId: string, metadata: { kind?: string; tokens?: string; package?: string }, subscription: string | null): Promise<{ ok: boolean; message: string }> {
+  const session = { metadata, subscription };
   if (session.metadata.kind === "leados_tokens") {
     const tokens = parseInt(session.metadata.tokens ?? "0", 10);
     if (!(tokens > 0)) return { ok: false, message: "Bad session metadata." };
     const already = await db.losTokenLedger.findFirst({ where: { orgId, refId: sessionId } });
     if (already) return { ok: true, message: "Purchase already credited." };
-    await creditTokens({ orgId, amount: tokens, kind: "purchase", refId: sessionId, note: "Token pack purchase" });
+    // Webhook and redirect can arrive together: a unique claim row decides who credits.
+    const claimId = `credit:${sessionId}`;
+    try { await db.cosPaymentEvent.create({ data: { orgId, provider: "stripe", providerEventId: claimId, type: "credit_claim", appliedTo: "token_pack", verified: true } }); }
+    catch (e) { if ((e as { code?: string }).code === "P2002") return { ok: true, message: "Purchase already credited." }; throw e; }
+    try { await creditTokens({ orgId, amount: tokens, kind: "purchase", refId: sessionId, note: "Token pack purchase" }); }
+    catch (e) { await db.cosPaymentEvent.deleteMany({ where: { providerEventId: claimId } }); throw e; }
     await logLosAudit({ orgId, actorType: "system", action: "billing.tokens_purchased", entity: "LosTokenLedger", data: { tokens, sessionId } });
     return { ok: true, message: `${tokens.toLocaleString()} tokens added. Thank you!` };
   }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { db } from "@/lib/audit/db";
 import { Badge, Card } from "@/components/leados/ui";
 import ImportUploadForm from "./ImportUploadForm";
@@ -7,7 +7,7 @@ import ImportUploadForm from "./ImportUploadForm";
 export const metadata = { title: "Import leads" };
 
 export default async function ImportPage() {
-  const actor = await requireOrg("leads.import");
+  const actor = await requireOrgPage("leads.import");
   const recent = await db.losImport.findMany({
     where: { orgId: actor.orgId },
     orderBy: { createdAt: "desc" },

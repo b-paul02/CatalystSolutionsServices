@@ -18,8 +18,13 @@ export function checkCredentials(email: string, password: string): boolean {
 }
 
 async function hmac(value: string): Promise<string> {
+  // No public fallback: without a secret nobody can be signed in (sessions would be forgeable).
+  const secret = process.env.ADMIN_SESSION_SECRET;
+  if (!secret) throw new Error("ADMIN_SESSION_SECRET is not set.");
+  // the throwaway secret of the local verification server (scripts/dev-verify.mjs) is public in this repo: never valid in production
+  if (process.env.NODE_ENV === "production" && secret === "local-verify-only-session-secret") throw new Error("ADMIN_SESSION_SECRET is the local verification value.");
   const key = await crypto.subtle.importKey(
-    "raw", new TextEncoder().encode(process.env.ADMIN_SESSION_SECRET ?? "dev-secret"),
+    "raw", new TextEncoder().encode(secret),
     { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
   );
   const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(value));
@@ -36,6 +41,8 @@ export async function verifySession(cookie: string | undefined): Promise<string 
   if (!cookie) return null;
   const [payload, sig] = cookie.split(".");
   if (!payload || !sig) return null;
+  if (!process.env.ADMIN_SESSION_SECRET) return null; // fail closed
+  if (process.env.NODE_ENV === "production" && process.env.ADMIN_SESSION_SECRET === "local-verify-only-session-secret") return null; // the local verification cookie is never valid in production
   if ((await hmac(payload)) !== sig) return null;
   try {
     const email = atob(payload);

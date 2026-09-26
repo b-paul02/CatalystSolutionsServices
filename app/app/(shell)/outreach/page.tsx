@@ -1,4 +1,4 @@
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { can } from "@/lib/leados/rbac";
 import { db } from "@/lib/audit/db";
 import OutreachManager from "./OutreachManager";
@@ -6,7 +6,7 @@ import OutreachManager from "./OutreachManager";
 export const metadata = { title: "Outreach" };
 
 export default async function OutreachPage() {
-  const actor = await requireOrg("leads.view");
+  const actor = await requireOrgPage("leads.view");
   const [templates, sequences, recentMessages] = await Promise.all([
     db.losMessageTemplate.findMany({ where: { orgId: actor.orgId }, orderBy: { name: "asc" } }),
     db.losSequence.findMany({

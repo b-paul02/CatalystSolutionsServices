@@ -112,7 +112,11 @@ export async function saveKeyConnection(actor: WorkActor, provider: string, valu
   let status = "verified", label: string | null = null, lastError: string | null = null;
   try { label = await testKeyConnection(provider, secret); } catch (e) { status = "failed"; lastError = (e instanceof Error ? e.message : "Test failed.").slice(0, 300); }
   const data = { status, accountLabel: label, lastError, lastCheckedAt: new Date(), accessTokenEnc: encryptField(secret), refreshTokenEnc: null, tokenExpiresAt: null };
-  const conn = await db.cosConnection.upsert({ where: { orgId_provider: { orgId: actor.orgId, provider } }, update: data, create: { ...data, orgId: actor.orgId, provider, createdById: actor.userId } });
+  // key connections stay one-per-provider for workflows (the block picks the first)
+  const existing = await db.cosConnection.findFirst({ where: { orgId: actor.orgId, provider }, orderBy: { createdAt: "asc" } });
+  const conn = existing
+    ? await db.cosConnection.update({ where: { id: existing.id }, data })
+    : await db.cosConnection.create({ data: { ...data, orgId: actor.orgId, provider, createdById: actor.userId } });
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: `connection.${status}`, entity: "CosConnection", entityId: conn.id, data: { provider } });
   if (status === "failed") throw new WorkError(lastError ?? "Connection test failed.");
   return conn;

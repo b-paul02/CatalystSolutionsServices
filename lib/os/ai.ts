@@ -3,7 +3,7 @@
 // model never executes anything; every output lands as a draft a person reviews.
 // Provider-agnostic: reuses the site's OpenAI-compatible client (LLM_* env).
 import { db } from "@/lib/audit/db";
-import { callClaudeJSON } from "@/lib/audit/anthropic";
+import { callClaudeJSON, withLlmUsage } from "@/lib/audit/anthropic";
 
 export const aiAvailable = (): boolean => Boolean(process.env.LLM_API_KEY);
 export const aiModel = (): string => process.env.LLM_MODEL ?? "default";
@@ -94,8 +94,9 @@ export function validateCalendar(raw: unknown, allowedChannels: string[], days: 
 
 // ── tenant-scoped context ────────────────────────────────────────────────────
 
-async function tenantContext(orgId: string) {
-  const [org, ws, goals, run, findings, learnings] = await Promise.all([
+/** `sourceIds`: when the person picked sources for this run, ONLY those are given to the model (approved claims always are). */
+export async function tenantContext(orgId: string, opts: { sourceIds?: string[] } = {}) {
+  const [org, ws, goals, run, findings, learnings, profile, claims, sources] = await Promise.all([
     db.losOrg.findUnique({ where: { id: orgId }, select: { name: true, industry: true, market: true, website: true } }),
     db.cosWorkspace.findUnique({ where: { orgId }, select: { brandProfile: true } }),
     db.cosGoal.findMany({ where: { orgId, archivedAt: null } }),
@@ -103,22 +104,30 @@ async function tenantContext(orgId: string) {
     db.cosFinding.findMany({ where: { orgId, status: { notIn: ["archived", "rejected"] } }, take: 40, orderBy: { createdAt: "desc" } }),
     // only APPROVED learnings may inform a plan (§7.3)
     db.cosLearning.findMany({ where: { orgId, status: "approved" }, take: 20 }),
+    db.cosBusinessProfile.findUnique({ where: { orgId } }),
+    // only claims the CLIENT approved may be stated as fact
+    db.cosClaim.findMany({ where: { orgId, status: "approved" }, take: 40 }),
+    db.cosSource.findMany({ where: { orgId, archivedAt: null, ...(opts.sourceIds?.length ? { id: { in: opts.sourceIds } } : {}) }, take: 20, orderBy: { createdAt: "desc" } }),
   ]);
   const evidenceIds = new Set([...findings.map((f) => f.id), ...learnings.map((l) => l.id)]);
   const text = JSON.stringify({
     business: org,
     brand: ws?.brandProfile ? JSON.parse(ws.brandProfile) : null,
+    profile: profile ? { businessModel: profile.businessModel, audience: profile.audience, offers: profile.offers, geography: profile.geography, brandVoice: profile.brandVoice, contentPillars: profile.contentPillars, constraints: profile.constraints, competitors: profile.competitors } : null,
+    approvedClaims: claims.map((c) => ({ id: c.id, text: c.text })),
+    sources: sources.map((s) => ({ id: s.id, title: s.title, url: s.url, excerpt: s.excerpt?.slice(0, 600) ?? null })),
     goals: goals.map((g) => ({ metric: g.metric, target: g.target, unit: g.unit, horizon: g.horizon })),
     auditScores: run ? JSON.parse(run.scores) : null,
     findings: findings.map((f) => ({ id: f.id, pillar: f.pillar, text: f.text, label: f.label, evidence: f.evidence.slice(0, 200) })),
     approvedLearnings: learnings.map((l) => ({ id: l.id, hypothesis: l.hypothesis, result: l.result, uncertainty: l.uncertainty })),
   });
-  return { text, evidenceIds };
+  return { text, evidenceIds, grounding: [...claims.map((c) => c.text), ...sources.map((s) => s.excerpt ?? "")].join("\n") };
 }
 
 const RULES = `Rules: never promise or guarantee outcomes, rankings, revenue or AI citations. Cite evidence ONLY by the exact "id" values given in the context; if nothing supports a recommendation, leave evidenceIds empty and add the assumption to "assumptions". Findings labelled "assumed" or "unavailable" are hypotheses, not facts. Respond with JSON only.`;
 
-export async function generatePlan(orgId: string, constraints: string) {
+export const generatePlan = (orgId: string, constraints: string) => metered(orgId, "plan", () => generatePlanRaw(orgId, constraints));
+async function generatePlanRaw(orgId: string, constraints: string) {
   const ctx = await tenantContext(orgId);
   const raw = await callClaudeJSON<PlanPayload>(
     `You are an AI CMO drafting a growth plan for a strategist to review. ${RULES}
@@ -129,7 +138,8 @@ Allocation percentages are suggested budget/effort ranges that must sum to 100. 
   return validatePlan(raw, ctx.evidenceIds);
 }
 
-export async function generateCalendar(orgId: string, channels: string[], days = 14, perWeek = 4) {
+export const generateCalendar = (orgId: string, channels: string[], days = 14, perWeek = 4) => metered(orgId, "calendar", () => generateCalendarRaw(orgId, channels, days, perWeek));
+async function generateCalendarRaw(orgId: string, channels: string[], days = 14, perWeek = 4) {
   const ctx = await tenantContext(orgId);
   const raw = await callClaudeJSON<unknown>(
     `You plan a ${days}-day content calendar. ${RULES}
@@ -140,7 +150,8 @@ Use ONLY these channels: ${channels.join(", ")}. About ${perWeek} items per week
   return validateCalendar(raw, channels, days);
 }
 
-export async function draftContent(orgId: string, brief: { channel: string; topic: string; hook?: string; persona?: string; format?: string; cta?: string; notes?: string }) {
+export const draftContent = (orgId: string, brief: { channel: string; topic: string; hook?: string; persona?: string; format?: string; cta?: string; notes?: string }) => metered(orgId, "content_draft", () => draftContentRaw(orgId, brief));
+async function draftContentRaw(orgId: string, brief: { channel: string; topic: string; hook?: string; persona?: string; format?: string; cta?: string; notes?: string }) {
   const ctx = await tenantContext(orgId);
   const out = await callClaudeJSON<{ body: string; meta?: { title?: string; description?: string }; expertiseFlags?: string[] }>(
     `You draft channel-native marketing content for an editor to review. ${RULES}
@@ -151,11 +162,120 @@ JSON shape: {"body":string,"meta":{"title":string,"description":string},"experti
   return { ...out, body: out.body ?? "", expertiseFlags: out.expertiseFlags ?? [], problems: copyProblems(out.body ?? "") };
 }
 
-export async function seoBrief(orgId: string, keyword: string) {
+export const seoBrief = (orgId: string, keyword: string) => metered(orgId, "seo_brief", () => seoBriefRaw(orgId, keyword));
+async function seoBriefRaw(orgId: string, keyword: string) {
   const ctx = await tenantContext(orgId);
   return callClaudeJSON<{ intent: string; outline: string[]; questions: string[]; internalLinks: string[]; expertiseFlags: string[] }>(
     `You write an SEO content brief for a specialist to validate. ${RULES}
 JSON shape: {"intent":string,"outline":string[],"questions":string[],"internalLinks":string[],"expertiseFlags":string[]}`,
     `Context:\n${ctx.text}\n\nTarget keyword: ${keyword.slice(0, 120)}`,
   );
+}
+
+// ── metering ─────────────────────────────────────────────────────────────────
+
+const price = (name: string): number | null => { const v = Number(process.env[name]); return Number.isFinite(v) && v > 0 ? v : null; };
+
+/** Provider money cost in micro-USD, or null when prices / token counts are missing — unknown is never zero. */
+export function costMicros(u: { inputTokens: number | null; outputTokens: number | null }): number | null {
+  const inP = price("LLM_PRICE_INPUT_MICROS_PER_MTOK"), outP = price("LLM_PRICE_OUTPUT_MICROS_PER_MTOK");
+  return inP !== null && outP !== null && u.inputTokens !== null && u.outputTokens !== null ? Math.round((u.inputTokens * inP + u.outputTokens * outP) / 1_000_000) : null;
+}
+
+/**
+ * WHO PAYS is explicit and defaults to Catalyst: every staff drafting path (plan, calendar, variants, SEO brief,
+ * report narrative, image) records `catalyst_internal`. Only lib/os/studio.ts ever records `client_wallet`, and only
+ * alongside a settled reservation — `orgId` alone never means the client was charged.
+ */
+export type UsagePayer = { payer?: "catalyst_internal" | "client_wallet"; billingPurpose?: "internal_delivery" | "client_self_service" | "staff_assisted_client_billed" | "system"; operationId?: string | null };
+
+/** Run an AI feature and record what it used. Cost is NULL unless prices are configured — unknown is not zero. */
+export async function metered<T>(orgId: string, feature: string, fn: () => Promise<T>, opts: { modality?: string; workItemId?: string | null; userId?: string | null } & UsagePayer = {}): Promise<T> {
+  let ok = true;
+  const started = await withLlmUsage(async () => { try { return await fn(); } catch (e) { ok = false; throw e; } }).catch((e) => ({ error: e as unknown, usage: [] as { model: string; inputTokens: number | null; outputTokens: number | null }[], result: undefined as T | undefined }));
+  const usage = started.usage;
+  const inP = price("LLM_PRICE_INPUT_MICROS_PER_MTOK"), outP = price("LLM_PRICE_OUTPUT_MICROS_PER_MTOK");
+  const ws = await db.cosWorkspace.findUnique({ where: { orgId }, select: { demo: true } });
+  for (const u of usage.length ? usage : [{ model: aiModel(), inputTokens: null, outputTokens: null }]) {
+    const known = inP !== null && outP !== null && u.inputTokens !== null && u.outputTokens !== null;
+    await db.cosAiUsage.create({ data: { orgId, feature, modality: opts.modality ?? "text", model: u.model, inputTokens: u.inputTokens, outputTokens: u.outputTokens, costMicros: known ? Math.round((u.inputTokens! * inP! + u.outputTokens! * outP!) / 1_000_000) : null, ok: "error" in started ? false : ok, workItemId: opts.workItemId ?? null, userId: opts.userId ?? null, demo: ws?.demo ?? false, payer: opts.payer ?? "catalyst_internal", billingPurpose: opts.billingPurpose ?? "internal_delivery", operationId: opts.operationId ?? null } });
+  }
+  if ("error" in started) throw started.error;
+  return started.result as T;
+}
+
+// ── grounded channel variants ────────────────────────────────────────────────
+
+/** Sentences that state a number, a percentage or a superlative and are NOT backed by an approved claim or a source. */
+export function unsupportedClaims(text: string, grounding: string): string[] {
+  const g = grounding.toLowerCase().replace(/(\d),(?=\d)/g, "$1");
+  const gNums = new Set(g.match(/\d+(?:\.\d+)?/g) ?? []);
+  const SUPERLATIVE = /\b(best|leading|fastest|number one|award[- ]winning|trusted by)\b|#1\b/i;
+  return text.split(/(?<=[.!?])\s+|\n+/).map((s) => s.trim()).filter((s) => /\d+\s?%|\b\d{2,}\b/.test(s) || SUPERLATIVE.test(s)).filter((s) => {
+    // a superlative must appear (in substance) in an approved claim or source; a number must match a number there
+    if (SUPERLATIVE.test(s) && !g.includes(s.toLowerCase().replace(/[.!?]+$/, "").slice(0, 60))) return true;
+    const nums = s.replace(/(\d),(?=\d)/g, "$1").match(/\d+(?:\.\d+)?/g) ?? [];
+    return nums.some((n) => !gNums.has(n));
+  });
+}
+
+export type VariantDraft = { channel: string; format: string; title?: string; body: string; parts: string[]; cta?: string; flags: string[]; problems: string[] };
+
+/**
+ * Master → channel adaptations. Output is a DRAFT: claim checks are deterministic, anything unsupported
+ * is returned as a flag the editor must resolve, and banned-claim copy is rejected outright.
+ */
+export const draftVariants = (orgId: string, master: { title: string; brief: string; body: string }, targets: { channel: string; format: string; maxChars?: number }[], instruction = "") =>
+  metered(orgId, "variant_draft", async () => {
+    const ctx = await tenantContext(orgId);
+    const raw = await callClaudeJSON<{ variants?: { channel?: string; format?: string; title?: string; body?: string; parts?: string[]; cta?: string }[] }>(
+      `You adapt ONE approved master message into channel-native variants for an editor to review. ${RULES}
+State facts ONLY from "approvedClaims" and "sources" in the context. Never invent statistics, testimonials, client names, prices or results; when a point needs proof you do not have, write it without the claim.
+A "long_video", "short" or "reel" variant is a SCRIPT/description for a human production team — it is not a video.
+JSON shape: {"variants":[{"channel":string,"format":string,"title":string,"body":string,"parts":string[] (threads only, one post each),"cta":string}]}`,
+      `Context:\n${ctx.text}\n\nMaster title: ${master.title}\nBrief: ${master.brief.slice(0, 2000)}\nMaster copy:\n${master.body.slice(0, 8000)}\n\nProduce exactly these variants: ${JSON.stringify(targets)}\n${instruction ? `Editor instruction: ${instruction.slice(0, 500)}` : ""}`,
+    );
+    const wanted = new Set(targets.map((x) => `${x.channel}:${x.format}`));
+    const out: VariantDraft[] = [];
+    for (const v of raw.variants ?? []) {
+      if (!v.channel || !v.format || !wanted.has(`${v.channel}:${v.format}`)) continue; // never accept a channel we did not ask for
+      const parts = Array.isArray(v.parts) ? v.parts.filter((p) => typeof p === "string" && p.trim()) : [];
+      const all = [v.title ?? "", v.body ?? "", ...parts].join("\n");
+      out.push({ channel: v.channel, format: v.format, title: v.title?.slice(0, 200), body: String(v.body ?? ""), parts, cta: v.cta?.slice(0, 200), flags: unsupportedClaims(all, ctx.grounding).map((s) => `Needs a source or an approved claim: "${s.slice(0, 140)}"`), problems: copyProblems(all) });
+    }
+    return out;
+  });
+
+// ── grounded report narrative ────────────────────────────────────────────────
+
+/** Every number in the narrative must be one of the supplied facts. Returns the offending numbers. */
+export function inventedNumbers(narrative: string, facts: Record<string, string | number | null>): string[] {
+  const nums = (s: string) => (s.replace(/(\d),(?=\d)/g, "$1").match(/\d+(?:\.\d+)?/g) ?? []).map((n) => String(Number(n)));
+  const allowed = new Set(Object.values(facts).filter((v) => v !== null).flatMap((v) => nums(String(v))));
+  return [...new Set(nums(narrative))].filter((n) => !allowed.has(n) && Number(n) > 1);
+}
+
+/** Plain, deterministic narrative — always available, used whenever the AI version fails its check. */
+export function factualNarrative(period: string, facts: Record<string, string | number | null>, limitations: string): string {
+  const lines = Object.entries(facts).map(([k, v]) => `${k}: ${v === null ? "not available for this period" : v}`);
+  return `Results for ${period}\n${lines.join("\n")}\n\nLimitations: ${limitations}`;
+}
+
+export const groundedNarrative = (orgId: string, period: string, facts: Record<string, string | number | null>, limitations: string) =>
+  metered(orgId, "report_narrative", () => groundedNarrativeRaw(period, facts, limitations));
+
+/** The unmetered core — callers that account for usage themselves (AI Studio) use this. */
+export async function groundedNarrativeRaw(period: string, facts: Record<string, string | number | null>, limitations: string, maxTokens = 4096) {
+  {
+    const out = await callClaudeJSON<{ narrative?: string; suggestions?: { text: string; evidence: string }[] }>(
+      `You write a short results summary for a client. Use ONLY the facts given; a fact that is null is "not available" — never call it zero. Do not infer causes, do not predict, do not promise. ${RULES}
+JSON shape: {"narrative":string,"suggestions":[{"text":string,"evidence":string (quote the fact keys and the period it rests on)}]}`,
+      `Period: ${period}\nFacts: ${JSON.stringify(facts)}\nLimitations to restate: ${limitations}`,
+    );
+    const narrative = String(out.narrative ?? "");
+    const bad = [...inventedNumbers(narrative, { ...facts, period }), ...copyProblems(narrative)];
+    if (!narrative || bad.length) return { narrative: factualNarrative(period, facts, limitations), suggestions: [], ai: false, rejected: bad };
+    // a suggestion without evidence is dropped, not shown
+    return { narrative: `${narrative}\n\nLimitations: ${limitations}`, suggestions: (out.suggestions ?? []).filter((s) => s.text && s.evidence && Object.keys(facts).some((k) => s.evidence.includes(k))).map((s) => ({ text: s.text.slice(0, 300), evidence: `${s.evidence.slice(0, 200)} (${period})` })), ai: true, rejected: [] };
+  }
 }

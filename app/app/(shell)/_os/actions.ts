@@ -10,7 +10,7 @@ import { requireLosUser, requireOrg, setActiveOrg } from "@/lib/leados/auth";
 import { logLosAudit } from "@/lib/leados/audit";
 import {
   addDeliverable, addWorkEvent, createWorkItem, decideApproval, editWorkItem, instantiateProject,
-  publishWorkItem, revokeApproval, toggleChecklist, transitionWorkItem, WorkError,
+  publishWorkItem, revokeApproval, toggleChecklist, transitionWorkItem, WorkError, requestApproval,
 } from "@/lib/os/work";
 import { disconnect, isProvider, recheckConnection, syncSearchConsole } from "@/lib/os/connectors";
 import { createBaseline, findingToWorkItem, moveFinding } from "@/lib/os/audit";
@@ -28,6 +28,12 @@ const date = (form: FormData, key: string): Date | null => {
 };
 
 // Turn engine errors into form messages; anything unexpected is rethrown.
+// A refused action is an ordinary outcome: it comes back as a form message, never as a thrown error (which the
+// browser would show as an application error). Unexpected errors still throw.
+async function orgOrDeny(...anyOf: Parameters<typeof requireOrg>): Promise<Awaited<ReturnType<typeof requireOrg>> | { error: string }> {
+  try { return await requireOrg(...anyOf); } catch (e) { if (e instanceof Error && e.name === "LosAuthError") return { error: e.message }; throw e; }
+}
+
 async function run(fn: () => Promise<State | void>, paths: string[] = ["/app/work", "/app/approvals", "/app/dashboard"]): Promise<State> {
   try {
     const out = await fn();
@@ -53,7 +59,7 @@ export async function switchOrg(_p: State, form: FormData): Promise<State> {
 // ── work items ───────────────────────────────────────────────────────────────
 
 export async function requestService(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("work.request");
+  const actor = await orgOrDeny("work.request"); if ("error" in actor) return actor;
   return run(async () => {
     const slug = str(form, "serviceSlug", 40);
     await createWorkItem(actor, {
@@ -65,7 +71,7 @@ export async function requestService(_p: State, form: FormData): Promise<State> 
 }
 
 export async function newWorkItem(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("work.manage");
+  const actor = await orgOrDeny("work.manage"); if ("error" in actor) return actor;
   return run(async () => {
     const slug = str(form, "serviceSlug", 40);
     const type = str(form, "type", 20) || "task";
@@ -86,12 +92,27 @@ export async function newWorkItem(_p: State, form: FormData): Promise<State> {
 }
 
 export async function moveWorkItem(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg();
+  const actor = await orgOrDeny(); if ("error" in actor) return actor;
   return run(() => transitionWorkItem(actor, str(form, "id", 60), str(form, "to", 30), str(form, "note", 500) || undefined));
 }
 
+/**
+ * Staff send an out-of-scope request to the client for a decision. It is the ONLY way a change request gets an
+ * approval: staff can ask, never decide; a priced change is a tier-3 decision the workspace owner makes.
+ */
+export async function requestChangeApproval(_p: State, form: FormData): Promise<State> {
+  const actor = await orgOrDeny("work.manage"); if ("error" in actor) return actor;
+  return run(async () => {
+    const item = await db.cosWorkItem.findFirst({ where: { id: str(form, "id", 60), orgId: actor.orgId }, select: { id: true, type: true, state: true } });
+    if (!item || item.type !== "change_request") throw new WorkError("Only a scope change is sent for approval from here.");
+    if (item.state !== "scoped") throw new WorkError("Scope the request first (what is included, and the fee if any), then send it.");
+    await requestApproval(actor, item.id);
+    return { ok: "Sent to the client for a decision." };
+  });
+}
+
 export async function saveWorkItem(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg();
+  const actor = await orgOrDeny(); if ("error" in actor) return actor;
   return run(async () => {
     const id = str(form, "id", 60);
     const existing = await db.cosWorkItem.findFirst({ where: { id, orgId: actor.orgId }, select: { payload: true } });
@@ -112,7 +133,7 @@ export async function saveWorkItem(_p: State, form: FormData): Promise<State> {
 }
 
 export async function logWorkEvent(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg();
+  const actor = await orgOrDeny(); if ("error" in actor) return actor;
   return run(async () => {
     const kind = str(form, "kind", 10) === "time" ? "time" : "comment";
     const text = str(form, "text", 4000);
@@ -123,7 +144,7 @@ export async function logWorkEvent(_p: State, form: FormData): Promise<State> {
 }
 
 export async function newDeliverable(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("work.execute");
+  const actor = await orgOrDeny("work.execute"); if ("error" in actor) return actor;
   return run(async () => {
     await addDeliverable(actor, str(form, "id", 60), { title: str(form, "title", 160), url: str(form, "url", 500), note: str(form, "note", 1000) });
     return { ok: "Deliverable added." };
@@ -131,18 +152,23 @@ export async function newDeliverable(_p: State, form: FormData): Promise<State> 
 }
 
 export async function tickChecklist(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg();
+  const actor = await orgOrDeny(); if ("error" in actor) return actor;
   return run(() => toggleChecklist(actor, str(form, "id", 60), str(form, "key", 60), form.get("done") === "true"));
 }
 
 // ── approvals ────────────────────────────────────────────────────────────────
 
 export async function decide(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg();
+  const actor = await orgOrDeny(); if ("error" in actor) return actor;
   return run(async () => {
     const decision = str(form, "decision", 30);
     if (decision !== "approved" && decision !== "approved_with_edits" && decision !== "rejected") throw new WorkError("Pick a decision.");
     const edited = str(form, "editedBody", 20000);
+    const subject = await db.cosApproval.findFirst({ where: { id: str(form, "approvalId", 60), orgId: actor.orgId }, select: { subject: true } });
+    if (subject?.subject === "variant") {
+      await (await import("@/lib/os/content")).decideVariantApproval(actor, str(form, "approvalId", 60), decision, { reason: str(form, "reason", 1000), editedBody: decision === "approved_with_edits" ? edited : undefined });
+      return { ok: decision === "rejected" ? "Sent back for revision." : "Approved." };
+    }
     await decideApproval(actor, str(form, "approvalId", 60), decision, {
       reason: str(form, "reason", 1000), editedPayload: decision === "approved_with_edits" ? { body: edited } : undefined,
     });
@@ -151,22 +177,37 @@ export async function decide(_p: State, form: FormData): Promise<State> {
 }
 
 export async function revoke(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg();
+  const actor = await orgOrDeny(); if ("error" in actor) return actor;
   return run(() => revokeApproval(actor, str(form, "approvalId", 60), str(form, "reason", 1000)));
 }
 
 /** Client signs (or declines) a proposed contract — the only way scope becomes active. */
 export async function signContract(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("contract.sign");
+  const actor = await orgOrDeny("contract.sign"); if ("error" in actor) return actor;
   return run(async () => {
     const accept = str(form, "decision", 10) === "sign";
     const contract = await db.cosContract.findFirst({ where: { id: str(form, "contractId", 60), orgId: actor.orgId, status: "proposed" } });
     if (!contract) throw new WorkError("Contract not found or already decided.");
-    await db.$transaction([
-      db.cosContract.update({ where: { id: contract.id }, data: accept ? { status: "active", signedById: actor.userId, signedAt: new Date() } : { status: "declined", endedAt: new Date() } }),
-      ...(accept ? [db.cosWorkspace.updateMany({ where: { orgId: actor.orgId }, data: { kind: "client" } })] : []),
-    ]);
+    // ONE transaction: the atomic proposed→active claim (two tabs / a double click: exactly one wins), the workspace
+    // flip and the credits the scope includes. If anything in here fails, the contract is still "proposed" and no
+    // credit exists — there is no state where a grant outlives a failed signature, or a signature misses its grant.
+    await db.$transaction(async (tx) => {
+      const claimed = await tx.cosContract.updateMany({ where: { id: contract.id, orgId: actor.orgId, status: "proposed" }, data: accept ? { status: "active", signedById: actor.userId, signedAt: new Date() } : { status: "declined", endedAt: new Date() } });
+      if (claimed.count !== 1) throw new WorkError("Contract not found or already decided.");
+      if (!accept) return;
+      await tx.cosWorkspace.updateMany({ where: { orgId: actor.orgId }, data: { kind: "client" } });
+      await (await import("@/lib/os/credits")).grantIncludedForContract(contract, actor.userId, tx);
+    });
     await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: accept ? "contract.signed" : "contract.declined", entity: "CosContract", entityId: contract.id });
+
+    if (contract.engagementId) {
+      const eng = await import("@/lib/os/engagement");
+      if (accept) {
+        // the client's signature is the ONLY path to "accepted"; onboarding requests follow from the signed services
+        await eng.acceptEngagementBySignature(actor.orgId, contract.engagementId, actor.userId);
+        await eng.seedChecklist(actor.orgId, contract.engagementId, JSON.parse(contract.services) as string[]);
+      } else await eng.declineEngagementByClient(actor.orgId, contract.engagementId, actor.userId, str(form, "reason", 500));
+    }
     return { ok: accept ? "Signed — your modules are now active." : "Declined." };
   }, ["/app"]);
 }
@@ -174,12 +215,12 @@ export async function signContract(_p: State, form: FormData): Promise<State> {
 // ── audit & baseline ─────────────────────────────────────────────────────────
 
 export async function findingMove(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg();
+  const actor = await orgOrDeny(); if ("error" in actor) return actor;
   return run(() => moveFinding(actor, str(form, "id", 60), str(form, "to", 30), { note: str(form, "note", 500), label: str(form, "label", 20) || undefined }), ["/app/audit"]);
 }
 
 export async function findingToWork(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("work.manage");
+  const actor = await orgOrDeny("work.manage"); if ("error" in actor) return actor;
   return run(async () => {
     const slug = str(form, "serviceSlug", 40);
     const item = await findingToWorkItem(actor, str(form, "id", 60), { serviceSlug: serviceBySlug[slug] ? slug : null, successMeasure: str(form, "successMeasure", 500) });
@@ -188,7 +229,7 @@ export async function findingToWork(_p: State, form: FormData): Promise<State> {
 }
 
 export async function approveBaseline(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("strategy.manage");
+  const actor = await orgOrDeny("strategy.manage"); if ("error" in actor) return actor;
   return run(async () => {
     const runRow = await db.cosAuditRun.findFirst({ where: { orgId: actor.orgId }, orderBy: { createdAt: "desc" } });
     if (!runRow) throw new WorkError("Run or import an audit first.");
@@ -208,7 +249,7 @@ export async function approveBaseline(_p: State, form: FormData): Promise<State>
 // ── strategy ─────────────────────────────────────────────────────────────────
 
 export async function saveGoal(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("strategy.manage", "org.manage");
+  const actor = await orgOrDeny("strategy.manage", "org.manage"); if ("error" in actor) return actor;
   const target = Number(str(form, "target", 20));
   if (!str(form, "metric", 80) || !Number.isFinite(target)) return { error: "Metric and a numeric target are required." };
   const current = str(form, "currentValue", 20);
@@ -227,14 +268,14 @@ export async function saveGoal(_p: State, form: FormData): Promise<State> {
 }
 
 export async function archiveGoal(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("strategy.manage", "org.manage");
+  const actor = await orgOrDeny("strategy.manage", "org.manage"); if ("error" in actor) return actor;
   await db.cosGoal.updateMany({ where: { id: str(form, "id", 60), orgId: actor.orgId }, data: { archivedAt: new Date() } });
   revalidatePath("/app/strategy");
   return { ok: "Archived." };
 }
 
 export async function draftPlan(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("strategy.manage");
+  const actor = await orgOrDeny("strategy.manage"); if ("error" in actor) return actor;
   if (!aiAvailable()) return { error: "AI is not configured (LLM_API_KEY). Add it, or write the plan manually." };
   const result = await generatePlan(actor.orgId, str(form, "constraints", 2000));
   if (result.problems.length) return { error: `Draft rejected by validators: ${result.problems.join(" ")}` };
@@ -249,7 +290,7 @@ export async function draftPlan(_p: State, form: FormData): Promise<State> {
 
 /** Strategist review gate: draft → in_review (visible to the client for approval). */
 export async function submitPlan(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("strategy.manage");
+  const actor = await orgOrDeny("strategy.manage"); if ("error" in actor) return actor;
   const n = await db.cosPlan.updateMany({ where: { id: str(form, "id", 60), orgId: actor.orgId, status: "draft" }, data: { status: "in_review", reviewedById: actor.userId } });
   if (n.count === 0) return { error: "Plan not found or already submitted." };
   revalidatePath("/app/strategy");
@@ -258,7 +299,7 @@ export async function submitPlan(_p: State, form: FormData): Promise<State> {
 
 /** Client decision on a plan. Approving supersedes the previous approved version. */
 export async function decidePlan(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("approvals.decide");
+  const actor = await orgOrDeny("approvals.decide"); if ("error" in actor) return actor;
   const approve = str(form, "decision", 10) === "approve";
   const note = str(form, "note", 1000);
   if (!approve && !note) return { error: "A reason is required to reject." };
@@ -292,7 +333,7 @@ async function contentService(orgId: string, channel: string): Promise<string> {
 }
 
 export async function fillCalendar(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("work.manage");
+  const actor = await orgOrDeny("work.manage"); if ("error" in actor) return actor;
   const ent = await entitlements(actor.orgId);
   if (!ent.modules.has("content")) return { error: "Content Studio is not part of this workspace's contract." };
   if (!aiAvailable()) return { error: "AI is not configured (LLM_API_KEY). Add items manually instead." };
@@ -317,7 +358,7 @@ export async function fillCalendar(_p: State, form: FormData): Promise<State> {
 }
 
 export async function newContentItem(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("work.manage");
+  const actor = await orgOrDeny("work.manage"); if ("error" in actor) return actor;
   const channel = str(form, "channel", 20);
   if (!CHANNELS.includes(channel)) return { error: "Pick a channel." };
   return run(async () => {
@@ -330,7 +371,7 @@ export async function newContentItem(_p: State, form: FormData): Promise<State> 
 }
 
 export async function aiDraft(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("work.execute");
+  const actor = await orgOrDeny("work.execute"); if ("error" in actor) return actor;
   if (!aiAvailable()) return { error: "AI is not configured (LLM_API_KEY)." };
   const id = str(form, "id", 60);
   const item = await db.cosWorkItem.findFirst({ where: { id, orgId: actor.orgId } });
@@ -347,7 +388,7 @@ export async function aiDraft(_p: State, form: FormData): Promise<State> {
 }
 
 export async function newSeoBrief(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("work.manage");
+  const actor = await orgOrDeny("work.manage"); if ("error" in actor) return actor;
   const keyword = str(form, "keyword", 120);
   if (!keyword) return { error: "Enter a target keyword." };
   if (!aiAvailable()) return { error: "AI is not configured (LLM_API_KEY)." };
@@ -361,7 +402,7 @@ export async function newSeoBrief(_p: State, form: FormData): Promise<State> {
 // ── workspace settings ───────────────────────────────────────────────────────
 
 export async function saveBrandProfile(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("os.settings");
+  const actor = await orgOrDeny("os.settings"); if ("error" in actor) return actor;
   const profile = Object.fromEntries(["voice", "audience", "offers", "proofPoints", "dos", "donts", "competitors"].map((k) => [k, str(form, k, 2000)]));
   await db.cosWorkspace.upsert({ where: { orgId: actor.orgId }, update: { brandProfile: JSON.stringify(profile) }, create: { orgId: actor.orgId, brandProfile: JSON.stringify(profile) } });
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "brand.updated", entity: "CosWorkspace", entityId: actor.orgId });
@@ -370,7 +411,7 @@ export async function saveBrandProfile(_p: State, form: FormData): Promise<State
 }
 
 export async function setKillSwitch(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("os.settings");
+  const actor = await orgOrDeny("os.settings"); if ("error" in actor) return actor;
   const on = str(form, "on", 5) === "true";
   await db.cosWorkspace.upsert({
     where: { orgId: actor.orgId },
@@ -390,7 +431,7 @@ const GRADES = ["A", "B", "C", "D"];
 
 /** Manual / imported channel metric. Idempotent per (provider, metric, day). */
 export async function recordMetric(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("work.execute", "strategy.manage");
+  const actor = await orgOrDeny("work.execute", "strategy.manage"); if ("error" in actor) return actor;
   const provider = str(form, "provider", 20) || "manual";
   const metric = str(form, "metric", 40);
   const d = date(form, "day");
@@ -408,7 +449,7 @@ export async function recordMetric(_p: State, form: FormData): Promise<State> {
 }
 
 export async function proposeLearning(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("strategy.manage", "work.review");
+  const actor = await orgOrDeny("strategy.manage", "work.review"); if ("error" in actor) return actor;
   if (!str(form, "hypothesis", 500) || !str(form, "result", 1000)) return { error: "Hypothesis and result are required." };
   await db.cosLearning.create({
     data: {
@@ -423,7 +464,7 @@ export async function proposeLearning(_p: State, form: FormData): Promise<State>
 
 /** Reviewer gate for the knowledge store (§7.3). The proposer cannot approve their own learning. */
 export async function reviewLearning(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("work.review");
+  const actor = await orgOrDeny("work.review"); if ("error" in actor) return actor;
   const status = str(form, "decision", 10) === "approve" ? "approved" : "rejected";
   const n = await db.cosLearning.updateMany({ where: { id: str(form, "id", 60), orgId: actor.orgId, status: "proposed" }, data: { status, reviewerId: actor.userId } });
   if (n.count === 0) return { error: "Learning not found or already reviewed." };
@@ -434,7 +475,7 @@ export async function reviewLearning(_p: State, form: FormData): Promise<State> 
 
 /** Build a period report from what the system actually knows; missing = "unavailable". */
 export async function draftReport(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("strategy.manage", "work.review");
+  const actor = await orgOrDeny("strategy.manage", "work.review"); if ("error" in actor) return actor;
   const kind = str(form, "kind", 10) === "weekly" ? "weekly" : "monthly";
   const period = str(form, "period", 10) || new Date().toISOString().slice(0, kind === "weekly" ? 10 : 7);
   const since = new Date(Date.now() - (kind === "weekly" ? 7 : 31) * 86_400_000);
@@ -442,7 +483,7 @@ export async function draftReport(_p: State, form: FormData): Promise<State> {
   const [baseline, run, delivered, upcoming, points, goals, leads] = await Promise.all([
     db.cosBaseline.findFirst({ where: { orgId }, orderBy: { version: "desc" } }),
     db.cosAuditRun.findFirst({ where: { orgId }, orderBy: { createdAt: "desc" } }),
-    db.cosWorkItem.findMany({ where: { orgId, state: { in: ["delivered", "verified", "closed"] }, updatedAt: { gte: since } }, select: { title: true, studio: true }, take: 50 }),
+    db.cosWorkItem.findMany({ where: { orgId, deliveredAt: { gte: since } }, select: { title: true, studio: true }, take: 50 }),
     db.cosWorkItem.findMany({ where: { orgId, state: { in: ["ready", "in_progress", "internal_qa", "client_review", "approved", "scheduled"] } }, select: { title: true, dueAt: true }, orderBy: { dueAt: "asc" }, take: 15 }),
     db.cosMetricPoint.groupBy({ by: ["provider", "metric", "grade"], where: { orgId, day: { gte: since } }, _sum: { value: true } }),
     db.cosGoal.findMany({ where: { orgId, archivedAt: null } }),
@@ -457,9 +498,25 @@ export async function draftReport(_p: State, form: FormData): Promise<State> {
     ...points.map((p) => ({ name: `${p.provider}.${p.metric}`, value: p._sum.value, label: p.grade === "A" || p.grade === "B" ? "measured" : "estimated", grade: p.grade, baseline: null })),
     ...goals.map((g) => ({ name: `goal.${g.metric}`, value: g.currentValue, label: g.currentLabel, baseline: null, target: g.target })),
   ];
+  // Draft narrative grounded ONLY in stored facts. A narrative containing any number that is not one of these
+  // facts is discarded and replaced by the plain factual summary; the editor still reviews before publishing.
+  const ent = await entitlements(orgId);
+  const { businessOutcomes, ATTRIBUTION_LIMITS } = await import("@/lib/os/outcomes");
+  const outcomes = await businessOutcomes(orgId, { start: since, end: new Date() }, { includeDemo: ent.demo });
+  const facts: Record<string, string | number | null> = {
+    "Work delivered": delivered.length, "Enquiries": outcomes.leads.total, "Enquiries through a tagged link": outcomes.leads.known, "Qualified": outcomes.qualified,
+    ...Object.fromEntries(Object.entries(outcomes.sales).map(([cur, s]) => [`Recorded sales (${cur})`, (Number(s.valueMinor) / 100).toFixed(2)])),
+    ...Object.fromEntries(metrics.filter((m) => !m.name.startsWith("audit.")).map((m) => [m.name, m.value ?? null])),
+  };
+  const { factualNarrative, groundedNarrative } = await import("@/lib/os/ai");
+  const periodLabel = `${kind} report ${period} (${ent.timezone})`;
+  let narrative = factualNarrative(periodLabel, facts, ATTRIBUTION_LIMITS), suggestions: { text: string; evidence: string }[] = [], aiDrafted = false;
+  if (aiAvailable()) {
+    try { const g = await groundedNarrative(orgId, periodLabel, facts, ATTRIBUTION_LIMITS); narrative = g.narrative; suggestions = g.suggestions; aiDrafted = g.ai; } catch { /* keep the factual summary */ }
+  }
   const body = {
-    metrics, delivered, next: upcoming, narrative: "",
-    limitations: ["Attributed results are not proof of incremental effect.", ...(baseline ? [] : ["No baseline recorded — comparisons unavailable."])],
+    metrics, delivered, next: upcoming, narrative, suggestions, provenance: { narrative: aiDrafted ? "ai_draft_checked_against_facts" : "factual_summary", facts },
+    limitations: [ATTRIBUTION_LIMITS, "Attributed results are not proof of incremental effect.", ...(baseline ? [] : ["No baseline recorded — comparisons unavailable."])],
   };
   const existing = await db.cosReport.findUnique({ where: { orgId_kind_period: { orgId, kind, period } } });
   if (existing?.status === "published") return { error: `The ${kind} report for ${period} is already published — published reports are immutable.` };
@@ -473,7 +530,7 @@ export async function draftReport(_p: State, form: FormData): Promise<State> {
 }
 
 export async function publishReport(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("strategy.manage", "work.review");
+  const actor = await orgOrDeny("strategy.manage", "work.review"); if ("error" in actor) return actor;
   const report = await db.cosReport.findFirst({ where: { id: str(form, "id", 60), orgId: actor.orgId, status: "draft" } });
   if (!report) return { error: "Report not found or already published (published reports are immutable)." };
   const narrative = str(form, "narrative", 6000);
@@ -489,7 +546,7 @@ export async function publishReport(_p: State, form: FormData): Promise<State> {
 // ── connections & publishing ─────────────────────────────────────────────────
 
 export async function connectionAction(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("os.settings");
+  const actor = await orgOrDeny("os.settings"); if ("error" in actor) return actor;
   const provider = str(form, "provider", 20);
   const op = str(form, "op", 12);
   if (!isProvider(provider)) return { error: "Unknown provider." };
@@ -505,7 +562,7 @@ export async function connectionAction(_p: State, form: FormData): Promise<State
 }
 
 export async function publishNow(_p: State, form: FormData): Promise<State> {
-  const actor = await requireOrg("work.execute");
+  const actor = await orgOrDeny("work.execute"); if ("error" in actor) return actor;
   return run(async () => {
     const externalId = await publishWorkItem(actor, str(form, "id", 60));
     return { ok: `Published (id ${externalId}).` };

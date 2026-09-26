@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { LeadOutcomes } from "@/components/os/panels";
 import { notFound } from "next/navigation";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { can } from "@/lib/leados/rbac";
 import { db } from "@/lib/audit/db";
 import { Badge, Card } from "@/components/leados/ui";
@@ -10,7 +11,7 @@ import LeadWorkspace from "./LeadWorkspace";
 export const metadata = { title: "Lead" };
 
 export default async function LeadPage({ params }: { params: Promise<{ id: string }> }) {
-  const actor = await requireOrg("leads.view");
+  const actor = await requireOrgPage("leads.view");
   const { id } = await params;
   const lead = await db.losLead.findFirst({
     where: { id, orgId: actor.orgId, deletedAt: null },
@@ -49,6 +50,7 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
         {b2c?.suppressedAt && <Badge tone="danger">suppressed</Badge>}
         {b2c?.withdrawnAt && <Badge tone="danger">consent withdrawn</Badge>}
       </div>
+      <LeadOutcomes orgId={actor.orgId} leadId={lead.id} role={actor.role} currency={lead.country === "US" ? "USD" : "INR"} />
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* identity */}

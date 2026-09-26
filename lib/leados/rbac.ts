@@ -34,6 +34,7 @@ export type PlatformRole = (typeof PLATFORM_ROLES)[number];
 export type Permission =
   | "org.manage" // rename, billing contact, delete org
   | "org.billing" // subscription, token purchases
+  | "org.export" // full workspace export (contracts, commercial records, credit history): owner + admin only
   | "team.manage" // invite, remove, change roles
   | "apikeys.manage"
   | "leads.view"
@@ -59,15 +60,16 @@ export type Permission =
   | "strategy.manage" // goals, plans, baselines, findings — staff
   | "os.settings" // brand profile, connections, autonomy, kill switch
   | "automations.manage" // build and edit workflows, add connections
+  | "ai.use" // run entitled AI Studio tools (metered). NOT work.execute: it makes drafts, nothing else
   | "automations.activate"; // turn a workflow on — client side only: it acts in the client's name
 
 const ALL: Permission[] = [
-  "org.manage", "org.billing", "team.manage", "apikeys.manage",
+  "org.manage", "org.billing", "org.export", "team.manage", "apikeys.manage",
   "leads.view", "leads.edit", "leads.import", "leads.export", "leads.delete", "leads.assign", "leads.contact",
   "campaigns.view", "campaigns.manage", "pipeline.manage", "reports.view",
   // client-side OS permissions; staff-only ones (work.manage/execute/review, strategy.manage) are NOT here
   "work.view", "work.request", "approvals.decide", "spend.approve", "contract.sign", "os.settings",
-  "automations.manage", "automations.activate",
+  "automations.manage", "automations.activate", "ai.use",
 ];
 
 const MATRIX: Record<ClientRole | StaffRole, readonly Permission[]> = {
@@ -76,7 +78,7 @@ const MATRIX: Record<ClientRole | StaffRole, readonly Permission[]> = {
   admin: ALL.filter((p) => p !== "org.manage" && p !== "spend.approve" && p !== "contract.sign"),
   campaign_manager: [
     "leads.view", "leads.import", "campaigns.view", "campaigns.manage", "reports.view",
-    "work.view", "work.request", "approvals.decide", "automations.manage",
+    "work.view", "work.request", "approvals.decide", "automations.manage", "ai.use",
   ],
   sales_manager: [
     "leads.view", "leads.edit", "leads.assign", "leads.contact", "leads.export",
@@ -87,9 +89,9 @@ const MATRIX: Record<ClientRole | StaffRole, readonly Permission[]> = {
   // staff never hold approvals.decide / spend.approve / contract.sign — Catalyst cannot approve its own work
   cgo_lead: [
     "work.view", "work.request", "work.manage", "work.execute", "work.review", "strategy.manage", "os.settings",
-    "leads.view", "campaigns.view", "campaigns.manage", "reports.view", "automations.manage",
+    "leads.view", "campaigns.view", "campaigns.manage", "reports.view", "automations.manage", "ai.use",
   ],
-  cgo_specialist: ["work.view", "work.execute", "campaigns.view", "reports.view", "automations.manage"],
+  cgo_specialist: ["work.view", "work.execute", "campaigns.view", "reports.view", "automations.manage", "ai.use"],
   cgo_reviewer: ["work.view", "work.review", "reports.view"],
   cgo_freelancer: ["work.execute"],
 };

@@ -5,7 +5,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/audit/db";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrg, requireOrgAction, requireOrgOrRedirect } from "@/lib/leados/auth";
 import { logLosAudit } from "@/lib/leados/audit";
 import {
   defaultFormSpec, defaultPageSpec, sanitizeFormSpec, validateCampaign,
@@ -15,7 +15,7 @@ import { randomToken } from "@/lib/leados/crypto";
 import type { FormState } from "../../(auth)/actions";
 
 export async function createCampaign(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("campaigns.manage");
+  const actor = await requireOrgAction("campaigns.manage"); if ("error" in actor) return actor;
   const name = String(form.get("name") ?? "").trim().slice(0, 160);
   const type = String(form.get("type") ?? "hosted_page");
   const objective = String(form.get("objective") ?? "generate_inquiries");
@@ -44,7 +44,7 @@ async function ownCampaign(orgId: string, id: string) {
 
 /** Saves one wizard section (offer | form | page | distribution) from JSON. */
 export async function saveCampaignSection(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("campaigns.manage");
+  const actor = await requireOrgAction("campaigns.manage"); if ("error" in actor) return actor;
   const id = String(form.get("campaignId"));
   const section = String(form.get("section"));
   const campaign = await ownCampaign(actor.orgId, id);
@@ -96,7 +96,8 @@ export async function saveCampaignSection(_prev: FormState, form: FormData): Pro
 }
 
 export async function submitCampaignForReview(campaignId: string): Promise<{ problems: { severity: string; message: string }[] }> {
-  const actor = await requireOrg("campaigns.manage");
+  // a refusal is shown in the same list the editor already renders; nothing is submitted
+  const actor = await requireOrgAction("campaigns.manage"); if ("error" in actor) return { problems: [{ severity: "error", message: actor.error }] };
   const campaign = await ownCampaign(actor.orgId, campaignId);
   if (!["draft", "rejected"].includes(campaign.status)) return { problems: [] };
   const problems = validateCampaign({
@@ -125,7 +126,7 @@ export async function submitCampaignForReview(campaignId: string): Promise<{ pro
 }
 
 export async function launchCampaign(campaignId: string): Promise<FormState> {
-  const actor = await requireOrg("campaigns.manage");
+  const actor = await requireOrgAction("campaigns.manage"); if ("error" in actor) return actor;
   const campaign = await ownCampaign(actor.orgId, campaignId);
   if (!["approved", "paused"].includes(campaign.status)) {
     return { error: "Campaign must be approved before launch." };
@@ -146,7 +147,7 @@ export async function launchCampaign(campaignId: string): Promise<FormState> {
 }
 
 export async function setCampaignStatus(campaignId: string, status: "paused" | "completed"): Promise<void> {
-  const actor = await requireOrg("campaigns.manage");
+  const actor = await requireOrgOrRedirect("campaigns.manage");
   const campaign = await ownCampaign(actor.orgId, campaignId);
   if (campaign.status !== "active" && status === "paused") return;
   await db.losCampaign.update({ where: { id: campaignId }, data: { status } });
@@ -155,7 +156,7 @@ export async function setCampaignStatus(campaignId: string, status: "paused" | "
 }
 
 export async function addTrackingLink(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("campaigns.manage");
+  const actor = await requireOrgAction("campaigns.manage"); if ("error" in actor) return actor;
   const campaignId = String(form.get("campaignId"));
   const label = String(form.get("label") ?? "").trim().slice(0, 80);
   if (!label) return { error: "Label the link (e.g. 'Facebook post', 'Event QR')." };

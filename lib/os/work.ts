@@ -8,6 +8,8 @@ import { logLosAudit } from "@/lib/leados/audit";
 import { canDecideApproval, canTransition, contentHash, gateAction, type Capability } from "./workflow";
 import { serviceBySlug } from "./catalog";
 import { entitlements } from "./entitlements";
+import { templateFor } from "./templates";
+import { notify } from "./notify";
 
 export type WorkActor = { orgId: string; userId: string; role: string };
 
@@ -30,6 +32,20 @@ const approvableText = (payload: string | null): string => {
   delete p.checklist;
   return JSON.stringify(p);
 };
+
+/** Handover / revoked workspaces keep their history but accept no new work, decisions or publishing. */
+export async function assertWritable(orgId: string) {
+  const ws = await db.cosWorkspace.findUnique({ where: { orgId }, select: { accessMode: true } });
+  if (ws && ws.accessMode !== "active") throw new WorkError("This workspace is in handover (read-only). History and exports remain available.");
+}
+
+/** Persistent snapshot of an approvable version — what "compare revisions" and approval evidence read. */
+export async function snapshotRevision(orgId: string, subject: "work_item" | "variant" | "campaign", subjectId: string, version: number, hash: string, snapshot: unknown, userId: string | null) {
+  await db.cosRevision.upsert({
+    where: { subject_subjectId_version: { subject, subjectId, version } }, update: {},
+    create: { orgId, subject, subjectId, version, contentHash: hash, snapshot: JSON.stringify(snapshot), createdById: userId },
+  });
+}
 
 /** Hash excludes the QA checklist so ticking boxes never voids a sign-off. */
 export const itemHash = (title: string, payload: string | null) => contentHash(title, approvableText(payload));
@@ -60,6 +76,17 @@ export type NewWorkItem = {
   commercial?: Record<string, unknown>;
   payload?: unknown;
   demo?: boolean;
+  // v2 chain links — each is verified to belong to the actor's org
+  engagementId?: string | null;
+  goalId?: string | null;
+  campaignId?: string | null;
+  cycleId?: string | null;
+  responsibility?: "catalyst" | "client" | "shared";
+  assignRole?: string | null;
+  acceptanceCriteria?: string | null;
+  measure?: string | null;
+  /** A client saving their own AI Studio output as a content DRAFT (needs ai.use, never work.manage). Must be in scope — no silent change request. */
+  studioDraft?: boolean;
 };
 
 /**
@@ -69,13 +96,25 @@ export type NewWorkItem = {
  */
 export async function createWorkItem(actor: WorkActor, input: NewWorkItem) {
   const isRequest = input.type === "change_request";
-  if (!can(actor.role, isRequest ? "work.request" : "work.manage")) throw new WorkError("Forbidden.");
+  const studioDraft = input.studioDraft === true && input.type === "content";
+  if (!can(actor.role, isRequest ? "work.request" : studioDraft ? "ai.use" : "work.manage")) throw new WorkError("Forbidden.");
   const title = input.title.trim();
   if (!title) throw new WorkError("Title is required.");
   const ent = await entitlements(actor.orgId);
+  if (ent.accessMode !== "active") throw new WorkError("This workspace is in handover (read-only). History and exports remain available.");
   const inScope = !isRequest && (!input.serviceSlug || ent.services.has(input.serviceSlug));
+  if (studioDraft && !inScope) throw new WorkError("Content is not part of this workspace's scope, so the draft stays in your AI Studio history. Ask Catalyst about adding it.");
   const type = inScope ? input.type ?? "task" : "change_request";
   const payload = json(input.payload);
+  // chain links must live in THIS org (ids come from forms)
+  const [eng, goal, camp] = await Promise.all([
+    input.engagementId ? db.cosEngagement.findFirst({ where: { id: input.engagementId, orgId: actor.orgId }, select: { id: true } }) : null,
+    input.goalId ? db.cosGoal.findFirst({ where: { id: input.goalId, orgId: actor.orgId }, select: { id: true, engagementId: true } }) : null,
+    input.campaignId ? db.cosCampaign.findFirst({ where: { id: input.campaignId, orgId: actor.orgId }, select: { id: true, engagementId: true, goalId: true } }) : null,
+  ]);
+  if ((input.engagementId && !eng) || (input.goalId && !goal) || (input.campaignId && !camp)) throw new WorkError("Linked engagement, goal or campaign not found.");
+  const contractId = inScope ? ent.contractForService(input.serviceSlug ?? null) : null;
+  const engagementId = eng?.id ?? camp?.engagementId ?? goal?.engagementId ?? (contractId ? (await db.cosContract.findUnique({ where: { id: contractId }, select: { engagementId: true } }))?.engagementId ?? null : null) ?? ent.defaultEngagementId;
   const item = await db.cosWorkItem.create({
     data: {
       orgId: actor.orgId,
@@ -87,7 +126,10 @@ export async function createWorkItem(actor: WorkActor, input: NewWorkItem) {
       findingId: input.findingId ?? null,
       planId: input.planId ?? null,
       templateKey: input.templateKey ?? null,
-      contractId: inScope ? ent.contractForService(input.serviceSlug ?? null) : null,
+      contractId,
+      engagementId, goalId: goal?.id ?? camp?.goalId ?? null, campaignId: camp?.id ?? null, cycleId: input.cycleId ?? null,
+      responsibility: input.responsibility ?? "catalyst", assignRole: input.assignRole ?? null,
+      acceptanceCriteria: input.acceptanceCriteria ?? null, measure: input.measure ?? null,
       priority: input.priority ?? 2,
       riskTier: input.riskTier ?? 1,
       clientReviewRequired: input.clientReviewRequired ?? true,
@@ -108,16 +150,19 @@ export async function createWorkItem(actor: WorkActor, input: NewWorkItem) {
       data: { orgId: actor.orgId, workItemId: item.id, actorId: actor.userId, actorType: "user", kind: "transition", toState: "backlog", data: json({ created: true, type, inScope }) },
     }),
     logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "work.created", entity: "CosWorkItem", entityId: item.id, data: { type, inScope, serviceSlug: item.serviceSlug } }),
+    snapshotRevision(actor.orgId, "work_item", item.id, 1, item.contentHash ?? "", { title, payload: parse(payload, null) }, actor.userId),
   ]);
   return item;
 }
 
 /** Instantiate a service's delivery template: one project + a milestone per gate. */
-export async function instantiateProject(actor: WorkActor, serviceSlug: string, title: string, demo = false) {
+export async function instantiateProject(actor: WorkActor, serviceSlug: string, title: string, demo = false, links: { engagementId?: string | null; goalId?: string | null; campaignId?: string | null } = {}) {
   const svc = serviceBySlug[serviceSlug];
   if (!svc) throw new WorkError("Unknown service.");
+  const tpl = templateFor(serviceSlug);
   const project = await createWorkItem(actor, {
-    title, type: "project", serviceSlug, templateKey: serviceSlug, clientReviewRequired: false, demo,
+    title, type: "project", serviceSlug, templateKey: serviceSlug, clientReviewRequired: false, demo, ...links,
+    acceptanceCriteria: tpl ? `Deliverables: ${tpl.deliverables.join("; ")}` : null, measure: tpl?.measures.map((x) => x.label).join("; ") ?? null,
     payload: { checklist: svc.qa.map((c) => ({ ...c, done: false })) },
   });
   // out of scope → it is a change request; milestones are created once it is approved
@@ -128,9 +173,27 @@ export async function instantiateProject(actor: WorkActor, serviceSlug: string, 
       orgId: actor.orgId, title: ms.title, type: "milestone", serviceSlug, studio: svc.studio, parentId: project.id,
       templateKey: `${serviceSlug}.${ms.key}`, contractId: project.contractId, riskTier: ms.riskTier, clientReviewRequired: ms.clientReview,
       ownerId: actor.userId, commercial: JSON.stringify({ inScope: true }), contentHash: itemHash(ms.title, null), createdById: actor.userId, demo,
+      engagementId: project.engagementId, goalId: project.goalId, campaignId: project.campaignId,
+      assignRole: tpl?.milestones[ms.key]?.role ?? null, acceptanceCriteria: tpl?.milestones[ms.key]?.acceptance ?? null,
+      responsibility: tpl?.milestones[ms.key]?.responsibility ?? "catalyst",
     })),
-    select: { id: true },
+    select: { id: true, templateKey: true },
   });
+  // explicit dependencies: milestone → earlier milestones, and → the engagement's intake items
+  if (tpl) {
+    const byKey = new Map(milestones.map((x) => [x.templateKey!.slice(serviceSlug.length + 1), x.id]));
+    const checklist = project.engagementId ? await db.cosChecklistItem.findMany({ where: { orgId: actor.orgId, engagementId: project.engagementId }, select: { id: true, key: true } }) : [];
+    const ck = new Map(checklist.map((c) => [c.key, c.id]));
+    const deps = Object.entries(tpl.milestones).flatMap(([key, spec]) => {
+      const workItemId = byKey.get(key);
+      if (!workItemId) return [];
+      return [
+        ...(spec.after ?? []).map((a) => ({ orgId: actor.orgId, workItemId, onWorkItemId: byKey.get(a) ?? null, onChecklistId: null as string | null })).filter((d) => d.onWorkItemId),
+        ...(spec.needs ?? []).map((n) => ({ orgId: actor.orgId, workItemId, onWorkItemId: null as string | null, onChecklistId: ck.get(n) ?? ck.get(`${serviceSlug}.${n}`) ?? null })).filter((d) => d.onChecklistId),
+      ];
+    });
+    if (deps.length) await db.cosDependency.createMany({ data: deps });
+  }
   await db.cosWorkEvent.createMany({
     data: milestones.map((ms) => ({ orgId: actor.orgId, workItemId: ms.id, actorId: actor.userId, actorType: "user", kind: "transition", toState: "backlog", data: json({ created: true, type: "milestone", inScope: true }) })),
   });
@@ -148,6 +211,14 @@ export async function transitionWorkItem(actor: WorkActor, id: string, to: strin
   if (!check.ok) throw new WorkError(check.reason);
   if (check.capability === "approval" || check.capability === "system") throw new WorkError("This step happens through the approval queue.");
   if (!can(actor.role, CAP_PERMISSION[check.capability])) throw new WorkError("Forbidden.");
+  await assertWritable(actor.orgId);
+
+  // Prerequisites: missing access or an unfinished predecessor blocks THIS item only.
+  if (to === "in_progress" && item.state !== "blocked") {
+    const { unmetDependencies } = await import("./engagement");
+    const unmet = await unmetDependencies(actor.orgId, item.id);
+    if (unmet.length) throw new WorkError(`Waiting on: ${unmet.map((u) => u.label).join("; ")}.`);
+  }
 
   const commercial = parse<{ inScope?: boolean }>(item.commercial, {});
   if (item.state === "scoped" && to === "ready" && commercial.inScope === false) {
@@ -184,13 +255,16 @@ export async function transitionWorkItem(actor: WorkActor, id: string, to: strin
   await db.$transaction([
     db.cosWorkItem.update({
       where: { id: item.id },
-      data: { state: to, stateBefore: to === "blocked" ? item.state : null, closedAt: closing ? new Date() : null },
+      // deliveredAt is stamped once — reports count it, never updatedAt
+      data: { state: to, stateBefore: to === "blocked" ? item.state : null, closedAt: closing ? new Date() : null, ...(to === "delivered" && !item.deliveredAt ? { deliveredAt: new Date() } : {}) },
     }),
     db.cosWorkEvent.create({
       data: { orgId: actor.orgId, workItemId: item.id, actorId: actor.userId, actorType: "user", kind: "transition", fromState: item.state, toState: to, data: json(note ? { note } : undefined) },
     }),
   ]);
   if (to === "client_review") await requestApproval(actor, item.id);
+  if (to === "delivered" || to === "verified" || to === "closed") await import("./engagement").then(({ releaseDependents }) => releaseDependents(actor.orgId, { workItemId: item.id }));
+  if (to === "blocked") await notify({ orgId: actor.orgId, audience: "staff", kind: "blocked", title: `Blocked: ${item.title}`, body: note ?? null, href: `/app/work/${item.id}`, dedupeKey: `blocked:${item.id}:${Date.now()}` });
   if (closing && item.findingId && to === "closed") {
     await db.cosFinding.updateMany({ where: { id: item.findingId, orgId: actor.orgId }, data: { statusNote: "Work delivered and closed." } });
   }
@@ -206,6 +280,7 @@ export async function editWorkItem(actor: WorkActor, id: string, patch: { title?
   const item = await getWorkItem(actor, id);
   if (!can(actor.role, "work.execute") && !can(actor.role, "work.manage")) throw new WorkError("Forbidden.");
   if (item.state === "closed" || item.state === "cancelled") throw new WorkError("Item is closed.");
+  await assertWritable(actor.orgId);
   const title = patch.title?.trim() || item.title;
   const payload = patch.payload === undefined ? item.payload : json(patch.payload);
   const hash = itemHash(title, payload);
@@ -241,6 +316,11 @@ export async function editWorkItem(actor: WorkActor, id: string, patch: { title?
       });
     }
   });
+  if (material) {
+    await snapshotRevision(actor.orgId, "work_item", item.id, item.version + 1, hash, { title, payload: parse(payload, null) }, actor.userId);
+    // shared source changed → flag the channel variants for review; their own approvals stay valid
+    await db.cosContentVariant.updateMany({ where: { orgId: actor.orgId, workItemId: item.id, state: { notIn: ["published", "cancelled"] } }, data: { sourceChanged: true } });
+  }
 }
 
 export async function addWorkEvent(actor: WorkActor, id: string, ev: { kind: "comment" | "time" | "ai"; text?: string; minutes?: number; aiCostMicros?: number; model?: string; internal?: boolean }) {
@@ -300,6 +380,7 @@ export async function requestApproval(actor: WorkActor, id: string, summary?: st
     },
   });
   await db.cosWorkEvent.create({ data: { orgId: actor.orgId, workItemId: id, actorId: actor.userId, actorType: "user", kind: "approval", data: json({ approvalId: approval.id, status: "requested", version: item.version }) } });
+  await notify({ orgId: actor.orgId, audience: "client", kind: "approval_requested", title: `Your decision is needed: ${item.title}`, href: "/app/approvals", dedupeKey: `approval:${approval.id}` });
   return approval;
 }
 
@@ -311,9 +392,10 @@ export async function requestApproval(actor: WorkActor, id: string, summary?: st
  */
 export async function decideApproval(actor: WorkActor, approvalId: string, decision: "approved" | "approved_with_edits" | "rejected", opts: { reason?: string; editedPayload?: unknown } = {}) {
   const approval = await db.cosApproval.findFirst({ where: { id: approvalId, orgId: actor.orgId } });
-  if (!approval || !approval.workItemId) throw new WorkError("Approval not found.");
+  if (!approval || !approval.workItemId || approval.subject !== "work_item") throw new WorkError("Approval not found.");
   const item = await db.cosWorkItem.findFirst({ where: { id: approval.workItemId, orgId: actor.orgId } });
   if (!item) throw new WorkError("Work item not found.");
+  await assertWritable(actor.orgId);
   const commercial = parse<{ inScope?: boolean; incrementalCharge?: number }>(item.commercial, {});
   const needsSpend = item.riskTier >= 3 || (commercial.inScope === false && (commercial.incrementalCharge ?? 0) > 0);
   if (!can(actor.role, needsSpend ? "spend.approve" : "approvals.decide")) throw new WorkError(needsSpend ? "Only a workspace owner can approve spend, releases or paid scope changes." : "Forbidden.");
@@ -354,6 +436,16 @@ export async function decideApproval(actor: WorkActor, approvalId: string, decis
       data: { orgId: actor.orgId, workItemId: item.id, actorId: actor.userId, actorType: "user", kind: "approval", fromState: item.state, toState: nextState, data: json({ approvalId: approval.id, status: decision, version, reason: opts.reason?.trim() }) },
     });
   });
+  await db.cosNotification.updateMany({ where: { dedupeKey: `approval:${approval.id}`, readAt: null }, data: { readAt: new Date() } });
+  if (decision === "approved_with_edits") {
+    const fresh = await db.cosWorkItem.findUniqueOrThrow({ where: { id: item.id } });
+    await snapshotRevision(actor.orgId, "work_item", item.id, fresh.version, fresh.contentHash ?? "", { title: fresh.title, payload: parse(fresh.payload, null), editedByClient: true }, actor.userId);
+  }
+  if (decision === "rejected") await notify({ orgId: actor.orgId, userId: item.assigneeId ?? item.ownerId, audience: "staff", kind: "revision_requested", title: `Revision requested: ${item.title}`, body: opts.reason ?? null, href: `/app/work/${item.id}`, dedupeKey: `revision:${approval.id}` });
+  // An approved PAID scope change becomes a commercial record — once (unique per change request).
+  if (decision !== "rejected" && commercial.inScope === false && (commercial.incrementalCharge ?? 0) > 0 && item.engagementId) {
+    await import("./commercial").then(({ recordApprovedChange }) => recordApprovedChange(actor.orgId, item.engagementId!, item.id, item.title, commercial.incrementalCharge!, actor.userId));
+  }
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: `approval.${decision}`, entity: "CosApproval", entityId: approval.id, data: { workItemId: item.id, version: item.version, tier: item.riskTier } });
   await import("./automation/engine").then(({ dispatchEvent }) => dispatchEvent(actor.orgId, "trigger.approval_decided", { workItemId: item.id, title: item.title, decision, to: decision }, `approval:${approval.id}`)).catch(() => {});
 }
@@ -365,7 +457,12 @@ export async function revokeApproval(actor: WorkActor, approvalId: string, reaso
   const approval = await db.cosApproval.findFirst({ where: { id: approvalId, orgId: actor.orgId } });
   if (!approval || !canDecideApproval(approval.status, "revoked")) throw new WorkError("Nothing to revoke.");
   await db.cosApproval.update({ where: { id: approval.id }, data: { status: "revoked", reason: reason.trim(), decidedAt: new Date(), decidedById: actor.userId } });
-  if (approval.workItemId) {
+  if (approval.subject === "variant") {
+    // only THAT channel version loses its sign-off: back to draft, anything still scheduled is cancelled
+    await db.cosContentVariant.updateMany({ where: { id: approval.subjectId, orgId: actor.orgId, state: { in: ["approved", "scheduled"] } }, data: { state: "draft", scheduledAt: null } });
+    await db.cosPublication.updateMany({ where: { orgId: actor.orgId, variantId: approval.subjectId, status: "scheduled" }, data: { status: "cancelled", lastError: "Approval revoked by the client." } });
+    if (approval.workItemId) await db.cosWorkEvent.create({ data: { orgId: actor.orgId, workItemId: approval.workItemId, variantId: approval.subjectId, actorId: actor.userId, actorType: "user", kind: "approval", data: json({ approvalId, status: "revoked", reason: reason.trim() }) } });
+  } else if (approval.workItemId) {
     const item = await db.cosWorkItem.findFirst({ where: { id: approval.workItemId, orgId: actor.orgId } });
     if (item && ["approved", "scheduled"].includes(item.state)) {
       await db.cosWorkItem.update({ where: { id: item.id }, data: { state: "revision_requested" } });
@@ -402,7 +499,7 @@ export async function publishWorkItem(actor: WorkActor, id: string) {
   if (claim.count !== 1) throw new WorkError("This item is already being published or was published.");
   try {
     const externalId = await publishText(actor.orgId, channel, payload.body);
-    await db.cosWorkItem.update({ where: { id: item.id }, data: { state: "delivered", outcome: JSON.stringify({ externalId, channel, publishedAt: new Date().toISOString() }) } });
+    await db.cosWorkItem.update({ where: { id: item.id }, data: { state: "delivered", deliveredAt: item.deliveredAt ?? new Date(), outcome: JSON.stringify({ externalId, channel, publishedAt: new Date().toISOString() }) } });
     await log({ published: channel, externalId }, "delivered");
     await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "work.published", entity: "CosWorkItem", entityId: item.id, data: { channel, version: item.version } });
     return externalId;

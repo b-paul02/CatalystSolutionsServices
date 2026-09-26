@@ -28,11 +28,11 @@ describe("work state machine", () => {
     expect(canTransition("in_progress", "delivered", item).ok).toBe(false);
     expect(canTransition("client_review", "delivered", item).ok).toBe(false);
     expect(canTransition("backlog", "approved", item).ok).toBe(false);
-    // client_review → approved exists ONLY for the approval engine
+    // client_review â†’ approved exists ONLY for the approval engine
     expect(nextStates("client_review", item, ["manage", "execute", "review"])).not.toContain("approved");
   });
 
-  it("items without client review go QA → approved, and cannot be sent to the client", () => {
+  it("items without client review go QA â†’ approved, and cannot be sent to the client", () => {
     const internal = { clientReviewRequired: false, stateBefore: null };
     expect(canTransition("internal_qa", "approved", internal).ok).toBe(true);
     expect(canTransition("internal_qa", "client_review", internal).ok).toBe(false);
@@ -95,7 +95,7 @@ describe("findings, plan diff, attribution", () => {
     expect(canMoveFinding("proposed", "accepted")).toBe(true);
     expect(canMoveFinding("accepted", "rejected")).toBe(false);
   });
-  it("flags ±5pt allocation moves as material", () => {
+  it("flags Â±5pt allocation moves as material", () => {
     const d = allocationDiff([{ channel: "seo", pct: 50 }, { channel: "ads", pct: 50 }], [{ channel: "seo", pct: 46 }, { channel: "ads", pct: 44 }, { channel: "email", pct: 10 }]);
     expect(d.material).toBe(true);
     expect(d.rows.find((r) => r.channel === "seo")?.material).toBe(false);
@@ -139,8 +139,8 @@ describe("OS RBAC: separation of duties", () => {
 });
 
 describe("catalogue", () => {
-  it("has the twelve service lines, each with milestones and a QA gate", () => {
-    expect(SERVICES).toHaveLength(12);
+  it("has the fourteen service lines, each with milestones and a QA gate", () => {
+    expect(SERVICES).toHaveLength(14);
     for (const s of SERVICES) {
       expect(s.milestones.length).toBeGreaterThan(0);
       expect(s.qa.length).toBeGreaterThan(0);
@@ -161,7 +161,7 @@ describe("catalogue", () => {
 
 describe("audit mapping", () => {
   const base: ReportJSON = { business_name: "X", snapshot: "s", key_points: [], findings: [{ text: "Weak CTA", evidence: "homepage hero", severity: "high" }], icps: [{ name: "Ops lead", body: "b" }], routes: [], quick_wins: [], assumptions: [], cta: "" };
-  it("no scorecard → every pillar is unavailable with a NULL score, never 0", () => {
+  it("no scorecard â†’ every pillar is unavailable with a NULL score, never 0", () => {
     const a = auditFromReport(base, "https://x.test");
     for (const p of PILLARS) expect(a.scores[p.key]).toEqual({ score: null, label: "unavailable" });
     expect(a.summary.limitations.length).toBeGreaterThan(0);
@@ -195,9 +195,9 @@ describe("connectors (no network)", () => {
     delete process.env.X_CLIENT_ID;
     expect(providerEnabled("x")).toBe(false);
     if (saved) process.env.X_CLIENT_ID = saved;
-    // Meta is "coming soon": never connectable, even with credentials present
+    // Meta became connectable in GrowthOS v2 (brief §H) — like every provider, only when its app credentials exist
     process.env.META_APP_ID = "id"; process.env.META_APP_SECRET = "secret";
-    expect(providerEnabled("meta")).toBe(false);
+    expect(providerEnabled("meta")).toBe(true);
   });
   it("builds an authorize URL with state, exact callback, and PKCE only where required", () => {
     process.env.X_CLIENT_ID = "cid"; process.env.GOOGLE_CLIENT_ID = "gid";

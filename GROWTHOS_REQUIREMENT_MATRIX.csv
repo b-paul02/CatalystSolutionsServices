@@ -1,0 +1,80 @@
+Requirement ID,Requirement,Frontend evidence,Backend evidence,Persistence evidence,Test/runtime evidence,Status,Gap
+R-AI-01,Entitled client can discover and open an AI Studio,"No route/nav item; find ""AI"" on signed-in client surface returns only incidental substrings",No client-facing AI action exists,No AI tool/session table,"Audit test: no client role holds work.execute/work.manage/strategy.manage",Absent from inspected scope,Entire client AI surface missing
+R-AI-02,Client-operated AI tools with inputs/brand context/limits,n/a,"6 AI actions exist but all staff-permissioned (_os/actions.ts, _os/v2.ts, assets/actions.ts)",Brand/source context persisted (CosBusinessProfile/CosSource/CosClaim) and injected into prompts,Validators unit-tested; live model never called,Partially implemented,Tooling exists for staff only; no client entry
+R-AI-03,Displayed price/credit quote before execution,None,No quote function,No quote/rate-card model,Audit test: no wallet/quote/reservation model in schema,Absent from inspected scope,No quoting concept at all
+R-AI-04,Generate to queued/running to output to saved content,None for clients,variantsAiDraft is synchronous and staff-only,Output persists as CosContentVariant,Acceptance step 5 (library level),Partially implemented,No queue; no client path
+R-AI-05,Insufficient credit behaviour,None,No balance check,No balance,"Audit test: org with aiCredits=0 executed AI successfully",Absent from inspected scope,Nothing to check against
+R-AI-06,Failed AI execution behaviour,None,metered() records ok:false and rethrows,CosAiUsage.ok,Audit test (stub failure path not asserted),Partially implemented,No reservation to release
+R-AI-07,Regeneration and repeated-click idempotency for AI,None,No request id on AI actions,None,Not tested,Absent from inspected scope,Repeated clicks would re-execute and re-bill
+R-AI-08,Draft versus approval/publishing authority,Approvals UI separates them,AI output always lands as draft; publish needs approval + gateAction,CosApproval bound to version+hash,Acceptance steps 6-8 pass,Verified in isolated runtime,None
+R-AI-09,Org-owned AI wallet with balance,None,None,None,Audit test: no matching model,Absent from inspected scope,Core of latest brief missing
+R-AI-10,AI wallet separate from LeadOS lead tokens,Billing page sells lead tokens only,LosTokenLedger is lead tokens,LosTokenLedger,"Audit test: crediting 500 tokens changed no AI capability",Absent from inspected scope,Only one currency exists and it is not AI
+R-AI-11,Append-only AI credit ledger,None,None,None,Audit test,Absent from inspected scope,No ledger
+R-AI-12,Purchased/included/promotional grants with expiry,None,None,allowances.aiCredits is a static contract number,Audit test: never enforced,Absent from inspected scope,No grant concept
+R-AI-13,Reservations with atomic balance check,None,None,None,Audit test: 25 concurrent executions all succeeded,Absent from inspected scope,No overspend protection to assess
+R-AI-14,Settlement cannot exceed authorised maximum,None,None,None,n/a,Absent from inspected scope,No authorisation step
+R-AI-15,Internal vs client-billed AI usage separation,Operator console shows usage per org,metered() writes orgId with no internal flag,CosAiUsage has no billable/internal column,Audit test confirms staff drafting writes to client org,Absent from inspected scope,Would silently bill clients for Catalyst internal work
+R-AI-16,Client balance and transaction history,None,None,None,Browser: billing page shows lead tokens only,Absent from inspected scope,No AI history for clients
+R-AI-17,Credits do not unlock services or authorise publishing,Billing page separate from scope,Entitlements derive from contracts only,CosContract drives modules/services,Audit test: token purchase expanded nothing,Verified in isolated runtime,Holds vacuously (no AI credits exist)
+R-AI-18,Zero balance preserves data and manual functions,Pages render at zero balance,No balance gating anywhere,-,Audit test: client request + staff work both succeeded at zero,Verified in isolated runtime,None
+R-PAY-01,Credit package checkout,None,None,None,-,Absent from inspected scope,No AI credit purchase
+R-PAY-02,Server-validated price and tenant-linked order,Token pack UI,createTokenCheckout validates pack server-side,Stripe session metadata,Not runtime-verified,"Implemented, not runtime-verified",Live Stripe never exercised
+R-PAY-03,Verified webhook settles to ledger/balance,-,handleStripeEvent verifies HMAC then applies once,CosPaymentEvent unique providerEventId,HTTP: unsigned and bad-signature both 400; acceptance step 14 duplicate+mismatch,Verified in isolated runtime,Fixture-level only; no live delivery
+R-PAY-04,Duplicate/out-of-order events,-,Unique event id claim,CosPaymentEvent,Acceptance step 14: replay returns duplicate,Verified in isolated runtime,Out-of-order not explicitly handled
+R-PAY-05,Successful payment with browser closed,-,Webhook path independent of redirect,Claim row prevents double credit,Not runtime-verified,"Implemented, not runtime-verified",Needs live delivery
+R-PAY-06,Forged success URL,-,Session re-fetched from Stripe; orgId checked,-,Code-traced only,"Implemented, not runtime-verified",Not exploitable by URL alone
+R-PAY-07,Refunds/chargebacks after use,-,No handler,-,-,Absent from inspected scope,No refund/dispute path
+R-PAY-08,Purchase vs engagement billing separation,Separate pages,Separate ledgers/records,LosTokenLedger vs CosCommercialRecord,Acceptance step 14,Verified in isolated runtime,None
+R-JRN-01,Audit/direct/partner entry,Admin provisioning form,createEngagement with entrySource,CosEngagement.entrySource + unique partnerDealId,Acceptance step 1 (concurrent link yields one),Verified in isolated runtime,Library level; admin form not exercised
+R-JRN-02,Multiple engagements per org,Engagement list page,Supported,CosEngagement per org,Acceptance step 1,Verified in isolated runtime,None
+R-JRN-03,Accepted scope only by client signature,Home sign panel,acceptEngagementBySignature; staff move refused,CosEngagement.stage,Acceptance step 2,Partially implemented,Real signContract action never exercised by tests
+R-JRN-04,Discovery and brand profile,Growth Plan profile page,profileSave,CosBusinessProfile versioned,Seeded and rendered,"Implemented, not runtime-verified",Page not browser-checked
+R-JRN-05,Readiness and access checklist,Engagement page,seedChecklist/resolveChecklistItem,CosChecklistItem unique per engagement+key,Acceptance steps 2-3; browser-verified,Verified in isolated runtime,None
+R-JRN-06,Work dependencies and blockers,Work item panel,CosDependency + unmetDependencies,CosDependency,Acceptance step 3,Verified in isolated runtime,Panel not browser-checked
+R-JRN-07,Catalyst/client/shared responsibility,Engagement roadmap,responsibility column,CosWorkItem.responsibility,Seeded + rendered,Verified in isolated runtime,None
+R-JRN-08,Scope change with commercial approval,Approvals UI,change_request + owner-only spend approval,CosCommercialRecord unique per work item,Acceptance step 14; browser shows pending change,Verified in isolated runtime,None
+R-JRN-09,Internal QA before client approval,Content/work pages,State machine gates,CosWorkItem.state,Acceptance step 6,Verified in isolated runtime,None
+R-JRN-10,Client revision and approval,Approvals page,decideApproval/decideVariantApproval,CosApproval,Browser: approval made through the UI,Verified in isolated runtime,None
+R-JRN-11,Recurring delivery,Engagement page,generateCycle idempotent,CosCycle unique engagement+periodStart,Acceptance step 13 (4 concurrent = 1),Verified in isolated runtime,Depends on unscheduled tick
+R-JRN-12,Renewal and pause,Engagement page,tickEngagements + hold,CosEngagement.renewalAt/hold,Acceptance step 13,Verified in isolated runtime,Reminder delivery depends on tick
+R-JRN-13,Export/handover and historical access,Engagement page + /api/os/export,handOver + buildExport,accessMode read_only,Acceptance step 15; HTTP 401 unauth,Verified in isolated runtime,None
+R-JRN-14,Templates instantiated into usable work,Engagement roadmap,instantiateProject creates milestones+deps,CosWorkItem tree,Acceptance step 3; browser-verified,Verified in isolated runtime,None
+R-CNT-01,Goals linked to campaigns,Campaign page,createCampaign goalId,CosCampaign.goalId,Acceptance step 4,Verified in isolated runtime,Campaign page not browser-checked
+R-CNT-02,Master content and channel variants,Content piece page,createMaster/createVariant,CosContentVariant,Acceptance step 5; browser-verified,Verified in isolated runtime,None
+R-CNT-03,Asset uploads and secure access,Assets page + upload form,uploadAsset with sniffing/limits,CosAsset/CosAssetVersion,Acceptance step 15; audit cross-tenant test; HTTP 401,Verified in isolated runtime,Browser upload not exercised
+R-CNT-04,Persisted revision snapshots,Compare panel,snapshotRevision,CosRevision unique subject+version,Acceptance steps 5 and 7,Verified in isolated runtime,None
+R-CNT-05,Per-variant approvals,Approvals page,decideVariantApproval,CosApproval subject=variant,Acceptance step 6; browser approval,Verified in isolated runtime,None
+R-CNT-06,Approval invalidation on copy/media/destination change,Content piece page,editVariant re-hash,contentHash + revoked approvals,Acceptance step 7,Verified in isolated runtime,None
+R-CNT-07,Multiple accounts per provider,Settings connections,discoverAccounts per account,unique org+provider+externalAccountId,Adapter contract tests,"Implemented, not runtime-verified",No live OAuth
+R-CNT-08,Timezone and DST handling,Calendar and scheduling,zonedToUtc reports gap/ambiguity,scheduledAt UTC + timezone,v2-rules DST tests; acceptance step 8,Verified in isolated runtime,None
+R-CNT-09,Scheduled job execution,-,runDuePublications + job queue,CosPublication.scheduledAt,Acceptance step 8,Partially implemented,Nothing schedules the tick in deployment
+R-CNT-10,Publish-time permission and approval checks,-,preflight revalidates approval/entitlement/killswitch,-,Acceptance step 8c,Verified in isolated runtime,None
+R-CNT-11,Duplicate publication prevention,-,Atomic claim + idempotencyKey,CosPublication unique,Acceptance step 8 (10 concurrent = 1),Verified in isolated runtime,None
+R-CNT-12,Retryable vs uncertain outcomes,Content piece shows state,Failure classification,CosPublishAttempt append-only,Acceptance step 8b,Verified in isolated runtime,TEST adapter only
+R-CNT-13,External publication identity,Content piece shows link,externalId/externalUrl stored,CosPublication,Acceptance step 8,Test fixture/mock only,No real platform id yet
+R-CNT-14,Partial publication failure,Content piece shows parts done,partExternalIds preserved,CosPublication.partExternalIds,Acceptance step 8b,Verified in isolated runtime,None
+R-CNT-15,YouTube/X/LinkedIn/Facebook/Instagram/WordPress publishing,Channel pickers,Adapters per channel,-,Adapter contract fixtures,Externally blocked,No provider credentials or app approvals
+R-ANL-01,Per-publication metrics,Results content view,syncPublicationMetrics,CosMetricSnapshot dimKey pub:,Acceptance step 9; browser-verified,Verified in isolated runtime,Real platform sync unverified
+R-ANL-02,Campaign reporting,Results campaigns view,campaignContentTotals,CosMetricSnapshot dimKey camp:,Acceptance step 9,Verified in isolated runtime,None
+R-ANL-03,Lead capture linkage,Campaign page,attributionFor at capture,LosLead.marketingCampaignId/variantId,Acceptance step 10,Verified in isolated runtime,None
+R-ANL-04,Opportunity and recorded sale linkage,Lead panel,createOpportunity/setOpportunityStatus,CosOpportunity,Acceptance step 11,Verified in isolated runtime,Lead panel not browser-checked
+R-ANL-05,Snapshot vs incremental metric handling,Results labels totals to date,daily sums; lifetime latest,CosMetricSnapshot.kind,Acceptance step 9,Verified in isolated runtime,None
+R-ANL-06,Currency handling,Results per-currency tiles,businessOutcomes groups by currency,BigInt minor units,Acceptance step 12,Verified in isolated runtime,None
+R-ANL-07,Organic vs paid,Campaign table column,paidMode on snapshots,CosMetricSnapshot.paidMode,Not asserted in tests,"Implemented, not runtime-verified",Depends on GA4 sync
+R-ANL-08,Unknown/manual attribution labels,Results shows known/told us/unknown,attributionKind,LosLead.attributionKind,Acceptance steps 10 and 12; browser-verified,Verified in isolated runtime,None
+R-ANL-09,Data freshness and sync errors,Results banner for failed connections,lastCheckedAt/lastError,CosConnection,Not runtime-verified,"Implemented, not runtime-verified",No real sync failure observed
+R-ANL-10,Demo exclusion,Results notes demo workspace,demo filter in queries,demo flags,Acceptance steps 9 and 12,Verified in isolated runtime,None
+R-ANL-11,Missing versus zero,Results shows Not available,metricsFor omits absent metrics,-,Acceptance step 9; browser-verified,Verified in isolated runtime,None
+R-ANL-12,Search Console clicks not labelled sessions,Results labels both distinctly,Separate metric definitions,CosMetricPoint vs CosMetricSnapshot,Browser-verified wording,Verified in isolated runtime,None
+R-SEC-01,Tenant isolation on v2 surfaces,-,orgId from membership only,FKs to LosOrg,Audit test: assets/export/work cross-tenant refused,Verified in isolated runtime,None
+R-SEC-02,Normal seeded login,Sign-in form,createLosSession,LosSession,Browser: real email+password login succeeded,Verified in isolated runtime,None
+R-SEC-03,Service entitlement enforced server-side,Nav hides items,requireOrg CRM gate + apiAuth gate,-,Browser: org without CRM refused at /app/leads,Broken,Refusal renders HTTP 500 instead of a graceful page
+R-SEC-04,Scheduler endpoint authentication,-,Bearer CRON_SECRET,-,HTTP: 401 without and with wrong bearer,Verified in isolated runtime,None
+R-SEC-05,Test adapters cannot activate in production,-,NODE_ENV check + explicit flag,-,Code-traced; unit-tested in v2-rules,Verified in isolated runtime,None
+R-SEC-06,Local test guard effectiveness,-,pinTestDatabase fail-closed,-,v2-rules tests; verified before writes,Verified in isolated runtime,None
+R-SEC-07,Credential fallback removal,-,dev-secret removed from 3 call sites,Versioned ciphertext k2,v2-rules key tests,Verified in isolated runtime,Rotation status unknown
+R-SEC-08,Registration gating,Register page,Invitation required unless flag on,LosInvitation,Not exercised,"Implemented, not runtime-verified",Not clicked through
+R-OPS-01,Operator cross-client console,/admin/os,OpsOverview queries,-,Render test against DB,"Implemented, not runtime-verified",Admin password unavailable to auditor
+R-OPS-02,Scheduler wired in deployment,-,/api/os/tick exists,CosHeartbeat,HTTP 401 auth check only,Broken,vercel.json schedules only the two daily crons
+R-OPS-03,Production asset storage,Assets page,Vercel Blob adapter,-,No test touches it,Broken,@vercel/blob not installed; selecting it throws
+R-OPS-04,Image generation,Assets panel,imagegen adapter,CosAsset origin ai_generated,No test; never executed,"Implemented, not runtime-verified",No provider configured

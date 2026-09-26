@@ -13,7 +13,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <>
       <div className="border-b border-[var(--color-line)] bg-[var(--color-bg-2)]">
         <div className="shell flex flex-wrap items-center justify-between gap-3 py-3">
-          <nav className="flex items-center gap-5 text-[13.5px] font-medium">
+          <nav className="flex max-w-full items-center gap-5 overflow-x-auto text-[13.5px] font-medium">
             <span className="text-[12px] font-bold uppercase tracking-[0.08em] text-[var(--color-brand-soft)]">Admin</span>
             <Link href="/admin/reviews" className="text-[var(--color-muted)] hover:text-white">Reviews</Link>
             <Link href="/admin/leads" className="text-[var(--color-muted)] hover:text-white">Leads</Link>
@@ -22,7 +22,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link href="/admin/partners" className="text-[var(--color-muted)] hover:text-white">Partners</Link>
             <Link href="/admin/partners/deals" className="text-[var(--color-muted)] hover:text-white">Deals</Link>
             <Link href="/admin/os" className="text-[var(--color-muted)] hover:text-white">GrowthOS</Link>
-            <Link href="/admin/leados" className="text-[var(--color-muted)] hover:text-white">LeadOS</Link>
           </nav>
           <div className="flex items-center gap-4">
             <span className="text-[12.5px] text-[var(--color-faint)]">{email}</span>

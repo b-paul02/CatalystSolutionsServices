@@ -1,4 +1,4 @@
-import { requireOrg } from "@/lib/leados/auth";
+import { requireModule } from "@/lib/os/guard";
 import { can } from "@/lib/leados/rbac";
 import { db } from "@/lib/audit/db";
 import DiscoverClient from "./DiscoverClient";
@@ -6,7 +6,7 @@ import DiscoverClient from "./DiscoverClient";
 export const metadata = { title: "B2B Discovery" };
 
 export default async function DiscoverPage() {
-  const actor = await requireOrg("leads.view");
+  const { actor } = await requireModule("lead_supply", "leads.view");
   const [savedSearches, exclusions, inventoryCount] = await Promise.all([
     db.losSavedSearch.findMany({ where: { orgId: actor.orgId }, orderBy: { createdAt: "desc" } }),
     db.losExclusion.findMany({ where: { orgId: actor.orgId }, orderBy: { domain: "asc" } }),

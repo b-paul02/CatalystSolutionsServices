@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireModule } from "@/lib/os/guard";
 import { db } from "@/lib/audit/db";
 import { tokenBalance } from "@/lib/leados/tokens";
 import { Badge, Card } from "@/components/leados/ui";
@@ -8,7 +8,7 @@ import ReplacementButton from "./ReplacementButton";
 export const metadata = { title: "Deliveries" };
 
 export default async function DeliveriesPage() {
-  const actor = await requireOrg("leads.view");
+  const { actor } = await requireModule("lead_supply", "leads.view");
   const [plans, allocations, balance] = await Promise.all([
     db.losLeadPlan.findMany({
       where: { orgId: actor.orgId, status: { in: ["active", "paused"] } },

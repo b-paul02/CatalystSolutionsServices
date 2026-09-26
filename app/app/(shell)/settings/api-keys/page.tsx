@@ -1,4 +1,4 @@
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { can } from "@/lib/leados/rbac";
 import { db } from "@/lib/audit/db";
 import ApiKeyManager from "./ApiKeyManager";
@@ -6,7 +6,7 @@ import ApiKeyManager from "./ApiKeyManager";
 export const metadata = { title: "API keys" };
 
 export default async function ApiKeysPage() {
-  const actor = await requireOrg();
+  const actor = await requireOrgPage();
   const keys = await db.losApiKey.findMany({
     where: { orgId: actor.orgId, revokedAt: null },
     orderBy: { createdAt: "desc" },

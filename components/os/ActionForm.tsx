@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { FormNotice } from "@/components/leados/ui";
 
-type State = { error?: string; ok?: string };
+type State = { error?: string; ok?: string; href?: string };
 
 // One wrapper for every OS server-action form: pending state + inline result.
 export default function ActionForm({
@@ -33,7 +33,7 @@ export default function ActionForm({
       <button disabled={pending} className={`rounded-lg px-3 py-1.5 text-[13px] font-semibold disabled:opacity-50 ${btn}`}>
         {pending ? "…" : submit}
       </button>
-      {(state.error || state.ok) && <div className="mt-2"><FormNotice state={state} /></div>}
+      {(state.error || state.ok) && <div className="mt-2" role="status"><FormNotice state={state} />{state.ok && state.href && <a href={state.href} className="mt-1 inline-block text-[13px] font-semibold text-[var(--los-brand)] underline">Open it</a>}</div>}
     </form>
   );
 }

@@ -1,0 +1,9 @@
+check                     status    expected
+tick no auth              401       401
+tick wrong bearer         401       401
+stripe webhook no sig     400       400
+stripe webhook bad sig    400       400
+export unauth             401       401
+asset unauth              401       401
+assets upload unauth      401       401
+os hook bad token         202       404/401

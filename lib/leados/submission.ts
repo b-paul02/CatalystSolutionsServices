@@ -146,6 +146,9 @@ export async function processSubmission(opts: {
       where: { id: leadId },
       data: { intentScore, ownerId, status: ownerId ? "assigned" : "new" },
     });
+    // GrowthOS attribution: set ONCE at capture from the campaign-tagged link (first touch we can prove).
+    const { attributionFor } = await import("@/lib/os/outcomes");
+    await db.losLead.update({ where: { id: leadId }, data: await attributionFor(campaign.orgId, opts.utm, campaign.marketingCampaignId, values.heardFrom ?? values.howDidYouHear ?? null) });
   }
 
   // 4. store the submission with full evidence context

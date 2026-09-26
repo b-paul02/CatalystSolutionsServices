@@ -2,6 +2,7 @@
 // hashed at rest), MFA gating, and the tenancy guards every server action and
 // route handler must call. A layout/middleware check is never sufficient alone.
 import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { db } from "@/lib/audit/db";
 import { randomToken, sha256 } from "./crypto";
@@ -150,7 +151,32 @@ export async function requireOrg(...anyOf: Permission[]): Promise<OrgActor> {
   if (anyOf.length > 0 && !anyOf.some((p) => can(role, p))) {
     throw new LosAuthError("Forbidden.", 403);
   }
+  // Service entitlement, server-side: CRM / lead-supply pages, actions and routes all ask for a
+  // leads.* / campaigns.* / pipeline.* permission, so the purchased-scope check lives here — hiding
+  // a nav link is not access control. Pre-OS (legacy) orgs keep both modules.
+  if (anyOf.length > 0 && anyOf.every((p) => /^(leads|campaigns|pipeline)\./.test(p))) {
+    const { entitlements } = await import("@/lib/os/entitlements");
+    const ent = await entitlements(m.orgId);
+    if (!ent.modules.has("crm") && !ent.modules.has("lead_supply")) throw new LosAuthError("Leads and pipeline are not part of this workspace's scope.", 403);
+  }
   return { ...actor, orgId: m.orgId, role };
+}
+
+/**
+ * requireOrg for server ACTIONS that return a form state. Being refused (signed out, wrong role, out of scope) is an
+ * ordinary outcome: it comes back as `{ error }` for the form to show — a thrown error would surface as an application
+ * error in the browser. Unexpected errors still throw.
+ */
+export async function requireOrgAction(...anyOf: Permission[]): Promise<OrgActor | { error: string }> {
+  try { return await requireOrg(...anyOf); } catch (e) { if (e instanceof LosAuthError) return { error: e.message }; throw e; }
+}
+
+/** requireOrg for actions with nothing to return (called from buttons): a refusal lands on the login or "not available" screen. */
+export async function requireOrgOrRedirect(...anyOf: Permission[]): Promise<OrgActor> {
+  try { return await requireOrg(...anyOf); } catch (e) {
+    if (!(e instanceof LosAuthError)) throw e;
+    redirect(e.status === 401 ? "/app/login" : `/app/denied?why=${/scope/i.test(e.message) ? "scope" : "role"}`);
+  }
 }
 
 // ── platform admin ───────────────────────────────────────────────────────────

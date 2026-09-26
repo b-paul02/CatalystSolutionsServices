@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { WorkContext } from "@/components/os/panels";
 import { notFound } from "next/navigation";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { db } from "@/lib/audit/db";
 import { can, isStaffRole } from "@/lib/leados/rbac";
 import { getWorkItem, WorkError } from "@/lib/os/work";
@@ -10,7 +11,7 @@ import { Card, Input, Label } from "@/components/leados/ui";
 import ActionForm from "@/components/os/ActionForm";
 import { day, Empty, EvidenceBadge, field, human, SectionTitle, StateBadge, TierBadge } from "@/components/os/bits";
 import { PUBLISHABLE } from "@/lib/os/connectors";
-import { aiDraft, logWorkEvent, moveWorkItem, newDeliverable, publishNow, saveWorkItem, tickChecklist } from "../../_os/actions";
+import { aiDraft, logWorkEvent, moveWorkItem, newDeliverable, publishNow, requestChangeApproval, saveWorkItem, tickChecklist } from "../../_os/actions";
 
 export const metadata = { title: "Work item" };
 
@@ -18,7 +19,7 @@ type Payload = { body?: string; channel?: string; hook?: string; cta?: string; p
 type Decision = { problem?: string; objective?: string; successMeasure?: string; evidence?: { findingId: string; label: string }[] };
 
 export default async function WorkItemPage({ params }: { params: Promise<{ id: string }> }) {
-  const actor = await requireOrg();
+  const actor = await requireOrgPage();
   const { id } = await params;
   let item;
   try { item = await getWorkItem(actor, id); } catch (e) { if (e instanceof WorkError) notFound(); throw e; }
@@ -51,6 +52,7 @@ export default async function WorkItemPage({ params }: { params: Promise<{ id: s
         <div className="flex items-center gap-2"><TierBadge tier={item.riskTier} /><StateBadge state={item.state} /></div>
       </div>
 
+      <WorkContext orgId={actor.orgId} itemId={item.id} role={actor.role} />
       {commercial.inScope === false && (
         <div className="mb-4 rounded-lg border border-[var(--los-warn)] px-4 py-2.5 text-[13px]">
           Outside the contracted scope — this is a change request. Work cannot start until the client approves it{commercial.incrementalCharge ? ` (incremental charge: ${commercial.incrementalCharge.toLocaleString()})` : ""}.
@@ -183,6 +185,12 @@ export default async function WorkItemPage({ params }: { params: Promise<{ id: s
                 <div className="mt-3 border-t border-[var(--los-line)] pt-3">
                   <ActionForm action={publishNow} submit={`Publish to ${payload.channel} now`} hidden={{ id }} confirm={`Publish this approved post to ${payload.channel}? This is public and cannot be undone here.`} />
                   <p className="mt-1 text-[12px] text-[var(--los-faint)]">Re-checks the approval and kill switch, then posts once. Other channels: deliver manually and add the link.</p>
+                </div>
+              )}
+              {item.type === "change_request" && item.state === "scoped" && can(actor.role, "work.manage") && !approvals.some((a) => a.status === "requested") && (
+                <div className="mt-3 border-t border-[var(--los-line)] pt-3">
+                  <ActionForm action={requestChangeApproval} submit="Send to the client for approval" hidden={{ id }} />
+                  <p className="mt-1 text-[12px] text-[var(--los-faint)]">Outside the signed scope: it cannot start until the client approves. A fee needs the workspace owner.</p>
                 </div>
               )}
               {item.state === "client_review" && <p className="mt-2 text-[12px] text-[var(--los-faint)]">Waiting on the client — approval happens in their Approvals inbox, not here.</p>}

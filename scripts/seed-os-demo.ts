@@ -2,6 +2,10 @@
 // Run: node --experimental-strip-types --env-file=.env scripts/seed-os-demo.ts owner@x.com lead@x.com
 // Everything is flagged demo:true (wipe: scripts/wipe-leados-demo.ts).
 import { PrismaClient } from "@prisma/client";
+import { assertDisposableDatabase, assertSafeDatabase } from "../lib/dbGuard.ts";
+
+assertSafeDatabase(); // local database only — never production
+await assertDisposableDatabase(); // …and the database itself must carry the disposable marker (a tunnel to a real service will not)
 
 const db = new PrismaClient();
 const [ownerEmail, leadEmail] = process.argv.slice(2);

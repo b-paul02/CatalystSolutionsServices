@@ -1,4 +1,5 @@
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
+import { AccountsPanel } from "@/components/os/panels";
 import { db } from "@/lib/audit/db";
 import { can } from "@/lib/leados/rbac";
 import { entitlements } from "@/lib/os/entitlements";
@@ -15,7 +16,7 @@ export const metadata = { title: "Workspace" };
 // Control plane (blueprint §4.1): contracted scope, brand knowledge, connections
 // and the kill switch.
 export default async function WorkspaceSettingsPage() {
-  const actor = await requireOrg();
+  const actor = await requireOrgPage();
   const [ws, ent, contracts, connections] = await Promise.all([
     db.cosWorkspace.findUnique({ where: { orgId: actor.orgId } }),
     entitlements(actor.orgId),
@@ -86,6 +87,8 @@ export default async function WorkspaceSettingsPage() {
           );
         })}
       </Card>
+
+      <AccountsPanel orgId={actor.orgId} role={actor.role} timezone={ent.timezone} currency={ent.currency} />
 
       <Card className="border-[var(--los-danger)] p-5 text-[13.5px]">
         <div className="mb-1 text-[15px] font-bold">Kill switch</div>

@@ -17,6 +17,12 @@ export default async function ApprovalsPage() {
     db.cosApproval.findMany({ where: { orgId: actor.orgId, status: "requested" }, include: { workItem: true }, orderBy: { createdAt: "asc" } }),
     db.cosApproval.findMany({ where: { orgId: actor.orgId, status: { not: "requested" } }, include: { workItem: { select: { title: true, id: true } } }, orderBy: { decidedAt: "desc" }, take: 25 }),
   ]);
+  // channel versions are approved one by one, each bound to its exact version
+  const variantIds = pending.filter((a) => a.subject === "variant").map((a) => a.subjectId);
+  const [variants, revisions] = await Promise.all([
+    db.cosContentVariant.findMany({ where: { orgId: actor.orgId, id: { in: variantIds } } }),
+    db.cosRevision.findMany({ where: { orgId: actor.orgId, subject: "variant", subjectId: { in: variantIds } }, orderBy: { version: "desc" } }),
+  ]);
   const canDecide = can(actor.role, "approvals.decide");
   const canSpend = can(actor.role, "spend.approve");
 
@@ -26,7 +32,10 @@ export default async function ApprovalsPage() {
       <div className="space-y-4">
         {pending.map((a) => {
           const item = a.workItem;
-          const body = item?.payload ? ((JSON.parse(item.payload) as { body?: string }).body ?? "") : "";
+          const variant = a.subject === "variant" ? variants.find((v) => v.id === a.subjectId) : undefined;
+          const body = variant ? (variant.format === "thread" ? variant.parts.join("\n\n") : variant.body) : item?.payload ? ((JSON.parse(item.payload) as { body?: string }).body ?? "") : "";
+          const earlier = variant ? revisions.filter((r) => r.subjectId === variant.id && r.version < variant.version) : [];
+          const href = variant ? `/app/content/${variant.workItemId}#v-${variant.id}` : `/app/work/${a.subjectId}`;
           const diff: { inScope?: boolean; incrementalCharge?: number } = a.diff ? JSON.parse(a.diff) : {};
           const spend = (item?.riskTier ?? 0) >= 3 || (diff.inScope === false && (diff.incrementalCharge ?? 0) > 0);
           const allowed = spend ? canSpend : canDecide;
@@ -34,7 +43,7 @@ export default async function ApprovalsPage() {
             <Card key={a.id} className="p-5">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <Link href={`/app/work/${a.subjectId}`} className="text-[15px] font-bold text-[var(--los-brand)] hover:underline">{a.summary}</Link>
+                  <Link href={href} className="text-[15px] font-bold text-[var(--los-brand)] hover:underline">{a.summary}</Link>
                   <div className="text-[12.5px] text-[var(--los-faint)]">v{a.version} · requested {day(a.createdAt)} · expires {day(a.expiresAt)}</div>
                 </div>
                 {item && <TierBadge tier={item.riskTier} />}
@@ -44,7 +53,17 @@ export default async function ApprovalsPage() {
                   Scope change — outside your current contract.{diff.incrementalCharge ? ` Incremental charge: ${diff.incrementalCharge.toLocaleString()}.` : " No additional charge."}
                 </p>
               )}
+              {variant?.title && <div className="mt-3 text-[14px] font-bold">{variant.title}</div>}
               {body && <pre className="mt-3 max-h-[260px] overflow-auto whitespace-pre-wrap rounded-lg bg-[var(--los-surface-2)] p-3 font-sans text-[13.5px]">{body}</pre>}
+              {variant && (variant.cta || variant.destinationUrl || variant.mediaAssetIds.length > 0) && (
+                <p className="mt-2 text-[12.5px] text-[var(--los-muted)]">{variant.cta ? `Call to action: ${variant.cta}. ` : ""}{variant.destinationUrl ? `Links to ${variant.destinationUrl}. ` : ""}{variant.mediaAssetIds.length ? `${variant.mediaAssetIds.length} media file(s) attached — ` : ""}{variant.mediaAssetIds.length > 0 && <Link className="underline" href={href}>see the full preview</Link>}</p>
+              )}
+              {earlier.length > 0 && (
+                <details className="mt-2 text-[13px]"><summary className="cursor-pointer font-medium">What changed since v{earlier[0].version}</summary>
+                  <pre className="mt-1 max-h-[200px] overflow-auto whitespace-pre-wrap rounded-lg border border-[var(--los-line)] p-3 font-sans text-[12.5px] text-[var(--los-muted)]">{(() => { const s = JSON.parse(earlier[0].snapshot) as { body?: string; parts?: string[] }; return s.body || s.parts?.join("\n\n") || "(empty)"; })()}</pre>
+                  <p className="mt-1 text-[12px] text-[var(--los-faint)]">Your decision applies to v{a.version} exactly. If it is edited afterwards, it comes back to you.</p>
+                </details>
+              )}
               {allowed ? (
                 <div className="mt-4 grid gap-4 md:grid-cols-3">
                   <ActionForm action={decide} submit="Approve" hidden={{ approvalId: a.id, decision: "approved" }} />
@@ -79,7 +98,7 @@ export default async function ApprovalsPage() {
           {recent.map((a) => (
             <li key={a.id} className="px-5 py-2.5 text-[13.5px]">
               <div className="flex items-center justify-between gap-3">
-                <Link href={`/app/work/${a.subjectId}`} className="min-w-0 truncate font-medium hover:underline">{a.workItem?.title ?? a.summary}</Link>
+                <Link href={a.subject === "variant" && a.workItemId ? `/app/content/${a.workItemId}` : `/app/work/${a.subjectId}`} className="min-w-0 truncate font-medium hover:underline">{a.subject === "variant" ? a.summary : a.workItem?.title ?? a.summary}</Link>
                 <span className="shrink-0 text-[12.5px] text-[var(--los-faint)]">v{a.version} · {human(a.status)} · {day(a.decidedAt)}</span>
               </div>
               {a.reason && <div className="text-[12.5px] text-[var(--los-muted)]">“{a.reason}”</div>}
