@@ -2999,3 +2999,69 @@ model LosContactCheck {
 
   @@index([checkedAt])
 }
+
+// WP-16 · booking pages. One host per type (team round-robin out of scope). A slot is claimed by the unique slotKey
+// (`hostId:startAtISO`) on the live booking; cancelling clears it so the slot frees without deleting the record.
+model CosBookingType {
+  id          String   @id @default(cuid())
+  orgId       String
+  name        String
+  description String?
+  durationMin Int      @default(30)
+  bufferMin   Int      @default(10)
+  hostId      String
+  // JSON [{key,label,required}]
+  questions   String   @default("[]")
+  // draft | active | paused
+  status      String   @default("draft")
+  // IANA zone the availability rows are written in
+  timezone    String   @default("UTC")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  demo        Boolean  @default(false)
+
+  @@index([orgId, status])
+}
+
+model CosAvailability {
+  id      String @id @default(cuid())
+  orgId   String
+  userId  String
+  // 0 = Sunday … 6 = Saturday
+  weekday Int
+  // HH:MM in the booking type's zone
+  start   String
+  end     String
+
+  @@index([orgId, userId])
+}
+
+model CosBooking {
+  id              String    @id @default(cuid())
+  orgId           String
+  typeId          String
+  hostId          String
+  startAt         DateTime
+  endAt           DateTime
+  // hostId:startAt while confirmed; null once cancelled (frees the slot)
+  slotKey         String?   @unique
+  // client-generated idempotency key
+  requestId       String?   @unique
+  leadId          String?
+  name            String
+  email           String
+  phone           String?
+  answers         String?
+  // confirmed | cancelled
+  status          String    @default("confirmed")
+  // sha256 of the manage token in the confirmation email
+  tokenHash       String    @unique
+  calendarEventId String?
+  visitorTz       String?
+  createdAt       DateTime  @default(now())
+  cancelledAt     DateTime?
+  demo            Boolean   @default(false)
+
+  @@index([orgId, startAt])
+  @@index([hostId, startAt])
+}

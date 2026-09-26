@@ -33,7 +33,8 @@ export function providerDef(p: Provider): Def {
       return {
         label: "Google Search Console + Analytics", capability: "Reads search clicks/impressions daily. Read-only.",
         authUrl: "https://accounts.google.com/o/oauth2/v2/auth", tokenUrl: "https://oauth2.googleapis.com/token",
-        scope: "openid email https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/analytics.readonly",
+        // WP-16: calendar scopes join only once the owner has them approved (GOOGLE_CALENDAR_SCOPES=1), else the sign-in would fail
+        scope: `openid email https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/analytics.readonly${process.env.GOOGLE_CALENDAR_SCOPES ? " https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events" : ""}`,
         clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         extraAuth: { access_type: "offline", prompt: "consent" },
       };
