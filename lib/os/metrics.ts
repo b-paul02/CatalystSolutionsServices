@@ -32,6 +32,8 @@ export const METRICS: Record<string, MetricDef> = {
   "scorecard.starts": { label: "Scorecard starts", definition: "Visitors who answered the first question.", unit: "count", additive: true, pillar: "client_acquisition" },
   "scorecard.completions": { label: "Scorecard completions", definition: "Results shown.", unit: "count", additive: true, pillar: "client_acquisition" },
   "scorecard.leads": { label: "Scorecard leads", definition: "Completions that became a new lead.", unit: "count", additive: true, pillar: "client_acquisition" },
+  "search.position": { label: "Average position", definition: "Impression-weighted average position of a tracked phrase in Google results (Search Console). Lower is better; never summed.", unit: "count", additive: false, pillar: "digital_visibility" },
+  "search.impressions_tracked": { label: "Tracked-phrase impressions", definition: "Impressions of a tracked phrase in the latest Search Console window.", unit: "count", additive: false, pillar: "digital_visibility" },
   "booking.bookings": { label: "Bookings", definition: "Confirmed bookings made on booking pages that day.", unit: "count", additive: true, pillar: "client_acquisition" },
   "scorecard.score_sum": { label: "Scorecard score sum", definition: "Sum of scores (average = sum ÷ completions, computed at read).", unit: "count", additive: true, pillar: "market_intelligence" },
 };

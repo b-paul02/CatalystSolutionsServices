@@ -43,6 +43,7 @@ export async function runTick(now = new Date()): Promise<{ skipped: true } | { s
     // retention sweeps (first-party build): error events 90 d. Each is its own delete; a failure never fails the tick.
     await import("./errors").then(({ sweepErrors }) => sweepErrors(now)).catch(() => undefined);
     await import("@/lib/leados/contactCheck").then(({ sweepContactChecks }) => sweepContactChecks(now)).catch(() => undefined);
+    await import("./indexnow").then(({ tickTrackedPositions }) => tickTrackedPositions(now)).catch(() => undefined); // weekly per org, guarded inside
     await db.cosHeartbeat.upsert({ where: { key: HEARTBEAT_KEY }, update: { at: now }, create: { key: HEARTBEAT_KEY, at: now } });
     return { skipped: false, published, ai, creditsExpired };
   } finally { await dropLease(); }

@@ -3082,3 +3082,14 @@ model CosBrandRules {
   updatedById     String?
   updatedAt       DateTime @updatedAt
 }
+
+// WP-24 · tracked search phrases (positions read from Search Console rows weekly; never scraped).
+model CosTrackedKeyword {
+  id          String   @id @default(cuid())
+  orgId       String
+  query       String
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@unique([orgId, query])
+}

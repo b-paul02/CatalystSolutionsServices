@@ -24,6 +24,16 @@ export async function clusterKeywords(_p: State, _form: FormData): Promise<State
   } catch (e) { return fail(e); }
 }
 
+/** WP-24 · tracked phrases */
+export async function keywordAdd(_p: State, form: FormData): Promise<State> {
+  const actor = await requireOrgAction("work.manage", "strategy.manage", "os.settings"); if ("error" in actor) return actor;
+  try { const { addTrackedKeyword, syncTrackedPositions } = await import("@/lib/os/indexnow"); await addTrackedKeyword(actor, String(form.get("query") ?? "")); await syncTrackedPositions(actor.orgId).catch(() => undefined); revalidatePath("/app/search"); return { ok: "Tracked. Position appears after the next Search Console sync." }; } catch (e) { return fail(e); }
+}
+export async function keywordRemove(_p: State, form: FormData): Promise<State> {
+  const actor = await requireOrgAction("work.manage", "strategy.manage", "os.settings"); if ("error" in actor) return actor;
+  try { const { removeTrackedKeyword } = await import("@/lib/os/indexnow"); await removeTrackedKeyword(actor, String(form.get("id") ?? "")); revalidatePath("/app/search"); return { ok: "Removed." }; } catch (e) { return fail(e); }
+}
+
 export async function addTopicToBriefAction(_p: State, form: FormData): Promise<State> {
   const actor = await requireOrgAction("work.manage", "strategy.manage"); if ("error" in actor) return actor;
   try {

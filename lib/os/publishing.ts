@@ -201,6 +201,8 @@ export async function executePublication(publicationId: string): Promise<string>
   if (pub.adapter === "live") await db.cosConnection.update({ where: { id: conn.id }, data: { liveVerifiedAt: now } });
   await logLosAudit({ orgId, actorType: "system", action: "variant.published", entity: "CosPublication", entityId: pub.id, data: { channel: v.channel, adapter: pub.adapter } });
   await markMasterDelivered(orgId, v.workItemId);
+  // WP-24: tell search engines about a definite, live blog publish. Best effort; never affects the outcome above.
+  if (pub.adapter === "live" && v.channel === "blog" && result.externalUrl) await import("./indexnow").then(({ submitIndexNow }) => submitIndexNow(orgId, result.externalUrl!)).catch(() => undefined);
   return "published";
 }
 
