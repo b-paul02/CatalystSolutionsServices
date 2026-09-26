@@ -34,7 +34,7 @@ export function providerDef(p: Provider): Def {
         label: "Google Search Console + Analytics", capability: "Reads search clicks/impressions daily. Read-only.",
         authUrl: "https://accounts.google.com/o/oauth2/v2/auth", tokenUrl: "https://oauth2.googleapis.com/token",
         // WP-16: calendar scopes join only once the owner has them approved (GOOGLE_CALENDAR_SCOPES=1), else the sign-in would fail
-        scope: `openid email https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/analytics.readonly${process.env.GOOGLE_CALENDAR_SCOPES ? " https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events" : ""}`,
+        scope: `openid email https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/analytics.readonly${process.env.GOOGLE_CALENDAR_SCOPES ? " https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events" : ""}${process.env.GOOGLE_ADS_DEVELOPER_TOKEN ? " https://www.googleapis.com/auth/adwords" : ""}`,
         clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         extraAuth: { access_type: "offline", prompt: "consent" },
       };
@@ -59,7 +59,7 @@ export function providerDef(p: Provider): Def {
         label: "Facebook Pages / Instagram", capability: "Publishes approved posts to the Pages and Instagram professional accounts you choose.",
         authUrl: `https://www.facebook.com/${META_V}/dialog/oauth`, tokenUrl: `https://graph.facebook.com/${META_V}/oauth/access_token`,
         // every one of these needs Meta App Review (advanced access) before a non-tester can grant it
-        scope: process.env.META_SCOPES ?? "pages_show_list,pages_read_engagement,pages_manage_posts,instagram_basic,instagram_content_publish,business_management",
+        scope: process.env.META_SCOPES ?? `pages_show_list,pages_read_engagement,pages_manage_posts,instagram_basic,instagram_content_publish,business_management${process.env.META_ADS_READ ? ",ads_read" : ""}`,
         clientId: process.env.META_APP_ID, clientSecret: process.env.META_APP_SECRET,
       };
     case "youtube":
@@ -169,8 +169,13 @@ export async function discoverAccounts(p: Provider, token: string, granted: stri
   const res = await api(`https://graph.facebook.com/${META_V}/me/accounts?fields=id,name,access_token,tasks,instagram_business_account{id,username}&limit=100`, token); // bearer header — never a token in the URL
   if (!res.ok) throw new Error(`Meta access test failed (${res.status}).`);
   const pages = ((await res.json()) as { data?: { id: string; name: string; access_token?: string; tasks?: string[]; instagram_business_account?: { id: string; username?: string } }[] }).data ?? [];
-  if (pages.length === 0) throw new Error("This Facebook login manages no Pages.");
   const out: FoundAccount[] = [];
+  // WP-25: ad accounts (read-only insights) when ads_read was granted
+  if (has(granted, "ads_read")) {
+    const ad = await api(`https://graph.facebook.com/${META_V}/me/adaccounts?fields=id,name,currency&limit=50`, token);
+    if (ad.ok) for (const a of ((await ad.json()) as { data?: { id: string; name?: string; currency?: string }[] }).data ?? []) out.push({ accountType: "ad_account", externalAccountId: a.id, label: `Ad account ${a.name ?? a.id}`, capabilities: ["ads"], eligibilityNote: "Read-only: spend, clicks and conversions are synced daily; budgets are never changed from here.", config: { adAccountId: a.id, currency: a.currency ?? null } });
+  }
+  if (pages.length === 0 && out.length === 0) throw new Error("This Facebook login manages no Pages.");
   for (const pg of pages) {
     const canPost = Boolean(pg.access_token) && (pg.tasks ?? []).includes("CREATE_CONTENT");
     out.push({ accountType: "page", externalAccountId: pg.id, label: pg.name, token: pg.access_token, capabilities: [...(canPost && has(granted, "pages_manage_posts") ? ["publish"] : []), ...(has(granted, "pages_read_engagement") ? ["analytics"] : [])], eligibilityNote: canPost ? null : "Your role on this Page cannot create content.", config: { pageId: pg.id } });

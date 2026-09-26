@@ -230,6 +230,17 @@ export async function findingToWork(_p: State, form: FormData): Promise<State> {
   }, ["/app/audit", "/app/work"]);
 }
 
+/** WP-25 · the Google Ads customer id lives on the Google connection's config (read-only sync target). */
+export async function googleAdsCustomerSave(_p: State, form: FormData): Promise<State> {
+  const actor = await orgOrDeny("os.settings"); if ("error" in actor) return actor;
+  const id = str(form, "customerId", 20).replace(/[^\d-]/g, "");
+  const conn = await db.cosConnection.findFirst({ where: { orgId: actor.orgId, provider: "gsc", status: "verified" } });
+  if (!conn) return { error: "Connect Google first." };
+  await db.cosConnection.update({ where: { id: conn.id }, data: { config: JSON.stringify({ ...(conn.config ? JSON.parse(conn.config) : {}), googleAdsCustomerId: id || undefined }) } });
+  revalidatePath("/app/ads");
+  return { ok: id ? "Saved. Spend, clicks and conversions sync daily once the adwords scope is granted (reconnect Google)." : "Cleared." };
+}
+
 /** WP-13 · staff runs a first-party site audit for the workspace (Catalyst-internal); clients run it as a Studio tool. */
 export async function startSiteAuditAction(_p: State, form: FormData): Promise<State> {
   const actor = await orgOrDeny(); if ("error" in actor) return actor;

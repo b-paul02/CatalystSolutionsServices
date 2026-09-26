@@ -34,6 +34,7 @@ export async function runTick(now = new Date()): Promise<{ skipped: true } | { s
     await tickWorkflows(now);
     await tickEngagements(now);
     await enqueueMetricSyncs(now);
+    await import("./adsSync").then(({ enqueueAdsSyncs }) => enqueueAdsSyncs(now)).catch(() => undefined); // WP-25
     const ai = await reconcileStudio(now);
     const creditsExpired = await expireGrants(now);
     // credits can also run low by expiring; a failed notice never fails the tick

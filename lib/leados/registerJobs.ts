@@ -13,5 +13,6 @@ import "@/lib/os/metrics";
 import "@/lib/os/studio";
 import "@/lib/os/siteAudit";
 import "@/lib/os/contentPipeline";
+import "@/lib/os/adsSync";
 
 export {};
