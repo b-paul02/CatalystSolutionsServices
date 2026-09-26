@@ -134,7 +134,7 @@ export default async function EngagementPage({ params }: { params: Promise<{ id:
         </Card>
 
         <Card>
-          <div className="border-b border-[var(--los-line)] px-5 py-3 text-[15px] font-bold">Commercial record</div>
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--los-line)] px-5 py-3 text-[15px] font-bold">Commercial record<span className="flex gap-3 text-[12.5px] font-semibold"><a href={`/api/os/export/invoices?month=${new Date().toISOString().slice(0, 7)}`} className="text-[var(--los-brand)] hover:underline">Invoices CSV (this month)</a><a href={`/api/os/export/invoices?month=${new Date().toISOString().slice(0, 7)}&format=json`} className="text-[var(--los-brand)] hover:underline">JSON</a>{can(actor.role, "work.manage") && <a href={`/api/os/export/timelogs?month=${new Date().toISOString().slice(0, 7)}`} className="text-[var(--los-brand)] hover:underline">Time log CSV</a>}{active[0]?.signedAt && <a href={`/api/os/export/receipt?contractId=${active[0].id}`} className="text-[var(--los-brand)] hover:underline">Signature receipt</a>}</span></div>
           {records.length === 0 ? <Notice title="No fees recorded">Invoices are issued from Catalyst’s invoicing system. Their references and status are recorded here.</Notice> : (
             <ul className="divide-y divide-[var(--los-line)] text-[13px]">
               {records.map((r) => (

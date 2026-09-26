@@ -194,7 +194,10 @@ export async function signContract(_p: State, form: FormData): Promise<State> {
     // flip and the credits the scope includes. If anything in here fails, the contract is still "proposed" and no
     // credit exists — there is no state where a grant outlives a failed signature, or a signature misses its grant.
     await db.$transaction(async (tx) => {
-      const claimed = await tx.cosContract.updateMany({ where: { id: contract.id, orgId: actor.orgId, status: "proposed" }, data: accept ? { status: "active", signedById: actor.userId, signedAt: new Date() } : { status: "declined", endedAt: new Date() } });
+      // WP-51: what was signed (sha256 of the scope) and the IP class (never the raw address) ride with the signature
+      const { contractHash, ipClass } = await import("@/lib/os/exports");
+      const ip = (await import("next/headers")).headers().then((h) => h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null).catch(() => null);
+      const claimed = await tx.cosContract.updateMany({ where: { id: contract.id, orgId: actor.orgId, status: "proposed" }, data: accept ? { status: "active", signedById: actor.userId, signedAt: new Date(), signedHash: contractHash(contract), signedIpClass: ipClass(await ip) } : { status: "declined", endedAt: new Date() } });
       if (claimed.count !== 1) throw new WorkError("Contract not found or already decided.");
       if (!accept) return;
       await tx.cosWorkspace.updateMany({ where: { orgId: actor.orgId }, data: { kind: "client" } });
