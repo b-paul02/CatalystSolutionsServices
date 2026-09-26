@@ -123,19 +123,23 @@ export function verifyStripeSignature(rawBody: string, header: string | null, se
 }
 
 type StripeEvent = { id: string; type: string; livemode?: boolean; data: { object: Record<string, unknown> } };
+export type PaymentProvider = "stripe" | "razorpay";
+
+/** Stripe-shaped events from either provider (Razorpay is normalised in lib/os/razorpay.ts). */
+export const handleStripeEvent = (event: StripeEvent) => handlePaymentEvent("stripe", event);
 
 /**
  * Apply a VERIFIED event exactly once. The unique providerEventId row is written first:
  * a replayed delivery finds it and does nothing. If applying fails the row is removed so
- * Stripe's retry can succeed.
+ * the provider's retry can succeed. WP-17: one handler for both providers.
  */
-export async function handleStripeEvent(event: StripeEvent): Promise<{ duplicate: boolean; appliedTo: string }> {
+export async function handlePaymentEvent(provider: PaymentProvider, event: StripeEvent): Promise<{ duplicate: boolean; appliedTo: string }> {
   const obj = event.data.object as { id?: string; payment_status?: string; amount_total?: number; amount_refunded?: number; currency?: string; subscription?: string; payment_intent?: unknown; metadata?: Record<string, string> };
   const paymentId = typeof obj.payment_intent === "string" ? obj.payment_intent : null;
   const meta = obj.metadata ?? {};
   let row;
   try {
-    row = await db.cosPaymentEvent.create({ data: { orgId: null, provider: "stripe", providerEventId: event.id, type: event.type, amountMinor: obj.amount_total == null ? null : BigInt(obj.amount_total), currency: obj.currency?.toUpperCase() ?? null, verified: true } });
+    row = await db.cosPaymentEvent.create({ data: { orgId: null, provider, providerEventId: event.id, type: event.type, amountMinor: obj.amount_total == null ? null : BigInt(obj.amount_total), currency: obj.currency?.toUpperCase() ?? null, verified: true } });
   } catch (e) {
     if ((e as { code?: string }).code === "P2002") return { duplicate: true, appliedTo: "duplicate" };
     throw e;
@@ -187,12 +191,18 @@ export async function handleStripeEvent(event: StripeEvent): Promise<{ duplicate
   return { duplicate: false, appliedTo };
 }
 
-/** Optional card payment for a record — only when Stripe is configured; otherwise invoices stay external. */
+/** Optional online payment for a record: Razorpay for INR when configured (WP-17), else Stripe; otherwise invoices stay external. */
 export async function createRecordCheckout(actor: WorkActor, recordId: string, origin: string, email: string): Promise<string> {
   if (!can(actor.role, "org.billing")) throw new WorkError("Forbidden.");
-  if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) throw new WorkError("Online payment is not set up — pay the invoice using the details on it.");
   const rec = await db.cosCommercialRecord.findFirst({ where: { id: recordId, orgId: actor.orgId, status: { in: ["issued", "part_paid", "overdue"] } } });
   if (!rec) throw new WorkError("Nothing to pay on this record.");
+  const { paymentProviderFor, createRazorpayOrder } = await import("./razorpay");
+  const provider = paymentProviderFor(rec.currency);
+  if (!provider) throw new WorkError("Online payment is not set up — pay the invoice using the details on it.");
+  if (provider === "razorpay") {
+    const order = await createRazorpayOrder({ amountMinor: Number(rec.amountMinor - rec.paidMinor), currency: rec.currency, receipt: rec.id, notes: { kind: "growthos_record", recordId: rec.id, orgId: rec.orgId } });
+    return `${origin}/app/pay/razorpay?order=${order.id}&record=${rec.id}`;
+  }
   const { stripePost } = await import("@/lib/leados/billing");
   const session = await stripePost("/checkout/sessions", new URLSearchParams({
     mode: "payment", success_url: `${origin}/app/engagement/${rec.engagementId}?paid=1`, cancel_url: `${origin}/app/engagement/${rec.engagementId}`, customer_email: email,

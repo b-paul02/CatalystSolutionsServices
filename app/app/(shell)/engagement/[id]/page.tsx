@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { paymentProviderFor } from "@/lib/os/razorpay";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/audit/db";
 import { can, isStaffRole } from "@/lib/leados/rbac";
@@ -142,7 +143,7 @@ export default async function EngagementPage({ params }: { params: Promise<{ id:
                   <div className="text-[12px] text-[var(--los-faint)]">{r.invoiceRef ? `Invoice ${r.invoiceRef}` : "Not invoiced yet"}{r.dueAt ? ` · due ${day(r.dueAt)}` : ""}{r.paidBasis ? ` · ${r.paidBasis === "webhook" ? "payment confirmed by the payment provider" : "payment recorded by Catalyst"}` : ""}{r.invoiceUrl ? <> · <a className="text-[var(--los-brand)] hover:underline" href={r.invoiceUrl} target="_blank" rel="noreferrer">view invoice</a></> : null}</div>
                   {manage && r.status === "draft" && <ActionForm action={recordIssue} submit="Mark invoiced" tone="ghost" hidden={{ id: r.id }} className="mt-1 flex flex-wrap items-end gap-2"><Input name="invoiceRef" placeholder="Invoice number" required aria-label="Invoice number" /><Input name="dueAt" type="date" aria-label="Due date" /></ActionForm>}
                   {manage && ["issued", "part_paid", "overdue"].includes(r.status) && <ActionForm action={recordPayment} submit="Record payment received" tone="ghost" hidden={{ id: r.id }} className="mt-1 flex flex-wrap items-end gap-2"><Input name="amount" inputMode="decimal" placeholder="Amount" required aria-label="Amount" /><Input name="reference" placeholder="Bank / gateway reference" required aria-label="Reference" /></ActionForm>}
-                  {!staff && can(actor.role, "org.billing") && ["issued", "part_paid", "overdue"].includes(r.status) && process.env.STRIPE_WEBHOOK_SECRET && <ActionForm action={recordPay} submit="Pay by card" hidden={{ id: r.id }} className="mt-1" />}
+                  {!staff && can(actor.role, "org.billing") && ["issued", "part_paid", "overdue"].includes(r.status) && paymentProviderFor(r.currency) && <ActionForm action={recordPay} submit={paymentProviderFor(r.currency) === "razorpay" ? "Pay online (Razorpay)" : "Pay by card"} hidden={{ id: r.id }} className="mt-1" />}
                 </li>
               ))}
             </ul>

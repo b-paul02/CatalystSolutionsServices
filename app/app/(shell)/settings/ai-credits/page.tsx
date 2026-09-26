@@ -74,7 +74,7 @@ export default async function AiCreditsPage({ searchParams }: { searchParams: Pr
 
       {billing && <section aria-labelledby="buy">
         <h2 id="buy" className="mb-2 text-[15px] font-bold">Add credits</h2>
-        {!checkoutConfigured() || packs.length === 0
+        {!checkoutConfigured(org?.market === "US" ? "USD" : "INR") || packs.length === 0
           ? <Notice kind="setup" title="Card purchases are not open yet">{packs.length === 0 ? "No credit packs have been published." : "Card payments are not set up."} Ask your account lead to add credits to this workspace.</Notice>
           : <ul className="grid gap-3 sm:grid-cols-3">{packs.map((p) => <li key={p.id}><Card className="p-4"><div className="text-[18px] font-extrabold">{p.credits} credits</div><div className="mb-3 text-[13px] text-[var(--los-muted)]">{formatMinor(p.amountMinor, p.currency)}{p.synthetic && " · TEST PACK"}</div><ActionForm action={creditsBuy} submit="Buy" hidden={{ packId: p.id }} /></Card></li>)}</ul>}
       </section>}

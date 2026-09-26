@@ -20,7 +20,7 @@ export async function availablePacks(market: string) {
   const packs = await db.cosCreditPack.findMany({ where: { active: true, OR: [{ market: null }, { market }], ...(prod() ? { synthetic: false } : {}) }, orderBy: { credits: "asc" } });
   return packs;
 }
-export const checkoutConfigured = (): boolean => Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET);
+export const checkoutConfigured = (currency = "USD"): boolean => Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET) || (currency.toUpperCase() === "INR" && Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET && process.env.RAZORPAY_WEBHOOK_SECRET));
 
 export async function savePack(input: { label: string; credits: number; currency: string; amountMinor: number; market: string | null; synthetic: boolean }, createdBy: string | null) {
   if (!input.label.trim()) throw new WorkError("Name the pack.");
@@ -38,11 +38,22 @@ export const retirePack = (id: string) => db.cosCreditPack.update({ where: { id 
 export async function createCreditCheckout(actor: WorkActor, packId: string, origin: string, email: string): Promise<{ url: string; orderId: string }> {
   if (isStaffRole(actor.role) || !can(actor.role, "org.billing")) throw new WorkError("Only a workspace billing admin can buy credits.");
   await assertWritable(actor.orgId);
-  if (!checkoutConfigured()) throw new WorkError("Card payments are not set up yet — ask your account lead about adding credits.");
   const org = await db.losOrg.findUnique({ where: { id: actor.orgId }, select: { market: true, demo: true } });
   const pack = (await availablePacks(org?.market === "US" ? "US" : "IN")).find((p) => p.id === packId);
   if (!pack) throw new WorkError("That credit pack is not available.");
-  const order = await db.cosCreditOrder.create({ data: { orgId: actor.orgId, userId: actor.userId, packId: pack.id, credits: pack.credits, currency: pack.currency, amountMinor: pack.amountMinor, providerMode: stripeMode(), demo: org?.demo ?? false } });
+  const { paymentProviderFor, createRazorpayOrder, razorpayMode } = await import("./razorpay");
+  const provider = paymentProviderFor(pack.currency);
+  if (!provider) throw new WorkError("Card payments are not set up yet — ask your account lead about adding credits.");
+  const order = await db.cosCreditOrder.create({ data: { orgId: actor.orgId, userId: actor.userId, packId: pack.id, credits: pack.credits, currency: pack.currency, amountMinor: pack.amountMinor, providerMode: provider === "razorpay" ? razorpayMode() : stripeMode(), demo: org?.demo ?? false } });
+  if (provider === "razorpay") {
+    // WP-17: the Razorpay order id plays the role of the checkout session id; notes carry what Stripe metadata carries
+    let rzp: { id: string };
+    try { rzp = await createRazorpayOrder({ amountMinor: pack.amountMinor, currency: pack.currency, receipt: order.id, notes: { kind: "ai_credits", orderId: order.id, orgId: actor.orgId } }); }
+    catch (e) { await db.cosCreditOrder.update({ where: { id: order.id }, data: { status: "failed" } }); throw new WorkError(`The payment page could not be opened (${(e as Error).message.slice(0, 120)}). You have not been charged.`); }
+    await db.cosCreditOrder.update({ where: { id: order.id }, data: { providerSessionId: rzp.id } });
+    await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "ai_credits.checkout_created", entity: "CosCreditOrder", entityId: order.id, data: { credits: pack.credits, currency: pack.currency, provider } });
+    return { url: `${origin}/app/pay/razorpay?order=${rzp.id}&credits=${order.id}`, orderId: order.id };
+  }
   const { stripePost } = await import("@/lib/leados/billing");
   let session: Record<string, unknown>;
   try {
