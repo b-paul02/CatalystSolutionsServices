@@ -15,7 +15,9 @@ export async function register() {
 export async function onRequestError(err: unknown, request: { path: string; method: string }, context: { routePath?: string; routeType?: string }) {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
   try {
-    const { captureError } = await import("./lib/os/errors");
+    // the edge bundle must not see lib/os/errors (node:crypto downstream); the path is opaque to webpack on purpose
+    const mod = "./lib/os/errors";
+    const { captureError } = (await import(/* webpackIgnore: true */ mod)) as typeof import("./lib/os/errors");
     await captureError(err, { route: `${request.method} ${context.routePath ?? request.path.split("?")[0]}` });
   } catch { /* capturing must never throw inside the error path */ }
 }

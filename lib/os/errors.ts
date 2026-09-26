@@ -1,6 +1,5 @@
 // WP-03 · error capture without a vendor. One row per fingerprint (normalised message + route), counted on repeat,
 // staff notified once per fingerprint. Never stores request bodies, headers, cookies or personal data.
-import { createHash } from "node:crypto";
 import { db } from "@/lib/audit/db";
 import { notify } from "./notify";
 
@@ -8,7 +7,13 @@ export const ERROR_RETENTION_DAYS = 90;
 
 /** Digits, ids and quoted values vary per request; strip them so the same bug has ONE fingerprint. */
 export const normaliseMessage = (m: string): string => m.replace(/["'`][^"'`]{0,200}["'`]/g, '""').replace(/\b[0-9a-f]{8,}\b/gi, "#").replace(/\d+/g, "#").trim().slice(0, 300);
-export const fingerprintOf = (message: string, route: string | null): string => createHash("sha256").update(`${normaliseMessage(message)}|${route ?? ""}`).digest("hex").slice(0, 32);
+// ponytail: FNV-1a (two lanes) instead of node:crypto — instrumentation.ts is also bundled for the edge runtime, where node: modules are unavailable. Collisions only merge two error rows.
+export const fingerprintOf = (message: string, route: string | null): string => {
+  const s = `${normaliseMessage(message)}|${route ?? ""}`;
+  let a = 0x811c9dc5, b = 0x01000193 ^ 0x5bd1e995;
+  for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); a = Math.imul(a ^ c, 0x01000193) >>> 0; b = Math.imul(b ^ c, 0x5bd1e995) >>> 0; }
+  return (a.toString(16).padStart(8, "0") + b.toString(16).padStart(8, "0")).padEnd(32, "0");
+};
 
 export type ErrorContext = { route?: string | null; orgId?: string | null };
 
