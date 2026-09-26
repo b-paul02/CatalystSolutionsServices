@@ -10,6 +10,7 @@ import { PILLAR_LABEL, PILLARS5 } from "@/lib/os/pillars";
 import { Card, Input, Label } from "@/components/leados/ui";
 import ActionForm from "@/components/os/ActionForm";
 import { day, Empty, EvidenceBadge, field, human, PageHeader, SectionTitle } from "@/components/os/bits";
+import Competitors from "./Competitors";
 import { acceptGoal, archiveGoal, decidePlan, draftPlan, proposeLearning, reviewLearning, saveGoal, submitPlan } from "../_os/actions";
 import { pairedRuns, whereYouAreFacts } from "@/lib/os/scorecardAudit";
 import { factualNarrative } from "@/lib/os/ai";
@@ -52,6 +53,7 @@ export default async function StrategyPage({ searchParams }: { searchParams: Pro
           <pre className="mt-3 whitespace-pre-wrap text-[12.5px] text-[var(--los-muted)]">{factualNarrative("latest scorecard and audit", where.facts, "Self-reported scores are the person's own answers; verified scores come from the audit pipeline. Missing means not measured.")}</pre>
         </Card>
       )}
+      <Competitors orgId={actor.orgId} canManage={can(actor.role, "strategy.manage") || can(actor.role, "os.settings")} />
       <Card className="mb-5">
         <SectionTitle>Goals</SectionTitle>
         <ul className="divide-y divide-[var(--los-line)]">
