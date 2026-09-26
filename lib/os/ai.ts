@@ -3,7 +3,7 @@
 // model never executes anything; every output lands as a draft a person reviews.
 // Provider-agnostic: reuses the site's OpenAI-compatible client (LLM_* env).
 import { db } from "@/lib/audit/db";
-import { callClaudeJSON, withLlmUsage } from "@/lib/audit/anthropic";
+import { callClaude, withLlmUsage } from "@/lib/audit/anthropic";
 import { priceForModel } from "./providerPrices";
 
 export const aiAvailable = (): boolean => Boolean(process.env.LLM_API_KEY);
@@ -125,6 +125,17 @@ export function inventedStrings(cited: string[], allowed: string[]): string[] {
   return [...new Set(cited.map((c) => c.trim()).filter((c) => c && !ok.has(c.toLowerCase())))];
 }
 
+/** WP-27 · every generator: JSON instruction → text → parseJsonOutput → shape check. One repair retry on malformed JSON. */
+async function jsonCall<T>(system: string, user: string, check: (raw: unknown) => T, maxTokens = 4096): Promise<T> {
+  const sys = `${system}\n\nReturn ONLY valid JSON. No markdown fences, no prose before or after.`;
+  let text = await callClaude(sys, user, maxTokens);
+  for (let attempt = 0; ; attempt++) {
+    try { return parseJsonOutput(text, check); }
+    catch (e) { if (attempt >= 1 || !(e instanceof AiOutputError) || !/valid JSON/.test(e.message)) throw e; text = await callClaude(sys, `${user}\n\nYour previous output was not valid JSON (${e.message.slice(0, 120)}). Output the corrected JSON only.`, maxTokens); }
+  }
+}
+const isObj = (r: unknown): r is Record<string, unknown> => Boolean(r) && typeof r === "object" && !Array.isArray(r);
+
 // ── tenant-scoped context ────────────────────────────────────────────────────
 
 /** `sourceIds`: when the person picked sources for this run, ONLY those are given to the model (approved claims always are). */
@@ -164,11 +175,12 @@ const RULES = `Rules: never promise or guarantee outcomes, rankings, revenue or 
 export const generatePlan = (orgId: string, constraints: string) => metered(orgId, "plan", () => generatePlanRaw(orgId, constraints));
 async function generatePlanRaw(orgId: string, constraints: string) {
   const ctx = await tenantContext(orgId);
-  const raw = await callClaudeJSON<PlanPayload>(
+  const raw = await jsonCall<PlanPayload>(
     `You are an AI CMO drafting a growth plan for a strategist to review. ${RULES}
 JSON shape: {"summary":string,"allocation":[{"channel":string,"pct":number,"rationale":string,"evidenceIds":string[]}],"focus":[{"title":string,"why":string,"effort":"low|medium|high","risk":string,"successMetric":string,"evidenceIds":string[]}],"assumptions":string[],"risks":string[],"alternatives":[{"name":string,"tradeoff":string}]}
 Allocation percentages are suggested budget/effort ranges that must sum to 100. You cannot move money; you only propose.`,
     `Context:\n${ctx.text}\n\nClient constraints / notes:\n${constraints.slice(0, 2000) || "none given"}`,
+    (r) => { if (!isObj(r) || !Array.isArray(r.allocation)) throw new AiOutputError("Plan output did not match the expected shape (allocation missing)."); return r as unknown as PlanPayload; },
   );
   return validatePlan(raw, ctx.evidenceIds);
 }
@@ -176,11 +188,12 @@ Allocation percentages are suggested budget/effort ranges that must sum to 100. 
 export const generateCalendar = (orgId: string, channels: string[], days = 14, perWeek = 4) => metered(orgId, "calendar", () => generateCalendarRaw(orgId, channels, days, perWeek));
 async function generateCalendarRaw(orgId: string, channels: string[], days = 14, perWeek = 4) {
   const ctx = await tenantContext(orgId);
-  const raw = await callClaudeJSON<unknown>(
+  const raw = await jsonCall<unknown>(
     `You plan a ${days}-day content calendar. ${RULES}
 JSON shape: {"items":[{"dayOffset":number (0-${days - 1}),"channel":string,"persona":string,"topic":string,"hook":string,"format":string,"cta":string}]}
 Use ONLY these channels: ${channels.join(", ")}. About ${perWeek} items per week per channel at most. "format" must be one of: ${CALENDAR_FORMATS.join(", ")}.`,
     `Context:\n${ctx.text}`,
+    (r) => r,
   );
   return validateCalendar(raw, channels, days);
 }
@@ -188,11 +201,12 @@ Use ONLY these channels: ${channels.join(", ")}. About ${perWeek} items per week
 export const draftContent = (orgId: string, brief: { channel: string; topic: string; hook?: string; persona?: string; format?: string; cta?: string; notes?: string }) => metered(orgId, "content_draft", () => draftContentRaw(orgId, brief));
 async function draftContentRaw(orgId: string, brief: { channel: string; topic: string; hook?: string; persona?: string; format?: string; cta?: string; notes?: string }) {
   const ctx = await tenantContext(orgId);
-  const out = await callClaudeJSON<{ body: string; meta?: { title?: string; description?: string }; expertiseFlags?: string[] }>(
+  const out = await jsonCall<{ body: string; meta?: { title?: string; description?: string }; expertiseFlags?: string[] }>(
     `You draft channel-native marketing content for an editor to review. ${RULES}
 JSON shape: {"body":string,"meta":{"title":string,"description":string},"expertiseFlags":string[]}
 "expertiseFlags" lists every statement that needs a human expert, a source, or a real client proof point — never invent statistics, testimonials, client names or case studies.`,
     `Context:\n${ctx.text}\n\nBrief:\n${JSON.stringify(brief)}`,
+    (r) => { if (!isObj(r) || typeof r.body !== "string") throw new AiOutputError("Draft output did not match the expected shape (body missing)."); return r as { body: string; meta?: { title?: string; description?: string }; expertiseFlags?: string[] }; },
   );
   return { ...out, body: out.body ?? "", expertiseFlags: out.expertiseFlags ?? [], problems: copyProblems(out.body ?? "") };
 }
@@ -200,10 +214,11 @@ JSON shape: {"body":string,"meta":{"title":string,"description":string},"experti
 export const seoBrief = (orgId: string, keyword: string) => metered(orgId, "seo_brief", () => seoBriefRaw(orgId, keyword));
 async function seoBriefRaw(orgId: string, keyword: string) {
   const ctx = await tenantContext(orgId);
-  return callClaudeJSON<{ intent: string; outline: string[]; questions: string[]; internalLinks: string[]; expertiseFlags: string[] }>(
+  return jsonCall<{ intent: string; outline: string[]; questions: string[]; internalLinks: string[]; expertiseFlags: string[] }>(
     `You write an SEO content brief for a specialist to validate. ${RULES}
 JSON shape: {"intent":string,"outline":string[],"questions":string[],"internalLinks":string[],"expertiseFlags":string[]}`,
     `Context:\n${ctx.text}\n\nTarget keyword: ${keyword.slice(0, 120)}`,
+    (r) => { if (!isObj(r)) throw new AiOutputError("Brief output did not match the expected shape."); const arr = (v: unknown) => (Array.isArray(v) ? v.map(String) : []); return { intent: String(r.intent ?? ""), outline: arr(r.outline), questions: arr(r.questions), internalLinks: arr(r.internalLinks), expertiseFlags: arr(r.expertiseFlags) }; },
   );
 }
 
@@ -266,12 +281,13 @@ export type VariantDraft = { channel: string; format: string; title?: string; bo
 export const draftVariants = (orgId: string, master: { title: string; brief: string; body: string }, targets: { channel: string; format: string; maxChars?: number }[], instruction = "") =>
   metered(orgId, "variant_draft", async () => {
     const ctx = await tenantContext(orgId);
-    const raw = await callClaudeJSON<{ variants?: { channel?: string; format?: string; title?: string; body?: string; parts?: string[]; cta?: string }[] }>(
+    const raw = await jsonCall<{ variants?: { channel?: string; format?: string; title?: string; body?: string; parts?: string[]; cta?: string }[] }>(
       `You adapt ONE approved master message into channel-native variants for an editor to review. ${RULES}
 State facts ONLY from "approvedClaims" and "sources" in the context. Never invent statistics, testimonials, client names, prices or results; when a point needs proof you do not have, write it without the claim.
 A "long_video", "short" or "reel" variant is a SCRIPT/description for a human production team — it is not a video.
 JSON shape: {"variants":[{"channel":string,"format":string,"title":string,"body":string,"parts":string[] (threads only, one post each),"cta":string}]}`,
       `Context:\n${ctx.text}\n\nMaster title: ${master.title}\nBrief: ${master.brief.slice(0, 2000)}\nMaster copy:\n${master.body.slice(0, 8000)}\n\nProduce exactly these variants: ${JSON.stringify(targets)}\n${instruction ? `Editor instruction: ${instruction.slice(0, 500)}` : ""}`,
+      (r) => (isObj(r) ? (r as { variants?: { channel?: string; format?: string; title?: string; body?: string; parts?: string[]; cta?: string }[] }) : { variants: [] }),
     );
     const wanted = new Set(targets.map((x) => `${x.channel}:${x.format}`));
     const out: VariantDraft[] = [];
@@ -305,10 +321,12 @@ export const groundedNarrative = (orgId: string, period: string, facts: Record<s
 /** The unmetered core — callers that account for usage themselves (AI Studio) use this. */
 export async function groundedNarrativeRaw(period: string, facts: Record<string, string | number | null>, limitations: string, maxTokens = 4096) {
   {
-    const out = await callClaudeJSON<{ narrative?: string; suggestions?: { text: string; evidence: string }[] }>(
+    const out = await jsonCall<{ narrative?: string; suggestions?: { text: string; evidence: string }[] }>(
       `You write a short results summary for a client. Use ONLY the facts given; a fact that is null is "not available" — never call it zero. Do not infer causes, do not predict, do not promise. ${RULES}
 JSON shape: {"narrative":string,"suggestions":[{"text":string,"evidence":string (quote the fact keys and the period it rests on)}]}`,
       `Period: ${period}\nFacts: ${JSON.stringify(facts)}\nLimitations to restate: ${limitations}`,
+      (r) => (isObj(r) ? (r as { narrative?: string; suggestions?: { text: string; evidence: string }[] }) : {}),
+      maxTokens,
     );
     const narrative = String(out.narrative ?? "");
     const bad = [...inventedNumbers(narrative, { ...facts, period }), ...copyProblems(narrative)];
