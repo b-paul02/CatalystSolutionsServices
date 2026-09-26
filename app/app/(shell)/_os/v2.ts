@@ -298,6 +298,15 @@ export async function publicationManual(_p: State, form: FormData): Promise<Stat
 
 // ── assets, results, outcomes ────────────────────────────────────────────────
 
+/** WP-26 · newsletter test send to the signed-in member's own address. */
+export async function newsletterTest(_p: State, form: FormData): Promise<State> {
+  return run(async () => {
+    const a = await actorFor("content");
+    const { newsletterTestSend } = await import("@/lib/os/newsletter");
+    const r = await newsletterTestSend(a, str(form, "variantId", 60));
+    return { ok: r.delivered ? `Test sent to ${a.email}.` : "Email transport is not configured — the test was logged, not sent." };
+  }, ["/app/content"]);
+}
 /** WP-22 · render a template from a variant's copy into Assets (a person attaches it: attaching is a material edit). */
 export async function graphicMake(_p: State, form: FormData): Promise<State> {
   return run(async () => {

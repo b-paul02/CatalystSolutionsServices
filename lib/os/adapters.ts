@@ -370,6 +370,7 @@ const ADAPTERS: Record<string, Adapter> = {
   "meta:instagram": { publish: publishInstagram, metrics: metricsInstagram, formats: ["post", "carousel", "reel"] },
   "youtube:youtube": { publish: publishYouTube, metrics: metricsYouTube, formats: ["long_video", "short"] },
   "wordpress:blog": { publish: publishWordPress, formats: ["article"] },
+  "resend:email": { publish: async (i) => (await import("./newsletter")).publishNewsletter(i), formats: ["newsletter"] },
 };
 const TEST: Adapter = { publish: publishTest, metrics: async () => [{ metric: "impressions", kind: "lifetime", value: 1200 }, { metric: "link_clicks", kind: "lifetime", value: 48 }], formats: ["post", "thread", "article", "carousel", "reel", "long_video", "short", "multi_image", "document", "video"] };
 

@@ -12,7 +12,7 @@ import ActionForm from "@/components/os/ActionForm";
 import { field, PageHeader, StateBadge } from "@/components/os/bits";
 import { Notice, Pill } from "@/components/os/v2";
 import { saveWorkItem } from "../../_os/actions";
-import { claimPropose, graphicMake, publicationCancel, publicationManual, publicationReconcile, publicationSchedule, sourceAdd, variantAckSource, variantComment, variantCreate, variantEdit, variantMove, variantsAiDraft } from "../../_os/v2";
+import { claimPropose, graphicMake, newsletterTest, publicationCancel, publicationManual, publicationReconcile, publicationSchedule, sourceAdd, variantAckSource, variantComment, variantCreate, variantEdit, variantMove, variantsAiDraft } from "../../_os/v2";
 import { TEMPLATES as GRAPHIC_TEMPLATES } from "@/lib/os/graphics";
 import ChannelPreview from "@/components/os/ChannelPreview";
 
@@ -137,6 +137,7 @@ export default async function MasterPage({ params }: { params: Promise<{ id: str
                     </details>
                   )}
 
+                  {v.channel === "email" && (staff || can(actor.role, "approvals.decide")) && <ActionForm action={newsletterTest} submit="Send me a test" tone="ghost" hidden={{ variantId: v.id }} />}
                   {staff && make && !spec?.video && (
                     <div className="flex flex-wrap items-center gap-2 text-[12.5px]"><span className="text-[var(--los-muted)]">Make a graphic from this copy:</span>{(Object.keys(GRAPHIC_TEMPLATES) as (keyof typeof GRAPHIC_TEMPLATES)[]).filter((k) => k !== "scorecard_share").map((k) => <ActionForm key={k} action={graphicMake} submit={GRAPHIC_TEMPLATES[k].label} tone="ghost" hidden={{ variantId: v.id, template: k }} />)}</div>
                   )}

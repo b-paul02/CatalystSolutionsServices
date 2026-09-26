@@ -68,7 +68,7 @@ export const PROHIBITED_PURPOSES = new Set([
 ]);
 
 // Standard purpose codes used across campaigns and imports.
-export const PURPOSE_CODES = ["sales_contact", "service_updates", "marketing", "survey"] as const;
+export const PURPOSE_CODES = ["sales_contact", "service_updates", "marketing", "survey", "newsletter"] as const;
 export const CHANNEL_CODES = ["call", "whatsapp", "sms", "email"] as const;
 
 // ── prohibited form fields (used by import mapping + form builder) ───────────

@@ -23,7 +23,7 @@ type Campaign = {
   trackingLinks: { id: string; label: string; code: string; shortUrl: string; clicks: number }[];
 };
 
-const PURPOSES = ["sales_contact", "service_updates", "marketing", "survey"];
+const PURPOSES = ["sales_contact", "service_updates", "marketing", "survey", "newsletter"];
 const CHANNELS = ["call", "whatsapp", "sms", "email"];
 
 export default function CampaignEditor(props: {

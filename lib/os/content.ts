@@ -154,6 +154,8 @@ export async function createVariant(actor: WorkActor, masterId: string, input: V
   const master = await db.cosWorkItem.findFirst({ where: { id: masterId, orgId: actor.orgId, type: "content" } });
   if (!master) throw new WorkError("Master content not found.");
   if (!formatSpec(input.channel, input.format)) throw new WorkError(`${input.channel} does not support "${input.format}".`);
+  // WP-26: a newsletter publishes through the platform's Resend row (created on first use, verified only with a key)
+  if (input.channel === "email" && !input.connectionId) input = { ...input, connectionId: (await import("./newsletter").then((m) => m.ensureResendConnection(actor.orgId))).id };
   await checkLinks(actor.orgId, input);
   const content: VariantContent = { title: input.title?.trim() || null, body: input.body ?? "", parts: (input.parts ?? []).map((p) => p.trim()).filter(Boolean), cta: input.cta?.trim() || null, destinationUrl: input.destinationUrl?.trim() || null, mediaAssetIds: input.mediaAssetIds ?? [] };
   const hash = variantHash(content);

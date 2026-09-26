@@ -57,6 +57,11 @@ export const CHANNELS: Record<string, ChannelSpec> = {
       short: { label: "Short", maxTitle: 100, titleRequired: true, maxChars: 5000, media: { kind: "video", min: 1, max: 1 }, maxDurationSec: 180, linkInBody: false, video: true },
     },
   },
+  // WP-26 · newsletter: audience computed at send time from consent (purpose "newsletter"), sent through the outreach path
+  email: {
+    label: "Newsletter (email)", provider: "resend", accountTypes: ["sender"], medium: "email",
+    formats: { newsletter: { label: "Newsletter", maxChars: 20000, maxTitle: 150, titleRequired: true, media: { kind: "image", min: 0, max: 1 }, linkInBody: true, video: false } },
+  },
   blog: {
     label: "Blog", provider: "wordpress", accountTypes: ["site"], medium: "blog",
     formats: { article: { label: "Article", maxTitle: 200, titleRequired: true, media: { kind: "image", min: 0, max: 1 }, linkInBody: true, video: false } },
