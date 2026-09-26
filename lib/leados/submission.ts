@@ -204,6 +204,12 @@ export async function processSubmission(opts: {
     }).catch(() => {});
   }
   await logLosAudit({ orgId: campaign.orgId, actorType: "system", action: "form.submission", entity: "LosFormSubmission", entityId: submission.id, data: { campaignId: campaign.id, status } });
+  // WP-11 · survey answers become a transcript source on the business profile: the QUALIFYING answers only — never a
+  // name, email or phone — so the model may read them as voice-of-customer material.
+  if (campaign.type === "survey" && formSpec.qualifying.length) {
+    const lines = formSpec.qualifying.filter((q) => values[q.key]).map((q) => `${q.label}: ${values[q.key]}`);
+    if (lines.length) await db.cosSource.create({ data: { orgId: campaign.orgId, kind: "transcript", title: `Survey answer — ${campaign.name} — ${new Date().toISOString().slice(0, 10)}`.slice(0, 200), excerpt: lines.join("\n").slice(0, 6000) } }).catch(() => undefined);
+  }
 
   await import("@/lib/os/automation/engine").then(({ dispatchEvent }) => dispatchEvent(campaign.orgId, "trigger.form_submitted", { leadId, campaignId: campaign.id, submissionId: submission.id, ...(score ? { score: score.pct, band: score.band, categories: Object.fromEntries(score.categories.map((c) => [c.key, c.pct])) } : {}) }, `form_submitted:${submission.id}`)).catch(() => {});
   return { outcome: "accepted", submissionId: submission.id, message: pageSpec.thankYouMessage, ...(score ? { score } : {}) };
