@@ -4,7 +4,7 @@ import { requireOrgPage } from "@/lib/os/guard";
 import { isStaffRole } from "@/lib/leados/rbac";
 import { entitlements } from "@/lib/os/entitlements";
 import { activeRateCard, walletSummary } from "@/lib/os/credits";
-import { canSeeAllUsage, researchMode, toolAvailability, toolByKey, TOOLS } from "@/lib/os/studio";
+import { canSeeAllUsage, COMING_SOON, researchMode, toolAvailability, toolByKey, TOOLS } from "@/lib/os/studio";
 import { formatInZone } from "@/lib/os/time";
 import { Card } from "@/components/leados/ui";
 import { PageHeader, StateBadge } from "@/components/os/bits";
@@ -37,6 +37,7 @@ export default async function StudioPage() {
               const body = <><span className="block text-[14.5px] font-bold">{t.label}</span><span className="mt-1 block text-[12.5px] text-[var(--los-muted)]">{t.purpose}</span>{!a.ok && <span className="mt-2 block text-[12px] font-semibold text-[var(--los-faint)]">Unavailable — {a.reason}</span>}</>;
               return <li key={t.key}>{a.ok ? <Link href={`/app/studio/${t.key}`} className="block h-full rounded-xl border border-[var(--los-line)] bg-[var(--los-surface)] p-4 hover:border-[var(--los-brand)] focus-visible:outline focus-visible:outline-2">{body}</Link> : <div aria-disabled className="h-full rounded-xl border border-dashed border-[var(--los-line)] p-4 opacity-70">{body}</div>}</li>;
             })}
+            {COMING_SOON.filter((c) => c.group === g).map((c) => <li key={c.key}><div aria-disabled className="h-full rounded-xl border border-dashed border-[var(--los-line)] p-4"><span className="flex flex-wrap items-center gap-2 text-[14.5px] font-bold">{c.label}<span className="rounded-full bg-[var(--los-surface-2)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--los-muted)]">Coming soon</span></span><span className="mt-1 block text-[12.5px] text-[var(--los-muted)]">{c.purpose}</span></div></li>)}
           </ul>
         </section>
       ))}

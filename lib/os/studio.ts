@@ -576,3 +576,11 @@ export async function usageBreakdown(orgId: string, range: { start: Date; end: D
   const ops = await db.cosAiOperation.groupBy({ by: ["toolKey", "userId", "payer", "status"], where: { orgId, createdAt: { gte: range.start, lt: range.end } }, _sum: { chargedCredits: true }, _count: true });
   return ops.map((o) => ({ toolKey: o.toolKey, userId: o.userId, payer: o.payer, status: o.status, operations: o._count, credits: o._sum.chargedCredits ?? 0 }));
 }
+
+/**
+ * Announced, not built. These are NOT tools: no route, no rate card, no entitlement, nothing runs.
+ * A script is not a video — until a video provider is connected, video formats still need a finished file from Assets.
+ */
+export const COMING_SOON: { key: string; label: string; group: Tool["group"]; purpose: string }[] = [
+  { key: "ai_video", label: "AI video generation", group: "Video", purpose: "Turn an approved script into short AI video clips, with or without a reference image you upload or generate. Today the video tools write the script, shot list and caption; you film or supply the video file." },
+];
