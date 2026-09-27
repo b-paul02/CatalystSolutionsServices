@@ -39,6 +39,37 @@ const NEXT: Record<EngagementStage, EngagementStage[]> = {
   offboarded: [],
   declined: [],
 };
+/** Stage tabs: what the stage is for and what moves the engagement on. Plain language, shown to clients. */
+export const STAGE_ABOUT: Record<EngagementStage, { what: string; next: string }> = {
+  prospect: { what: "The business is known to Catalyst; nothing is agreed yet.", next: "Catalyst starts discovery or sends a proposal." },
+  discovery: { what: "Catalyst learns about the business: audit, goals and the current setup.", next: "Catalyst proposes a scope." },
+  proposal: { what: "A scope and price are proposed and wait for the client's decision.", next: "The workspace owner signs the scope. Only that signature accepts an engagement." },
+  accepted: { what: "The client has signed the proposed scope.", next: "Catalyst opens onboarding." },
+  onboarding: { what: "Catalyst collects the access, assets and inputs the work depends on.", next: "Catalyst starts delivery once the essentials are in." },
+  active: { what: "Work is being done and delivered. Recurring engagements create each period's work here.", next: "Catalyst opens a review, or marks the scope completed." },
+  review: { what: "Results are reviewed and the engagement is renewed or wound down.", next: "Delivery resumes, or the scope is marked completed." },
+  completed: { what: "The agreed scope is finished.", next: "Catalyst completes the handover." },
+  offboarded: { what: "Everything is handed over. History and exports stay available.", next: "Nothing. This is the last stage." },
+  declined: { what: "The engagement did not go ahead.", next: "Nothing. A new engagement can be opened later." },
+};
+
+export type StageVisit = { enteredAt: Date; leftAt: Date | null };
+/**
+ * Pure: when the engagement was in each stage, from its append-only stage events (oldest first or any order).
+ * The first stage starts at createdAt. A stage can be visited more than once (active ↔ review); one never entered has no visits.
+ */
+export function stageVisits(createdAt: Date, current: string, events: { kind: string; fromValue: string | null; toValue: string | null; createdAt: Date }[]): Record<string, StageVisit[]> {
+  const moves = events.filter((e) => e.kind === "stage" && e.toValue).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  const out: Record<string, StageVisit[]> = {};
+  let stage = moves[0]?.fromValue ?? current, at = createdAt;
+  for (const m of moves) {
+    (out[stage] ??= []).push({ enteredAt: at, leftAt: m.createdAt });
+    stage = m.toValue!; at = m.createdAt;
+  }
+  (out[stage] ??= []).push({ enteredAt: at, leftAt: null });
+  return out;
+}
+
 export const OPEN_STAGES: EngagementStage[] = ["prospect", "discovery", "proposal", "accepted", "onboarding", "active", "review"];
 
 export function canMoveEngagement(from: string, to: string, by: "staff" | "client_signature"): { ok: true } | { ok: false; reason: string } {

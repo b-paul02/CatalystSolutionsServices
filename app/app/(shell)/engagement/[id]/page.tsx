@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/audit/db";
 import { can, isStaffRole } from "@/lib/leados/rbac";
 import { requireModule } from "@/lib/os/guard";
-import { ENGAGEMENT_STAGES, GOAL_FOCUS, nextStages, OPEN_STAGES, STAGE_LABEL, type EngagementStage } from "@/lib/os/engagement";
+import { ENGAGEMENT_STAGES, GOAL_FOCUS, nextStages, OPEN_STAGES, STAGE_ABOUT, STAGE_LABEL, stageVisits, type EngagementStage } from "@/lib/os/engagement";
 import { serviceBySlug } from "@/lib/os/catalog";
 import { HANDOVER_STEPS, templateFor } from "@/lib/os/templates";
 import { formatInZone } from "@/lib/os/time";
@@ -16,7 +16,7 @@ import { checklistAdd, checklistResolve, cycleGenerate, engagementHold, engageme
 
 export const metadata = { title: "Engagement" };
 
-export default async function EngagementPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EngagementPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ stage?: string }> }) {
   const { actor, ent } = await requireModule("engagement", "work.view");
   const { id } = await params;
   const e = await db.cosEngagement.findFirst({ where: { id, orgId: actor.orgId } });
@@ -38,6 +38,12 @@ export default async function EngagementPage({ params }: { params: Promise<{ id:
   const proposed = contracts.find((c) => c.status === "proposed");
   const openItems = checklist.filter((c) => !["available", "not_needed"].includes(c.status));
   const stageIdx = ENGAGEMENT_STAGES.indexOf(e.stage as EngagementStage);
+  // stage tabs: ?stage=<key> opens that stage's panel; the full event history is read only then
+  const sp = await searchParams;
+  const tab = (ENGAGEMENT_STAGES as readonly string[]).includes(sp.stage ?? "") ? (sp.stage as EngagementStage) : null;
+  const history = tab ? await db.cosEngagementEvent.findMany({ where: { orgId: actor.orgId, engagementId: e.id }, orderBy: { createdAt: "asc" } }) : [];
+  const visits = tab ? stageVisits(e.createdAt, e.stage, history)[tab] ?? [] : [];
+  const inTab = tab ? history.filter((ev) => visits.some((v) => ev.createdAt >= v.enteredAt && (!v.leftAt || ev.createdAt < v.leftAt)) || (ev.kind === "stage" && ev.toValue === tab)) : [];
 
   return (
     <div className="max-w-[1100px]">
@@ -45,9 +51,29 @@ export default async function EngagementPage({ params }: { params: Promise<{ id:
         <div className="flex items-center gap-2">{e.hold !== "none" && <Pill value={e.hold} />}<Pill value={e.stage} label={STAGE_LABEL[e.stage as EngagementStage]} /></div>
       </PageHeader>
 
-      <ol className="mb-5 flex flex-wrap gap-1 text-[12px]" aria-label="Engagement stages">
-        {ENGAGEMENT_STAGES.filter((s) => s !== "declined").map((s, i) => <li key={s} aria-current={s === e.stage ? "step" : undefined} className={`rounded-full px-2.5 py-1 ${s === e.stage ? "bg-[var(--los-brand)] font-semibold text-white" : i < stageIdx && e.stage !== "declined" ? "bg-[var(--los-surface-2)] text-[var(--los-fg)]" : "border border-[var(--los-line)] text-[var(--los-faint)]"}`}>{STAGE_LABEL[s]}</li>)}
-      </ol>
+      <nav className="mb-5 flex flex-wrap gap-1 text-[12px]" aria-label="Engagement stages">
+        {ENGAGEMENT_STAGES.filter((s) => s !== "declined" || e.stage === "declined").map((s, i) => <Link key={s} href={tab === s ? `/app/engagement/${e.id}` : `/app/engagement/${e.id}?stage=${s}`} scroll={false} aria-current={s === e.stage ? "step" : undefined} aria-expanded={tab === s} className={`rounded-full px-2.5 py-1 hover:ring-2 hover:ring-[var(--los-brand)] focus-visible:ring-2 focus-visible:ring-[var(--los-brand)] ${tab === s ? "ring-2 ring-[var(--los-brand)] " : ""}${s === e.stage ? "bg-[var(--los-brand)] font-semibold text-white" : i < stageIdx && e.stage !== "declined" ? "bg-[var(--los-surface-2)] text-[var(--los-fg)]" : "border border-[var(--los-line)] text-[var(--los-faint)]"}`}>{STAGE_LABEL[s]}</Link>)}
+      </nav>
+
+      {tab && (
+        <Card className="mb-5 p-5 text-[13.5px]" >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="text-[15px] font-bold">{STAGE_LABEL[tab]} <span className="ml-1 text-[12px] font-medium text-[var(--los-muted)]">{tab === e.stage ? "· current stage" : visits.length ? "· completed" : ENGAGEMENT_STAGES.indexOf(tab) < stageIdx ? "· skipped" : "· not reached yet"}</span></div>
+            <Link href={`/app/engagement/${e.id}`} scroll={false} className="text-[12.5px] text-[var(--los-muted)] underline">Close</Link>
+          </div>
+          <p className="mt-1">{STAGE_ABOUT[tab].what}</p>
+          <p className="mt-1 text-[var(--los-muted)]"><b>What moves it on:</b> {STAGE_ABOUT[tab].next}</p>
+          {visits.length > 0 && <ul className="mt-3 text-[13px]">{visits.map((v, i) => <li key={i}>Entered {formatInZone(v.enteredAt, ent.timezone)} · {v.leftAt ? `left ${formatInZone(v.leftAt, ent.timezone)} (${v.leftAt.getTime() - v.enteredAt.getTime() < 86_400_000 ? "less than a day" : `${Math.round((v.leftAt.getTime() - v.enteredAt.getTime()) / 86_400_000)} days`})` : "still here"}</li>)}</ul>}
+          {visits.length > 0 && (
+            <div className="mt-3 border-t border-[var(--los-line)] pt-3">
+              <div className="mb-1 text-[12.5px] font-semibold">Recorded in this stage</div>
+              {inTab.length === 0 ? <p className="text-[var(--los-faint)]">Nothing was recorded while the engagement was in this stage.</p> : <ul className="divide-y divide-[var(--los-line)] text-[12.5px]">{inTab.map((ev) => <li key={ev.id} className="flex flex-wrap justify-between gap-2 py-1.5"><span><b className="capitalize">{ev.kind}</b>: {ev.fromValue ? `${ev.fromValue.replace(/_/g, " ")} → ` : ""}{(ev.toValue ?? "").replace(/_/g, " ")}{ev.reason ? ` — ${ev.reason}` : ""}</span><span className="text-[var(--los-faint)]">{formatInZone(ev.createdAt, ent.timezone)}</span></li>)}</ul>}
+            </div>
+          )}
+          {tab === "onboarding" && <p className="mt-3 text-[12.5px] text-[var(--los-muted)]">{openItems.length} of {checklist.length} access, asset and input requests are still open (listed below).</p>}
+          {tab === "proposal" && proposed && <p className="mt-3 text-[12.5px] text-[var(--los-muted)]">A proposed scope is waiting for a signature on <Link href="/app/dashboard" className="underline">Home</Link>.</p>}
+        </Card>
+      )}
 
       {e.hold !== "none" && <div role="status" className="mb-5 rounded-lg border border-[var(--los-warn)] px-4 py-3 text-[13.5px]"><b className="capitalize">{e.hold.replace(/_/g, " ")}</b>{e.holdSince ? ` since ${day(e.holdSince)}` : ""}: {e.holdReason}</div>}
       {proposed && <div role="status" className="mb-5 rounded-lg border border-[var(--los-brand)] px-4 py-3 text-[13.5px]">A scope proposal is waiting for the workspace owner. <Link className="font-semibold underline" href="/app/dashboard">Review and sign on Home</Link>.</div>}
