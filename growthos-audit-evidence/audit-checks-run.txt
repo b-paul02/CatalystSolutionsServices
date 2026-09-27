@@ -1,0 +1,10 @@
+
+[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90mC:/CatalystSolutionsServices[39m
+
+ [32m✓[39m growthos-audit-evidence/audit-checks.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 739[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m   Start at [22m 08:05:08
+[2m   Duration [22m 2.65s[2m (transform 329ms, setup 52ms, collect 779ms, tests 739ms, environment 0ms, prepare 189ms)[22m
+

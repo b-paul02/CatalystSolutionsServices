@@ -1,6 +1,10 @@
 // One-command wipe of ALL demo-flagged LeadOS data (leaves real data alone).
 // Run: node --experimental-strip-types --env-file=.env scripts/wipe-leados-demo.ts
 import { PrismaClient } from "@prisma/client";
+import { assertDisposableDatabase, assertSafeDatabase } from "../lib/dbGuard.ts";
+
+assertSafeDatabase(); // local database only — never production
+await assertDisposableDatabase(); // …and the database itself must carry the disposable marker (a tunnel to a real service will not)
 
 const db = new PrismaClient();
 
@@ -15,6 +19,20 @@ async function main() {
   const del = async (name: string, fn: () => Promise<{ count: number }>) => {
     counts[name] = (await fn()).count;
   };
+
+  // CatalystGrowthOS rows for demo orgs (work items cascade events/approvals/deliverables)
+  await del("cosWorkItems", () => db.cosWorkItem.deleteMany({ where: { OR: [{ demo: true }, { orgId: { in: demoOrgs } }] } }));
+  await del("cosFindings", () => db.cosFinding.deleteMany({ where: { orgId: { in: demoOrgs } } }));
+  await del("cosAuditRuns", () => db.cosAuditRun.deleteMany({ where: { OR: [{ demo: true }, { orgId: { in: demoOrgs } }] } }));
+  await del("cosBaselines", () => db.cosBaseline.deleteMany({ where: { orgId: { in: demoOrgs } } }));
+  await del("cosGoals", () => db.cosGoal.deleteMany({ where: { orgId: { in: demoOrgs } } }));
+  await del("cosPlans", () => db.cosPlan.deleteMany({ where: { orgId: { in: demoOrgs } } }));
+  await del("cosLearnings", () => db.cosLearning.deleteMany({ where: { orgId: { in: demoOrgs } } }));
+  await del("cosReports", () => db.cosReport.deleteMany({ where: { orgId: { in: demoOrgs } } }));
+  await del("cosMetricPoints", () => db.cosMetricPoint.deleteMany({ where: { orgId: { in: demoOrgs } } }));
+  await del("cosConnections", () => db.cosConnection.deleteMany({ where: { orgId: { in: demoOrgs } } }));
+  await del("cosContracts", () => db.cosContract.deleteMany({ where: { OR: [{ demo: true }, { orgId: { in: demoOrgs } }] } }));
+  await del("cosWorkspaces", () => db.cosWorkspace.deleteMany({ where: { OR: [{ demo: true }, { orgId: { in: demoOrgs } }] } }));
 
   await del("messageEvents", () => db.losMessageEvent.deleteMany({ where: { message: { leadId: { in: demoLeads } } } }));
   await del("messages", () => db.losOutboundMessage.deleteMany({ where: { leadId: { in: demoLeads } } }));

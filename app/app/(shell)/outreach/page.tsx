@@ -1,12 +1,14 @@
-import { requireOrg } from "@/lib/leados/auth";
+import Link from "next/link";
+import { requireOrgPage } from "@/lib/os/guard";
 import { can } from "@/lib/leados/rbac";
 import { db } from "@/lib/audit/db";
 import OutreachManager from "./OutreachManager";
+import WaSync from "./WaSync";
 
 export const metadata = { title: "Outreach" };
 
 export default async function OutreachPage() {
-  const actor = await requireOrg("leads.view");
+  const actor = await requireOrgPage("leads.view");
   const [templates, sequences, recentMessages] = await Promise.all([
     db.losMessageTemplate.findMany({ where: { orgId: actor.orgId }, orderBy: { name: "asc" } }),
     db.losSequence.findMany({
@@ -19,11 +21,12 @@ export default async function OutreachPage() {
     db.losOutboundMessage.findMany({ where: { orgId: actor.orgId }, orderBy: { createdAt: "desc" }, take: 30 }),
   ]);
   const templateName = (id: string) => templates.find((t) => t.id === id)?.name ?? "?";
-  return (
+  return (<><div className="mb-2 flex items-center justify-end gap-3 text-[13px]"><WaSync />
+<Link href="/app/outreach/inbox" className="underline">Chat inbox</Link></div>
     <OutreachManager
       canManageTemplates={can(actor.role, "leads.contact")}
       canManageSequences={can(actor.role, "pipeline.manage")}
-      templates={templates.map((t) => ({ id: t.id, name: t.name, channel: t.channel, subject: t.subject, body: t.body }))}
+      templates={templates.map((t) => ({ id: t.id, name: t.approvalStatus ? `${t.name} · WhatsApp ${t.approvalStatus}` : t.name, channel: t.channel, subject: t.subject, body: t.body }))}
       sequences={sequences.map((s) => ({
         id: s.id, name: s.name, status: s.status, enrollments: s._count.enrollments,
         steps: s.steps.map((st) => ({ label: `${st.channel} · ${templateName(st.templateId)} · +${st.delayHours}h` })),
@@ -33,5 +36,5 @@ export default async function OutreachPage() {
         blockReason: m.blockReason, at: m.createdAt.toISOString().slice(0, 16).replace("T", " "),
       }))}
     />
-  );
+  </>);
 }

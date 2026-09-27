@@ -1,0 +1,119 @@
+
+[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90mC:/CatalystSolutionsServices[39m
+
+ [32m✓[39m tests/os/completion-credits.test.ts [2m([22m[2m34 tests[22m[2m)[22m[33m 6249[2mms[22m[39m
+   [33m[2m✓[22m[39m quote → reserve → run → settle (client action path)[2m > [22ma client gets a server quote, runs once, is charged once, and the output is a draft in history [33m 554[2mms[22m[39m
+   [33m[2m✓[22m[39m web research: real retrieval with citations, or nothing[2m > [22mediting and saving cannot corrupt the citation mapping; the sources travel into the saved draft and the export [33m 582[2mms[22m[39m
+   [33m[2m✓[22m[39m web research: real retrieval with citations, or nothing[2m > [22mfailed generation AFTER a successful search: credits released, and both provider costs stay on Catalyst's books (known stays known, unknown stays NULL) [33m 305[2mms[22m[39m
+ [32m✓[39m tests/os/release-journeys.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 5541[2mms[22m[39m
+   [33m[2m✓[22m[39m client journeys from a real login[2m > [22mA · creation: choose engagement → quote → run → charge shown → edit → save as a channel variant (a draft, unapproved) [33m 679[2mms[22m[39m
+   [33m[2m✓[22m[39m client journeys from a real login[2m > [22mB · editorial: edit → QA → client approval → edit again ⇒ THAT approval is withdrawn and its schedule cancelled [33m 1091[2mms[22m[39m
+   [33m[2m✓[22m[39m client journeys from a real login[2m > [22mC · calendar: account chosen → schedule in the workspace zone → reschedule → cancel → schedule → the scheduler publishes once through the test adapter [33m 996[2mms[22m[39m
+   [33m[2m✓[22m[39m client journeys from a real login[2m > [22mF · two engagements, two workspaces: scope, campaigns and actions stay where they belong [33m 635[2mms[22m[39m
+   [33m[2m✓[22m[39m client journeys from a real login[2m > [22mE · lifecycle: pause (staff only) skips the recurring cycle, resume restores it; handover ⇒ read-only, history and export stay [33m 1007[2mms[22m[39m
+ [32m✓[39m tests/os/v2-acceptance.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 4288[2mms[22m[39m
+   [33m[2m✓[22m[39m GrowthOS v2 acceptance[2m > [22m3. missing access blocks dependent work while independent work continues [33m 465[2mms[22m[39m
+   [33m[2m✓[22m[39m GrowthOS v2 acceptance[2m > [22m5. source-grounded master content becomes separately editable channel variants [33m 308[2mms[22m[39m
+   [33m[2m✓[22m[39m GrowthOS v2 acceptance[2m > [22m8b. provider outcomes: retry only when safe, never after an ambiguous answer, resume threads without re-posting [33m 832[2mms[22m[39m
+ [32m✓[39m tests/os/release-gaps.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 2795[2mms[22m[39m
+   [33m[2m✓[22m[39m A · AI Studio brief → campaign record[2m > [22msaves ONE draft campaign however often it is submitted; no generation, no charge; provenance kept; staff told [33m 672[2mms[22m[39m
+   [33m[2m✓[22m[39m A · AI Studio brief → campaign record[2m > [22mrefuses another tenant's run, another tenant's engagement, a non-brief run and a member without AI access [33m 307[2mms[22m[39m
+   [33m[2m✓[22m[39m D · low-balance notice[2m > [22memails the workspace's billing members once per episode; re-arms on recovery or a new threshold; respects the cooldown and the opt-out; costs nothing [33m 645[2mms[22m[39m
+ [32m✓[39m tests/os/completion-journey.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 2573[2mms[22m[39m
+   [33m[2m✓[22m[39m delivery journey through entry points[2m > [22mstep 3 — a missing client input blocks only the work that depends on it [33m 380[2mms[22m[39m
+   [33m[2m✓[22m[39m delivery journey through entry points[2m > [22msteps 8–11 — goal-linked campaign → master → variant → QA → client approval → scheduled → published exactly once by the scheduler [33m 667[2mms[22m[39m
+   [33m[2m✓[22m[39m delivery journey through entry points[2m > [22ma provider refusal AFTER the media upload: the retry reuses the original upload, posts once, and a finished publication forgets it [33m 384[2mms[22m[39m
+[90mstdout[2m | tests/os/e2e-slice.test.ts[2m > [22m[2mOS acceptance slice[2m > [22m[2mMANDATORY NEGATIVE: kill switch also blocks LeadOS outreach sends for the workspace
+[22m[39m[leados outreach:dev] whatsapp to=+917000112299 body="hi…"
+
+ [32m✓[39m tests/os/e2e-slice.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 1659[2mms[22m[39m
+ [32m✓[39m tests/leados/allocation.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 1299[2mms[22m[39m
+   [33m[2m✓[22m[39m allocation engine[2m > [22mpreviews and executes a quota, creates leads, debits tokens, is idempotent [33m 528[2mms[22m[39m
+ [32m✓[39m tests/os/automation-db.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 1254[2mms[22m[39m
+ [32m✓[39m tests/leados/e2e-slice.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 1351[2mms[22m[39m
+   [33m[2m✓[22m[39m §23 acceptance slice[2m > [22mruns the full vertical slice [33m 1091[2mms[22m[39m
+ [32m✓[39m tests/os/completion-entry.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 1054[2mms[22m[39m
+ [32m✓[39m tests/os/completion-operator.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 792[2mms[22m[39m
+ [32m✓[39m tests/os/completion-templates.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 956[2mms[22m[39m
+ [32m✓[39m tests/os/completion-signing.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 886[2mms[22m[39m
+   [33m[2m✓[22m[39m included credits: proposal → signature[2m > [22mfive concurrent signatures and a later repeat: one acceptance, one grant, matching the proposal; the tier placeholder grants nothing [33m 466[2mms[22m[39m
+ [32m✓[39m tests/leados/leadWrite.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 613[2mms[22m[39m
+ [32m✓[39m tests/os/v2-console.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[33m 618[2mms[22m[39m
+ [32m✓[39m tests/leados/b2bDiscovery.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 685[2mms[22m[39m
+   [33m[2m✓[22m[39m b2b discovery[2m > [22mreveal debits once, creates the lead, and is idempotent [33m 348[2mms[22m[39m
+ [32m✓[39m tests/roles.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 603[2mms[22m[39m
+   [33m[2m✓[22m[39m passwords[2m > [22mround-trips and rejects the wrong password [33m 345[2mms[22m[39m
+[90mstdout[2m | tests/leados/outreach.test.ts[2m > [22m[2moutreach guards[2m > [22m[2msends on the consented channel (dev transport) and moves lead to contacted
+[22m[39m[leados outreach:dev] whatsapp to=+917000112233 body="Hi Guard…"
+
+[90mstdout[2m | tests/leados/outreach.test.ts[2m > [22m[2moutreach guards[2m > [22m[2mper-lead daily cap blocks the 4th message
+[22m[39m[leados outreach:dev] whatsapp to=+917000112233 body="2…"
+
+[90mstdout[2m | tests/leados/outreach.test.ts[2m > [22m[2moutreach guards[2m > [22m[2mper-lead daily cap blocks the 4th message
+[22m[39m[leados outreach:dev] whatsapp to=+917000112233 body="3…"
+
+ [32m✓[39m tests/leados/outreach.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 579[2mms[22m[39m
+ [32m✓[39m tests/leados/suppression.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 467[2mms[22m[39m
+ [32m✓[39m tests/os/v2-rules.test.ts [2m([22m[2m18 tests[22m[2m)[22m[33m 350[2mms[22m[39m
+ [32m✓[39m tests/leados/tenancy.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 299[2mms[22m[39m
+ [32m✓[39m tests/leados/jobs.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 165[2mms[22m[39m
+ [32m✓[39m tests/os/completion-adapters.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 152[2mms[22m[39m
+ [32m✓[39m tests/leados/totp-crypto.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 127[2mms[22m[39m
+ [32m✓[39m tests/custom-price.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 50[2mms[22m[39m
+ [32m✓[39m tests/leados/metrics.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 60[2mms[22m[39m
+ [32m✓[39m tests/os/automation.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 46[2mms[22m[39m
+ [32m✓[39m tests/leados/allocationRules.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 40[2mms[22m[39m
+ [32m✓[39m tests/os/v2-adapters.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 39[2mms[22m[39m
+ [32m✓[39m tests/earnings-estimate.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 40[2mms[22m[39m
+ [32m✓[39m tests/admin-authz.test.ts [2m([22m[2m35 tests[22m[2m)[22m[32m 40[2mms[22m[39m
+ [32m✓[39m tests/money.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 36[2mms[22m[39m
+ [32m✓[39m tests/os/workflow.test.ts [2m([22m[2m26 tests[22m[2m)[22m[32m 33[2mms[22m[39m
+ [32m✓[39m tests/commission-lifecycle.test.ts [2m([22m[2m28 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32m✓[39m tests/ledger.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32m✓[39m tests/rates.test.ts [2m([22m[2m28 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+ [32m✓[39m tests/deal-registration.test.ts [2m([22m[2m25 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m tests/dashboard.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/leados/leads.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/quote.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+[90mstdout[2m | tests/os/completion-pricing.test.ts[2m > [22m[2mproposed AI-credit pricing[2m > [22m[2mactivation floor: worst-case MODEL cost stays well under the cheapest credit's value (a guard against selling below cost, not a profit forecast)
+[22m[39m┌─────────┬───────────────────────┬────────────┬──────────────┬────────────────┬──────────────────┐
+│ (index) │ tool                  │ maxCredits │ cost today $ │ margin today % │ margin premium % │
+├─────────┼───────────────────────┼────────────┼──────────────┼────────────────┼──────────────────┤
+│ 0       │ [32m'campaign_brief'[39m      │ [33m13[39m         │ [32m'0.0162'[39m     │ [33m97.8[39m           │ [33m89.7[39m             │
+│ 1       │ [32m'content_calendar'[39m    │ [33m15[39m         │ [32m'0.0192'[39m     │ [33m97.8[39m           │ [33m89.7[39m             │
+│ 2       │ [32m'blog_outline'[39m        │ [33m10[39m         │ [32m'0.0142'[39m     │ [33m97.5[39m           │ [33m88.1[39m             │
+│ 3       │ [32m'blog_article'[39m        │ [33m27[39m         │ [32m'0.0342'[39m     │ [33m97.8[39m           │ [33m90.4[39m             │
+│ 4       │ [32m'web_copy'[39m            │ [33m16[39m         │ [32m'0.0202'[39m     │ [33m97.8[39m           │ [33m89.9[39m             │
+│ 5       │ [32m'linkedin_post'[39m       │ [33m6[39m          │ [32m'0.0087'[39m     │ [33m97.5[39m           │ [33m86.5[39m             │
+│ 6       │ [32m'linkedin_carousel'[39m   │ [33m8[39m          │ [32m'0.0112'[39m     │ [33m97.5[39m           │ [33m87.7[39m             │
+│ 7       │ [32m'x_post'[39m              │ [33m3[39m          │ [32m'0.0062'[39m     │ [33m96.4[39m           │ [33m78.9[39m             │
+│ 8       │ [32m'x_thread'[39m            │ [33m8[39m          │ [32m'0.0107'[39m     │ [33m97.7[39m           │ [33m88.2[39m             │
+│ 9       │ [32m'social_caption'[39m      │ [33m6[39m          │ [32m'0.0092'[39m     │ [33m97.3[39m           │ [33m86[39m               │
+│ 10      │ [32m'youtube_script'[39m      │ [33m21[39m         │ [32m'0.0267'[39m     │ [33m97.8[39m           │ [33m90.1[39m             │
+│ 11      │ [32m'short_script'[39m        │ [33m7[39m          │ [32m'0.0097'[39m     │ [33m97.6[39m           │ [33m87.5[39m             │
+│ 12      │ [32m'email_sequence'[39m      │ [33m15[39m         │ [32m'0.0192'[39m     │ [33m97.8[39m           │ [33m89.7[39m             │
+│ 13      │ [32m'seo_brief'[39m           │ [33m10[39m         │ [32m'0.0132'[39m     │ [33m97.7[39m           │ [33m88.8[39m             │
+│ 14      │ [32m'repurpose'[39m           │ [33m13[39m         │ [32m'0.0183'[39m     │ [33m97.5[39m           │ [33m87.8[39m             │
+│ 15      │ [32m'image'[39m               │ [33m10[39m         │ [32m'0.0336'[39m     │ [33m94.1[39m           │ [33m77.2[39m             │
+│ 16      │ [32m'performance_summary'[39m │ [33m8[39m          │ [32m'0.0102'[39m     │ [33m97.8[39m           │ [33m88.6[39m             │
+│ 17      │ [32m'research'[39m            │ [33m2[39m          │ [32m'0.0090'[39m     │ [33m92.1[39m           │ [33m92.1[39m             │
+└─────────┴───────────────────────┴────────────┴──────────────┴────────────────┴──────────────────┘
+
+ [32m✓[39m tests/os/completion-pricing.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/partner-status.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/domain.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/applicant-edit.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/partner-layout.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/leados/campaigns.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/leados/compliance.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/scoring.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/leados/scoring.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/leados/rbac.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/leados/hosts.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m51 passed[39m[22m[90m (51)[39m
+[2m      Tests [22m [1m[32m578 passed[39m[22m[90m (578)[39m
+[2m   Start at [22m 14:36:21
+[2m   Duration [22m 83.05s[2m (transform 2.68s, setup 8.94s, collect 12.17s, tests 36.04s, environment 18ms, prepare 10.60s)[22m
+
+EXIT=0

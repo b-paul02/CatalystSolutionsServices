@@ -10,6 +10,7 @@ import { TERMS_VERSION } from "@/lib/leados/terms";
 
 export async function createOrg(_prev: FormState, form: FormData): Promise<FormState> {
   const actor = await requireLosUser();
+  if (process.env.GROWTHOS_SELF_SERVICE !== "on") return { error: "Workspaces are set up by Catalyst as part of an engagement. Ask your account lead for an invitation." };
 
   const name = String(form.get("name") ?? "").trim().slice(0, 160);
   const intendedUse = String(form.get("intendedUse") ?? "both");
@@ -19,7 +20,7 @@ export async function createOrg(_prev: FormState, form: FormData): Promise<FormS
   const website = String(form.get("website") ?? "").trim().slice(0, 200) || null;
 
   if (name.length < 2) return { error: "Enter your organization name." };
-  if (!["b2b", "b2c", "both"].includes(intendedUse)) return { error: "Pick how you'll use LeadOS." };
+  if (!["b2b", "b2c", "both"].includes(intendedUse)) return { error: "Pick how you'll use CatalystGrowthOS." };
   if (!["IN", "US"].includes(market)) return { error: "Pick your billing market." };
   if (form.get("acceptTerms") !== "on") return { error: "You must accept the terms and DPA to continue." };
   if (form.get("acceptProhibited") !== "on") return { error: "You must confirm the prohibited-use policy." };

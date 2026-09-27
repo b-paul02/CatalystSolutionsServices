@@ -1,0 +1,199 @@
+   ▲ Next.js 15.5.20
+   - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 44s
+   Linting and checking validity of types ...
+
+   We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
+   The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:
+
+   	- include was updated to add '.next-verify/types/**/*.ts'
+
+   Collecting page data ...
+   Generating static pages (0/148) ...
+   Generating static pages (37/148) 
+   Generating static pages (74/148) 
+   Generating static pages (111/148) 
+ ✓ Generating static pages (148/148)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                      Size  First Load JS
+┌ ○ /                                         1.47 kB         107 kB
+├ ○ /_not-found                                 230 B         103 kB
+├ ○ /about                                      193 B         106 kB
+├ ○ /add-ons                                    842 B         107 kB
+├ ƒ /admin/leados                               230 B         103 kB
+├ ƒ /admin/leados/datasets                    1.44 kB         107 kB
+├ ƒ /admin/leados/datasets/[id]               1.58 kB         107 kB
+├ ƒ /admin/leados/inventory                     230 B         103 kB
+├ ƒ /admin/leados/plans                       3.29 kB         106 kB
+├ ƒ /admin/leados/privacy-requests            1.63 kB         104 kB
+├ ƒ /admin/leados/reviews                      1.2 kB         104 kB
+├ ƒ /admin/leados/suppressions                  827 B         103 kB
+├ ƒ /admin/leados/tokens                      1.87 kB         104 kB
+├ ƒ /admin/leads                                193 B         106 kB
+├ ƒ /admin/login                              1.09 kB         104 kB
+├ ƒ /admin/os                                   705 B         107 kB
+├ ƒ /admin/os/[orgId]                           709 B         107 kB
+├ ƒ /admin/os/credits                           709 B         107 kB
+├ ƒ /admin/partners                             193 B         106 kB
+├ ƒ /admin/partners/[id]                      4.98 kB         135 kB
+├ ƒ /admin/partners/applications                193 B         106 kB
+├ ƒ /admin/partners/applications/[id]          4.7 kB         117 kB
+├ ƒ /admin/partners/commissions               2.84 kB         133 kB
+├ ƒ /admin/partners/deals                     1.74 kB         108 kB
+├ ƒ /admin/plans                                437 B         106 kB
+├ ƒ /admin/plans/[id]                           133 B         116 kB
+├ ƒ /admin/plans/new                            132 B         116 kB
+├ ƒ /admin/reviews                              193 B         106 kB
+├ ƒ /admin/reviews/[id]                        2.4 kB         105 kB
+├ ƒ /api/admin/login                            230 B         103 kB
+├ ƒ /api/admin/partners/commissions/export      230 B         103 kB
+├ ƒ /api/admin/progress                         230 B         103 kB
+├ ƒ /api/audit/scrape                           230 B         103 kB
+├ ƒ /api/audit/submit                           230 B         103 kB
+├ ƒ /api/book                                   230 B         103 kB
+├ ƒ /api/cron/nurture                           230 B         103 kB
+├ ƒ /api/dev/llm/chat/completions               230 B         103 kB
+├ ƒ /api/doctors/submit                         230 B         103 kB
+├ ƒ /api/leados/cron                            230 B         103 kB
+├ ƒ /api/leados/oauth/[provider]/callback       230 B         103 kB
+├ ƒ /api/leados/oauth/[provider]/start          230 B         103 kB
+├ ƒ /api/leados/public/forms/[publicId]         230 B         103 kB
+├ ƒ /api/leados/webhooks/google                 230 B         103 kB
+├ ƒ /api/leados/webhooks/meta                   230 B         103 kB
+├ ƒ /api/leados/webhooks/twilio                 230 B         103 kB
+├ ƒ /api/os/assets                              230 B         103 kB
+├ ƒ /api/os/assets/[id]                         230 B         103 kB
+├ ƒ /api/os/connect/[provider]/callback         230 B         103 kB
+├ ƒ /api/os/connect/[provider]/start            230 B         103 kB
+├ ƒ /api/os/export                              230 B         103 kB
+├ ƒ /api/os/hooks/[token]                       230 B         103 kB
+├ ƒ /api/os/media/[versionId]                   230 B         103 kB
+├ ƒ /api/os/tick                                230 B         103 kB
+├ ƒ /api/partner/login                          230 B         103 kB
+├ ƒ /api/stripe/webhook                         230 B         103 kB
+├ ƒ /api/v1/leads                               230 B         103 kB
+├ ƒ /api/v1/leads/[id]                          230 B         103 kB
+├ ƒ /app                                        230 B         103 kB
+├ ƒ /app/ads                                  1.38 kB         107 kB
+├ ƒ /app/approvals                            1.38 kB         107 kB
+├ ƒ /app/assets                               2.39 kB         108 kB
+├ ƒ /app/audit                                1.38 kB         107 kB
+├ ƒ /app/c/[publicId]                         2.02 kB         104 kB
+├ ƒ /app/campaigns                            1.99 kB         108 kB
+├ ƒ /app/campaigns/[id]                       5.71 kB         112 kB
+├ ƒ /app/content                              1.38 kB         107 kB
+├ ƒ /app/content/[id]                         1.38 kB         107 kB
+├ ƒ /app/content/campaigns/[id]               1.38 kB         107 kB
+├ ƒ /app/dashboard                            1.37 kB         107 kB
+├ ƒ /app/deliveries                           1.56 kB         107 kB
+├ ƒ /app/denied                               1.05 kB         107 kB
+├ ƒ /app/discover                             3.71 kB         110 kB
+├ ƒ /app/engagement                           1.05 kB         107 kB
+├ ƒ /app/engagement/[id]                      1.37 kB         107 kB
+├ ○ /app/forgot                               1.51 kB         107 kB
+├ ƒ /app/invite/[token]                       1.74 kB         104 kB
+├ ƒ /app/leads                                2.08 kB         108 kB
+├ ƒ /app/leads/[id]                           4.49 kB         110 kB
+├ ƒ /app/leads/import                         1.71 kB         108 kB
+├ ƒ /app/leads/import/[id]                    2.62 kB         108 kB
+├ ƒ /app/leads/new                            2.34 kB         105 kB
+├ ƒ /app/login                                1.59 kB         107 kB
+├ ƒ /app/mfa                                  1.57 kB         104 kB
+├ ƒ /app/onboarding                           2.17 kB         105 kB
+├ ƒ /app/ops                                  1.37 kB         107 kB
+├ ƒ /app/outreach                             3.07 kB         106 kB
+├ ƒ /app/pipeline                             2.33 kB         108 kB
+├ ○ /app/privacy                              1.68 kB         104 kB
+├ ƒ /app/privacy/verify/[token]               1.03 kB         104 kB
+├ ƒ /app/register                             1.68 kB         108 kB
+├ ƒ /app/reports                              1.03 kB         104 kB
+├ ƒ /app/reports/notes                        1.38 kB         107 kB
+├ ƒ /app/reset                                1.59 kB         107 kB
+├ ƒ /app/results                              1.37 kB         107 kB
+├ ƒ /app/search                               1.38 kB         107 kB
+├ ƒ /app/settings                             1.57 kB         104 kB
+├ ƒ /app/settings/ai-credits                    745 B         110 kB
+├ ƒ /app/settings/api-keys                    1.94 kB         104 kB
+├ ƒ /app/settings/billing                     1.98 kB         104 kB
+├ ƒ /app/settings/integrations                2.62 kB         105 kB
+├ ƒ /app/settings/scoring                     2.06 kB         105 kB
+├ ƒ /app/settings/security                    2.38 kB         105 kB
+├ ƒ /app/settings/team                        2.23 kB         105 kB
+├ ƒ /app/settings/workspace                   1.38 kB         107 kB
+├ ƒ /app/strategy                             1.38 kB         107 kB
+├ ƒ /app/strategy/profile                     1.38 kB         107 kB
+├ ƒ /app/studio                               1.05 kB         107 kB
+├ ƒ /app/studio/[tool]                          182 B         110 kB
+├ ƒ /app/studio/history/[id]                    745 B         110 kB
+├ ƒ /app/tasks                                2.13 kB         108 kB
+├ ƒ /app/u/[token]                            1.03 kB         104 kB
+├ ƒ /app/verify                               1.05 kB         107 kB
+├ ƒ /app/work                                 1.38 kB         107 kB
+├ ƒ /app/work/[id]                            1.38 kB         107 kB
+├ ƒ /app/workflows                            1.37 kB         107 kB
+├ ƒ /app/workflows/[id]                       63.6 kB         169 kB
+├ ƒ /app/workflows/connections                1.38 kB         107 kB
+├ ƒ /book                                     4.32 kB         117 kB
+├ ƒ /book/success                               193 B         106 kB
+├ ● /bundles/[slug]                           4.17 kB         110 kB
+├   ├ /bundles/patient-pipeline-bundle
+├   ├ /bundles/authority-inquiry-engine
+├   ├ /bundles/local-domination-pack
+├   └ [+7 more paths]
+├ ○ /contact                                  2.42 kB         105 kB
+├ ○ /doctors/audit                             4.8 kB         107 kB
+├ ○ /growth-audit                              5.3 kB         108 kB
+├ ƒ /growth-audit/report/[token]                504 B         103 kB
+├ ○ /icon.png                                     0 B            0 B
+├ ○ /industries                                 182 B         106 kB
+├ ƒ /partner                                    193 B         106 kB
+├ ƒ /partner/deals                              193 B         106 kB
+├ ƒ /partner/deals/[id]                       2.02 kB         108 kB
+├ ƒ /partner/deals/[id]/quote                 3.44 kB         109 kB
+├ ƒ /partner/deals/new                        2.34 kB         108 kB
+├ ƒ /partner/earnings                           230 B         103 kB
+├ ƒ /partner/login                            1.08 kB         104 kB
+├ ○ /partners                                  2.4 kB         108 kB
+├ ƒ /partners/apply                           3.88 kB         113 kB
+├ ƒ /partners/apply/edit/[token]               1.1 kB         104 kB
+├ ƒ /partners/apply/status/[token]              881 B         107 kB
+├ ○ /partners/terms                             193 B         106 kB
+├ ƒ /plans/[token]                              842 B         107 kB
+├ ○ /privacy                                    230 B         103 kB
+├ ○ /proof                                      182 B         106 kB
+├ ● /proof/samples/[slug]                       182 B         106 kB
+├   ├ /proof/samples/monthly-presence-report
+├   ├ /proof/samples/monthly-seo-report
+├   ├ /proof/samples/ads-performance-report
+├   └ [+5 more paths]
+├ ● /proof/sites/[slug]                       14.6 kB         120 kB
+├   ├ /proof/sites/lumina-dental
+├   ├ /proof/sites/meridian-legal
+├   ├ /proof/sites/summit-ridge-roofing
+├   └ [+7 more paths]
+├ ○ /robots.txt                                 230 B         103 kB
+├ ○ /services                                   182 B         106 kB
+├ ● /services/[slug]                            182 B         106 kB
+├   ├ /services/ai-strategy
+├   ├ /services/website
+├   ├ /services/seo
+├   └ [+10 more paths]
+├ ○ /sitemap.xml                                230 B         103 kB
+└ ○ /use-cases                                  182 B         106 kB
++ First Load JS shared by all                  102 kB
+  ├ chunks/1255-d90f22433f14e976.js           46.2 kB
+  ├ chunks/4bd1b696-f785427dddbba9fb.js       54.2 kB
+  └ other shared chunks (total)                  2 kB
+
+
+ƒ Middleware                                   127 kB
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+
+EXIT=0

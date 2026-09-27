@@ -9,6 +9,10 @@
 // (market, program, tier). India and US are seeded as independent books.
 
 import { PrismaClient } from "@prisma/client";
+import { assertDisposableDatabase, assertSafeDatabase } from "../lib/dbGuard.ts";
+
+assertSafeDatabase(); // local database only — never production
+await assertDisposableDatabase(); // …and the database itself must carry the disposable marker (a tunnel to a real service will not)
 
 const db = new PrismaClient();
 

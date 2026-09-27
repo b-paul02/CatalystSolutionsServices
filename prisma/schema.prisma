@@ -423,6 +423,37 @@ model LosOrg {
   invitations LosInvitation[]
   apiKeys     LosApiKey[]
   leads       LosLead[]
+
+  // CatalystGrowthOS v2 (tenant-safe: every new Cos* table FKs here)
+  cosEngagements   CosEngagement[]
+  cosProfile       CosBusinessProfile?
+  cosSources       CosSource[]
+  cosClaims        CosClaim[]
+  cosChecklist     CosChecklistItem[]
+  cosDependencies  CosDependency[]
+  cosCampaigns     CosCampaign[]
+  cosVariants      CosContentVariant[]
+  cosRevisions     CosRevision[]
+  cosAssets        CosAsset[]
+  cosPublications  CosPublication[]
+  cosSnapshots     CosMetricSnapshot[]
+  cosOpportunities CosOpportunity[]
+  cosCycles        CosCycle[]
+  cosCommercial    CosCommercialRecord[]
+  cosPayments      CosPaymentEvent[]
+  cosAiUsage       CosAiUsage[]
+  cosNotifications CosNotification[]
+
+  // AI credits + client AI Studio (2026-09 completion). Separate from LosTokenLedger (lead tokens).
+  cosCreditWallet       CosCreditWallet?
+  cosCreditGrants       CosCreditGrant[]
+  cosCreditLedger       CosCreditLedger[]
+  cosCreditReservations CosCreditReservation[]
+  cosCreditQuotes       CosCreditQuote[]
+  cosCreditOrders       CosCreditOrder[]
+  cosCreditLimits       CosCreditMemberLimit[]
+  cosAiBillingAuths     CosAiBillingAuth[]
+  cosAiOperations       CosAiOperation[]
 }
 
 model LosMembership {
@@ -540,6 +571,17 @@ model LosLead {
   lostReason String?
   conversionValue BigInt? // minor units in the org's market currency
 
+  // Attribution (GrowthOS v2). Set once at capture from campaign-tagged URLs; never inferred later.
+  marketingCampaignId String? // CosCampaign.id
+  variantId           String? // CosContentVariant.id (utm_content)
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+  // known (tagged link / ad platform) | self_reported | unknown
+  attributionKind    String  @default("unknown")
+  selfReportedSource String?
+
   qualityScore Int?
   intentScore  Int?
 
@@ -566,6 +608,7 @@ model LosLead {
   @@index([orgId, normalizedPhone])
   @@index([orgId, createdAt])
   @@index([orgId, ownerId])
+  @@index([orgId, marketingCampaignId])
 }
 
 model LosLeadB2b {
@@ -1107,6 +1150,10 @@ model LosMessageTemplate {
   channel String
   subject String?
   body    String
+  // WP-45: Twilio Content API template (WhatsApp): content SID, approval status (approved | pending | rejected | unsubmitted), JSON variables
+  contentSid     String?
+  approvalStatus String?
+  variables      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1232,6 +1279,8 @@ model LosCampaign {
   // {mode: round_robin|fixed, userIds: string[], slaMinutes, ackEmail: bool, ackTemplate}
   distribution String?
   noticeVersion String @default("v1")
+  // CosCampaign.id this lead-capture form serves (marketing campaign ≠ capture form)
+  marketingCampaignId String?
   reviewNote   String?
   launchedAt   DateTime?
   demo      Boolean  @default(false)
@@ -1271,6 +1320,8 @@ model LosFormSubmission {
   utm        String? // JSON utm/tracking params
   trackingCode String?
   ip         String?
+  // WP-10a scorecard result JSON {total, max, pct, band, bandIndex, categories:[{key,label,pillar,points,max,pct}]} — self-reported
+  score      String?
   // accepted | duplicate_updated | invalid | spam | pending_verification
   status     String
   leadId     String?
@@ -1462,4 +1513,1772 @@ model AuditLog {
   at        DateTime @default(now())
 
   @@index([entity, entityId])
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// CatalystGrowthOS (Cos*) — the services-delivery layer on top of LeadOS.
+// Blueprint: docs/os/blueprint.md. Tenant = LosOrg (orgId everywhere).
+// JSON payloads are Strings, like the rest of this schema.
+// ═════════════════════════════════════════════════════════════════════════════
+
+// One row per org: workspace kind, brand knowledge, autonomy policy, kill switch.
+model CosWorkspace {
+  orgId        String    @id
+  // prospect (audit/route only) | client (contracted modules)
+  kind         String    @default("prospect")
+  // marketing-site Lead.id this workspace was claimed from (no FK — marketing tables are untouched)
+  sourceLeadId String?
+  partnerId    String?
+  // JSON {voice, audience, offers, proofPoints, dos, donts, competitors}
+  brandProfile String?
+  // JSON {publish:{enabled,dailyCap}, email:{...}} — Tier 2 opt-ins; Tier 3 is never autonomous
+  autonomy     String?
+  // blocks every new outbound job for this org while true
+  killSwitch   Boolean   @default(false)
+  killSwitchAt DateTime?
+  killSwitchBy String?
+  // IANA zone used to DISPLAY and ENTER times; storage is always UTC
+  timezone     String    @default("UTC")
+  // reporting currency (ISO 4217); null = fall back to the org market
+  currency     String?
+  // active | read_only (handover: history visible, nothing editable) | revoked
+  accessMode   String    @default("active")
+  // WP-31 · per-workspace sending domain on Resend: domain, provider id, status (pending | verified | failed), DNS records JSON
+  emailDomain        String?
+  emailDomainId      String?
+  emailDomainStatus  String?
+  emailDomainRecords String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  demo         Boolean   @default(false)
+}
+
+// Contracted scope. Entitlements = union of ACTIVE contracts. Never edited after
+// signing — a scope change is a new contract row (kind=change) linked by parentId.
+model CosContract {
+  id          String    @id @default(cuid())
+  orgId       String
+  parentId    String?
+  // program | change | project | addon
+  kind        String    @default("program")
+  engagementId String?
+  programSlug String?
+  // foundation | growth | scale
+  tier        String?
+  // JSON string[] of service slugs / module keys (lib/os/catalog.ts)
+  services    String    @default("[]")
+  modules     String    @default("[]")
+  // JSON {deliverablesPerMonth, reviewCycles, aiCredits, responseHours}
+  allowances  String    @default("{}")
+  // TOOL ENTITLEMENT: JSON string[] of AI Studio tool keys (lib/os/studio.ts), independent of
+  // `services` (scope) and of the credit balance. Only ACTIVE contracts grant tools.
+  aiTools     String    @default("[]")
+  scopeDoc    String?
+  exclusions  String?
+  // JSON {setup, monthly, currency} — placeholder until the price book is decided
+  pricing     String?
+  // proposed | active | ended | declined
+  status      String    @default("proposed")
+  proposedBy  String?
+  signedById  String?
+  signedAt    DateTime?
+  // WP-51: sha256 of the scope the client signed and the IP class (private | public | unknown) — never the raw IP
+  signedHash  String?
+  signedIpClass String?
+  endedAt     DateTime?
+  createdAt   DateTime  @default(now())
+  demo        Boolean   @default(false)
+
+  @@index([orgId, status])
+}
+
+model CosAuditRun {
+  id             String   @id @default(cuid())
+  orgId          String
+  sourceLeadId   String?
+  url            String
+  // initial | quarterly | service | scorecard (self-reported, WP-10b)
+  kind           String   @default("initial")
+  // WP-10b: the LosFormSubmission this scorecard run came from (one run per submission), and the verified run it pairs with
+  sourceSubmissionId String?
+  pairedRunId    String?
+  // self_reported for scorecard runs; null = verified pipeline
+  label          String?
+  scoringVersion String
+  // JSON {pillarKey: {score|null, label}} — null = unavailable, never 0
+  scores         String
+  // JSON {snapshot, keyPoints, routes, icps, quickWins, assumptions, limitations}
+  summary        String
+  reviewedById   String?
+  createdAt      DateTime @default(now())
+  demo           Boolean  @default(false)
+
+  @@index([orgId, createdAt])
+  @@index([sourceSubmissionId])
+}
+
+// A finding carries its own evidence. ponytail: one evidence per finding inline;
+// split into a CosEvidence table when a finding needs several sources.
+model CosFinding {
+  id         String   @id @default(cuid())
+  orgId      String
+  auditRunId String
+  pillar     String
+  text       String
+  severity   String   @default("medium")
+  // verified | detected | assumed | unavailable
+  label      String
+  evidence   String
+  sourceUrl  String?
+  observedAt DateTime
+  // identified | evidence_checked | proposed | accepted | deferred | rejected | archived
+  status     String   @default("identified")
+  statusNote String?
+  workItemId String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([orgId, status])
+  @@index([auditRunId])
+}
+
+// INSERT-ONLY. A correction is a new row with supersedesId — never an UPDATE.
+model CosBaseline {
+  id           String   @id @default(cuid())
+  orgId        String
+  version      Int
+  auditRunId   String?
+  // JSON {scores, kpis, working, notWorking, opportunities}
+  snapshot     String
+  supersedesId String?
+  reason       String?
+  approvedById String
+  createdAt    DateTime @default(now())
+
+  @@unique([orgId, version])
+}
+
+model CosGoal {
+  id           String    @id @default(cuid())
+  orgId        String
+  engagementId String?
+  // visibility | acquisition | retention | operations | product
+  focus        String?
+  // growth pillar (lib/os/pillars.ts): market_intelligence | client_acquisition | digital_visibility | digital_presence | business_operations
+  pillar       String?
+  metric       String
+  target       Float
+  unit         String
+  horizon      String
+  currency     String?
+  definition   String?
+  // measured | estimated | unavailable
+  currentLabel String    @default("unavailable")
+  currentValue Float?
+  agreedAt     DateTime?
+  agreedById   String?
+  archivedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([orgId])
+}
+
+// AI CMO plan versions. Approved versions are immutable; a replan is version+1.
+model CosPlan {
+  id           String    @id @default(cuid())
+  orgId        String
+  version      Int
+  // draft | in_review | approved | rejected | superseded
+  status       String    @default("draft")
+  // JSON {summary, allocation:[{channel,pct,rationale,evidenceIds}], focus, assumptions, risks, alternatives, successMetrics}
+  payload      String
+  // ai | human
+  origin       String    @default("ai")
+  model        String?
+  reviewedById String?
+  approvedById String?
+  approvedAt   DateTime?
+  reviewNote   String?
+  createdAt    DateTime  @default(now())
+
+  @@unique([orgId, version])
+}
+
+// The Growth Work Item (blueprint §9.1): one ledger for tasks, content, projects,
+// experiments and change requests. Core fields are columns; field groups are JSON.
+model CosWorkItem {
+  id                   String    @id @default(cuid())
+  orgId                String
+  parentId             String?
+  contractId           String?
+  findingId            String?
+  planId               String?
+  // GrowthOS v2 links (the traceable chain)
+  engagementId         String?
+  goalId               String?
+  campaignId           String?
+  cycleId              String?
+  // catalyst | client | shared
+  responsibility       String    @default("catalyst")
+  // role expected to do the work (strategist, designer, developer, editor…)
+  assignRole           String?
+  acceptanceCriteria   String?
+  // how this item's result is judged (template measure or free text)
+  measure              String?
+  // set ONCE when the item first reaches delivered — reporting counts this, never updatedAt
+  deliveredAt          DateTime?
+  // task | content | project | milestone | experiment | change_request
+  type                 String    @default("task")
+  serviceSlug          String?
+  studio               String?
+  templateKey          String?
+  title                String
+  // see lib/os/workflow.ts WORK_STATES
+  state                String    @default("backlog")
+  // state to return to when unblocked
+  stateBefore          String?
+  version              Int       @default(1)
+  priority             Int       @default(2)
+  // autonomy tier 0-3 (lib/os/workflow.ts)
+  riskTier             Int       @default(1)
+  clientReviewRequired Boolean   @default(true)
+  ownerId              String?
+  assigneeId           String?
+  reviewerId           String?
+  dueAt                DateTime?
+  scheduledAt          DateTime?
+  // JSON {problem, objective, options, rationale, successMeasure, tradeoffs, dependencies}
+  decision             String?
+  // JSON {inScope, estMinutes, estAiCost, incrementalCharge, paymentStatus}
+  commercial           String?
+  // JSON type-specific body: content {channel, persona, hook, format, cta, body}; checklist [...]
+  payload              String?
+  // sha256 of title+payload at the current version — approvals bind to this
+  contentHash          String?
+  // JSON {qa, externalId, kpi, attributionGrade, learningId, closeReason}
+  outcome              String?
+  createdById          String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  closedAt             DateTime?
+  demo                 Boolean   @default(false)
+
+  events       CosWorkEvent[]
+  approvals    CosApproval[]
+  deliverables CosDeliverable[]
+
+  @@index([orgId, state])
+  @@index([orgId, type, scheduledAt])
+  @@index([assigneeId, state])
+  @@index([parentId])
+  @@index([orgId, engagementId])
+  @@index([orgId, campaignId])
+  @@index([orgId, deliveredAt])
+
+  variants     CosContentVariant[]
+}
+
+// APPEND-ONLY. Transitions, comments, time and AI cost. Never UPDATE or DELETE.
+model CosWorkEvent {
+  id           String      @id @default(cuid())
+  orgId        String
+  workItemId   String
+  workItem     CosWorkItem @relation(fields: [workItemId], references: [id], onDelete: Cascade)
+  actorId      String?
+  // user | platform_admin | system | ai
+  actorType    String
+  // transition | comment | time | ai | approval | execution | edit
+  kind         String
+  fromState    String?
+  toState      String?
+  minutes      Int?
+  // AI/media cost in micro-USD so margins can be computed later
+  aiCostMicros Int?
+  model        String?
+  // internal events are hidden from client roles
+  internal     Boolean     @default(false)
+  data         String?
+  // set when the comment/edit concerns one channel variant
+  variantId    String?
+  createdAt    DateTime    @default(now())
+
+  @@index([variantId])
+  @@index([workItemId, createdAt])
+  @@index([orgId, createdAt])
+}
+
+model CosDeliverable {
+  id           String      @id @default(cuid())
+  orgId        String
+  workItemId   String
+  workItem     CosWorkItem @relation(fields: [workItemId], references: [id], onDelete: Cascade)
+  title        String
+  // ponytail: links, not uploads — add blob storage when a client needs files hosted here
+  url          String?
+  note         String?
+  version      Int         @default(1)
+  acceptedAt   DateTime?
+  acceptedById String?
+  createdById  String?
+  createdAt    DateTime    @default(now())
+
+  @@index([workItemId])
+}
+
+// Approval rows are decided once; a material change means a NEW row for the new version.
+model CosApproval {
+  id            String       @id @default(cuid())
+  orgId         String
+  workItemId    String?
+  workItem      CosWorkItem? @relation(fields: [workItemId], references: [id], onDelete: Cascade)
+  // work_item | plan | contract | baseline | variant
+  subject       String       @default("work_item")
+  subjectId     String
+  version       Int
+  contentHash   String
+  // client | internal
+  audience      String       @default("client")
+  summary       String
+  // JSON action diff shown to the approver
+  diff          String?
+  // requested | approved | approved_with_edits | rejected | expired | revoked
+  status        String       @default("requested")
+  requestedById String?
+  decidedById   String?
+  reason        String?
+  // single-use emailed approval link (sha256 at rest)
+  linkTokenHash String?      @unique
+  expiresAt     DateTime?
+  decidedAt     DateTime?
+  createdAt     DateTime     @default(now())
+
+  @@index([orgId, status])
+  @@index([subject, subjectId])
+}
+
+model CosLearning {
+  id          String   @id @default(cuid())
+  orgId       String
+  hypothesis  String
+  segment     String?
+  window      String?
+  method      String?
+  counts      String?
+  result      String
+  uncertainty String?
+  workItemIds String   @default("[]")
+  // proposed | approved | rejected
+  status      String   @default("proposed")
+  reviewerId  String?
+  createdAt   DateTime @default(now())
+
+  @@index([orgId, status])
+}
+
+// Monthly note / weekly brief. Published reports are immutable.
+model CosReport {
+  id          String    @id @default(cuid())
+  orgId       String
+  // weekly | monthly | quarterly
+  kind        String
+  period      String
+  // JSON {metrics:[{name,value,label,baseline}], narrative, delivered, next, limitations}
+  body        String
+  // draft | published
+  status      String    @default("draft")
+  authorId    String?
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([orgId, kind, period])
+}
+
+// OAuth / API connections. "verified" only after a live access test passes.
+model CosConnection {
+  id              String    @id @default(cuid())
+  orgId           String
+  provider        String
+  // provider-specific: member | organization | page | ig_business | channel | site | property | user
+  accountType     String?
+  // the provider's own id for the account (urn, page id, channel id, site url…)
+  externalAccountId String?
+  // what THIS authorisation can do, proven by scopes + eligibility: publish | analytics
+  capabilities    String[]  @default([])
+  // why a capability is missing (e.g. 'Page role is not admin')
+  eligibilityNote String?
+  // last time a real call with this token succeeded
+  liveVerifiedAt  DateTime?
+  accountLabel    String?
+  // pending | verified | failed | disconnected
+  status          String    @default("pending")
+  // AES-256-GCM via lib/leados/crypto — never logged
+  accessTokenEnc  String?
+  refreshTokenEnc String?
+  tokenExpiresAt  DateTime?
+  scopes          String?
+  // JSON provider config (gsc site url, ga property id…)
+  config          String?
+  lastCheckedAt   DateTime?
+  lastError       String?
+  createdById     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([orgId, provider, externalAccountId])
+  @@index([orgId, provider])
+}
+
+// Pulled channel metrics (GSC, GA, Ads). Idempotent upsert per day+metric.
+model CosMetricPoint {
+  id       String   @id @default(cuid())
+  orgId    String
+  provider String
+  metric   String
+  day      DateTime
+  value    Float
+  // A | B | C | D attribution grade where relevant
+  grade    String?
+
+  @@unique([orgId, provider, metric, day])
+}
+
+// ── CatalystGrowthOS automations (lib/os/automation) ─────────────────────────
+
+// A client-built workflow: one trigger, then conditions / waits / actions.
+// Only the ACTIVATED definition runs: activeHash must equal the hash of
+// `definition`, so any logic edit drops the workflow back to draft.
+model CosWorkflow {
+  id            String    @id @default(cuid())
+  orgId         String
+  name          String
+  description   String?
+  templateKey   String?
+  // draft | active | paused | archived
+  status        String    @default("draft")
+  version       Int       @default(1)
+  // JSON {nodes:[{id,type,config,position}], edges:[{from,to,branch?}]}
+  definition    String
+  // trigger block type, denormalised for event lookup
+  triggerType   String?
+  activeHash    String?
+  activatedById String?
+  activatedAt   DateTime?
+  // sha256 of the unguessable inbound-webhook token
+  hookTokenHash String?   @unique
+  // JSON scratch state owned by blocks (e.g. feed items already seen)
+  state         String?
+  createdById   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  demo          Boolean   @default(false)
+
+  runs CosWorkflowRun[]
+
+  @@index([orgId, status])
+  @@index([orgId, triggerType, status])
+}
+
+model CosWorkflowRun {
+  id              String      @id @default(cuid())
+  orgId           String
+  workflowId      String
+  workflow        CosWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflowVersion Int
+  // one run per (workflow, event) — a redelivered event never runs twice
+  eventKey        String
+  trigger         String
+  // queued | running | waiting | succeeded | failed | blocked
+  status          String      @default("queued")
+  // loop guard: events caused by a workflow carry depth+1
+  depth           Int         @default(0)
+  // JSON execution context {trigger:{…}, steps:{nodeId:output}} — never logged
+  context         String
+  // node to continue from after a wait
+  cursor          String?
+  resumeAt        DateTime?
+  error           String?
+  stepCount       Int         @default(0)
+  createdAt       DateTime    @default(now())
+  finishedAt      DateTime?
+
+  steps CosWorkflowStepLog[]
+
+  @@unique([workflowId, eventKey])
+  @@index([orgId, createdAt])
+  @@index([status, resumeAt])
+}
+
+// APPEND-ONLY. One row per executed step. `summary` is redacted of emails/phones.
+model CosWorkflowStepLog {
+  id        String         @id @default(cuid())
+  orgId     String
+  runId     String
+  run       CosWorkflowRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  nodeId    String
+  blockType String
+  // ok | skipped | blocked | failed | waiting
+  status    String
+  summary   String?
+  // WP-18 run inspector: the rendered config the step received and what it returned — redacted JSON, truncated
+  input     String?
+  output    String?
+  ms        Int?
+  createdAt DateTime       @default(now())
+
+  @@index([runId, createdAt])
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// CatalystGrowthOS v2 — engagements, content variants, assets, publications,
+// dimensional metrics, opportunities, commercial records. All additive.
+// Org FKs cascade: an org is only ever deleted by the demo wipe / test cleanup, never by a product flow.
+// Every table FKs to LosOrg (tenant) and to its parent; states are documented
+// strings validated in lib/os/* (repo convention — no Prisma enums).
+// ═════════════════════════════════════════════════════════════════════════════
+
+// One commercial + delivery relationship. An org can have several.
+model CosEngagement {
+  id            String    @id @default(cuid())
+  orgId         String
+  org           LosOrg    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name          String
+  // audit | direct | partner
+  entrySource   String    @default("direct")
+  // marketing Lead.id / partner Deal.id — plain ids by rule (those tables are never altered).
+  sourceLeadId  String?
+  // unique ⇒ linking a partner deal twice can never create a second engagement
+  partnerDealId String?   @unique
+  // visibility | acquisition | retention | operations | product
+  goalFocus     String[]  @default([])
+  // prospect | discovery | proposal | accepted | onboarding | active | review | completed | offboarded | declined
+  stage         String    @default("prospect")
+  // none | awaiting_client | blocked | paused — orthogonal to stage
+  hold          String    @default("none")
+  holdReason    String?
+  holdOwnerId   String?
+  holdSince     DateTime?
+  nextAction        String?
+  nextActionOwnerId String?
+  // client | catalyst
+  nextActionSide    String?
+  nextActionDueAt   DateTime?
+  // assets_ready | foundation_needed | unknown
+  readiness     String    @default("unknown")
+  // Payment is tracked separately from delivery.
+  // not_invoiced | invoiced | part_paid | paid | overdue | refunded
+  paymentStatus String    @default("not_invoiced")
+  currency      String?
+  setupFeeMinor     BigInt?
+  recurringFeeMinor BigInt?
+  // none | monthly | quarterly
+  billingInterval   String  @default("none")
+  // service expectations — configured per engagement, never defaulted to a promise
+  reviewCycles      Int?
+  responseHours     Int?
+  startsAt      DateTime?
+  endsAt        DateTime?
+  renewalAt     DateTime?
+  renewalNoticeDays Int     @default(30)
+  // auto | manual | none
+  renewalMode   String    @default("manual")
+  kickoffSummary String?
+  ownerId       String?
+  createdById   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  closedAt      DateTime?
+  demo          Boolean   @default(false)
+
+  events     CosEngagementEvent[]
+  checklist  CosChecklistItem[]
+  campaigns  CosCampaign[]
+  cycles     CosCycle[]
+  commercial CosCommercialRecord[]
+
+  @@index([orgId, stage])
+  @@index([renewalAt])
+}
+
+// APPEND-ONLY stage / hold / payment history.
+model CosEngagementEvent {
+  id           String        @id @default(cuid())
+  orgId        String
+  engagementId String
+  engagement   CosEngagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  // stage | hold | payment | note | renewal | handover
+  kind         String
+  fromValue    String?
+  toValue      String?
+  reason       String?
+  actorId      String?
+  actorType    String        @default("user")
+  createdAt    DateTime      @default(now())
+
+  @@index([engagementId, createdAt])
+}
+
+// Structured discovery — one per org, versioned by counter; prompts read THIS.
+model CosBusinessProfile {
+  orgId         String   @id
+  org           LosOrg   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  businessModel String?
+  audience      String?
+  offers        String?
+  geography     String?
+  website       String?
+  tools         String?
+  salesProcess  String?
+  baseline      String?
+  targets       String?
+  constraints   String?
+  competitors   String?
+  brandVoice    String?
+  contentPillars String[] @default([])
+  version       Int      @default(1)
+  updatedById   String?
+  updatedAt     DateTime @updatedAt
+}
+
+// Research / source material content may be grounded in.
+model CosSource {
+  id        String   @id @default(cuid())
+  orgId     String
+  org       LosOrg   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  title     String
+  // url | document | transcript | note
+  kind      String   @default("note")
+  url       String?
+  assetId   String?
+  excerpt   String?
+  version   Int      @default(1)
+  archivedAt DateTime?
+  createdById String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId])
+}
+
+// Claims the client has approved for use in copy.
+model CosClaim {
+  id          String   @id @default(cuid())
+  orgId       String
+  org         LosOrg   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  text        String
+  sourceId    String?
+  evidenceNote String?
+  // proposed | approved | retired
+  status      String   @default("proposed")
+  approvedById String?
+  approvedAt  DateTime?
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@index([orgId, status])
+}
+
+// Access & asset checklist. Never stores passwords — access is granted through a
+// connection (connectionId) or an invitation on the provider's side.
+model CosChecklistItem {
+  id           String        @id @default(cuid())
+  orgId        String
+  org          LosOrg        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  engagementId String
+  engagement   CosEngagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  // access | asset | input
+  kind         String
+  key          String?
+  label        String
+  serviceSlug  String?
+  provider     String?
+  // pending | available | insufficient | disconnected | not_needed
+  status       String        @default("pending")
+  // client | catalyst
+  ownerSide    String        @default("client")
+  ownerId      String?
+  dueAt        DateTime?
+  note         String?
+  connectionId String?
+  assetId      String?
+  resolvedAt   DateTime?
+  resolvedById String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  dependents   CosDependency[]
+
+  @@unique([engagementId, key])
+  @@index([orgId, status])
+}
+
+// workItem is blocked until the other work item is delivered OR the checklist item is available.
+model CosDependency {
+  id              String            @id @default(cuid())
+  orgId           String
+  org             LosOrg            @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  workItemId      String
+  onWorkItemId    String?
+  onChecklistId   String?
+  onChecklist     CosChecklistItem? @relation(fields: [onChecklistId], references: [id], onDelete: Cascade)
+  note            String?
+  createdAt       DateTime          @default(now())
+
+  @@unique([workItemId, onWorkItemId, onChecklistId])
+  @@index([orgId, workItemId])
+  @@index([onWorkItemId])
+}
+
+// MARKETING campaign (objective + brief). Distinct from LosCampaign (a lead-capture form),
+// which points here through LosCampaign.marketingCampaignId.
+model CosCampaign {
+  id           String        @id @default(cuid())
+  orgId        String
+  org          LosOrg        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  engagementId String?
+  engagement   CosEngagement? @relation(fields: [engagementId], references: [id])
+  goalId       String?
+  name         String
+  // stable short code used in utm_campaign — never changes after creation
+  code         String
+  objective    String?
+  audience     String?
+  keyMessage   String?
+  offer        String?
+  cta          String?
+  destinationUrl String?
+  channels     String[]      @default([])
+  // organic | paid | mixed
+  paidMode     String        @default("organic")
+  budgetNote   String?
+  startsAt     DateTime?
+  endsAt       DateTime?
+  // draft | active | paused | completed | archived
+  status       String        @default("draft")
+  ownerId      String?
+  createdById  String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  demo         Boolean       @default(false)
+
+  @@unique([orgId, code])
+  @@index([orgId, status])
+}
+
+// One channel adaptation of a master content work item. Own copy, media, approval,
+// schedule and publication state.
+model CosContentVariant {
+  id            String      @id @default(cuid())
+  orgId         String
+  org           LosOrg      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  workItemId    String
+  workItem      CosWorkItem @relation(fields: [workItemId], references: [id], onDelete: Cascade)
+  // youtube | x | linkedin | facebook | instagram | blog
+  channel       String
+  // long_video | short | post | thread | article | carousel | reel
+  format        String
+  connectionId  String?
+  title         String?
+  body          String      @default("")
+  // ordered parts: thread posts / carousel captions / video chapters (content, not relations)
+  parts         String[]    @default([])
+  cta           String?
+  destinationUrl String?
+  mediaAssetIds String[]    @default([])
+  // draft | internal_qa | client_review | approved | scheduled | published | failed | needs_review | cancelled
+  state         String      @default("draft")
+  version       Int         @default(1)
+  // sha256(title, body, parts, cta, destinationUrl, mediaAssetIds) — approvals bind to this
+  contentHash   String
+  // master version this variant was derived from; older ⇒ "source changed, review"
+  sourceVersion Int         @default(1)
+  sourceChanged Boolean     @default(false)
+  clientReviewRequired Boolean @default(true)
+  scheduledAt   DateTime?
+  ownerId       String?
+  createdById   String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  demo          Boolean     @default(false)
+
+  publications  CosPublication[]
+
+  @@index([orgId, state])
+  @@index([orgId, scheduledAt])
+  @@index([workItemId])
+}
+
+// Persistent snapshot per material version (work item, variant, campaign brief).
+model CosRevision {
+  id          String   @id @default(cuid())
+  orgId       String
+  org         LosOrg   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  // work_item | variant | campaign
+  subject     String
+  subjectId   String
+  version     Int
+  contentHash String
+  // JSON of the approvable fields at that version
+  snapshot    String
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@unique([subject, subjectId, version])
+  @@index([orgId, subject, subjectId])
+}
+
+model CosAsset {
+  id             String   @id @default(cuid())
+  orgId          String
+  org            LosOrg   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name           String
+  // image | video | audio | document | other
+  kind           String
+  // brand | source | production | deliverable
+  category       String   @default("production")
+  tags           String[] @default([])
+  // upload | ai_generated | external_link
+  origin         String   @default("upload")
+  rightsNote     String?
+  sourceNote     String?
+  // draft | approved | archived
+  status         String   @default("draft")
+  // client-visible? internal working files stay staff-only
+  clientVisible  Boolean  @default(true)
+  currentVersion Int      @default(1)
+  workItemId     String?
+  createdById    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  demo           Boolean  @default(false)
+
+  versions       CosAssetVersion[]
+
+  @@index([orgId, status])
+  @@index([orgId, category])
+}
+
+model CosAssetVersion {
+  id          String   @id @default(cuid())
+  orgId       String
+  assetId     String
+  asset       CosAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  version     Int
+  // storage adapter key — always prefixed with the orgId
+  storageKey  String
+  // local | vercel_blob | external
+  storage     String
+  mime        String
+  sizeBytes   Int
+  sha256      String
+  width       Int?
+  height      Int?
+  durationSec Int?
+  note        String?
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@unique([assetId, version])
+}
+
+// One intended publication of one variant to one account. idempotencyKey makes a
+// second schedule/claim of the same variant version impossible.
+model CosPublication {
+  id             String            @id @default(cuid())
+  orgId          String
+  org            LosOrg            @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  variantId      String
+  variant        CosContentVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  connectionId   String?
+  channel        String
+  // live | test (explicit test adapter — never counted as live verification) | manual
+  adapter        String            @default("live")
+  // scheduled | claimed | published | partial | failed | uncertain | cancelled
+  status         String            @default("scheduled")
+  scheduledAt    DateTime
+  // IANA zone the user scheduled in (display only; scheduledAt is UTC)
+  timezone       String            @default("UTC")
+  variantVersion Int
+  contentHash    String
+  idempotencyKey String            @unique
+  claimedAt      DateTime?
+  publishedAt    DateTime?
+  externalId     String?
+  externalUrl    String?
+  partsTotal     Int               @default(1)
+  partsDone      Int               @default(0)
+  // provider ids of parts already posted (thread) — a resume never re-posts them
+  partExternalIds String[]         @default([])
+  // JSON { [mediaIndex]: { id, at } }: provider-side ids of media ALREADY uploaded for this publication, so a retry
+  // (LinkedIn still processing, X 429) reuses the original upload instead of uploading again. Dropped after 20 h.
+  providerMedia   String?
+  attemptCount   Int               @default(0)
+  nextAttemptAt  DateTime?
+  lastError      String?
+  // manual publication evidence
+  evidenceNote   String?
+  createdById    String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  attempts       CosPublishAttempt[]
+
+  @@index([orgId, status])
+  @@index([status, scheduledAt])
+}
+
+// APPEND-ONLY.
+model CosPublishAttempt {
+  id            String         @id @default(cuid())
+  orgId         String
+  publicationId String
+  publication   CosPublication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  n             Int
+  // success | partial | retryable_failure | definite_failure | uncertain | blocked
+  outcome       String
+  httpStatus    Int?
+  error         String?
+  startedAt     DateTime       @default(now())
+  finishedAt    DateTime?
+
+  @@index([publicationId, n])
+}
+
+// Dimensional metrics. dimKey = "org" | "acct:<connectionId>" | "pub:<publicationId>" |
+// "camp:<campaignId>" | "url:<sha1>" so the unique key works without nullable columns.
+model CosMetricSnapshot {
+  id            String   @id @default(cuid())
+  orgId         String
+  org           LosOrg   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  provider      String
+  metric        String
+  // daily (an increment for that day — summable) | lifetime (a running total — take the latest, never sum)
+  kind          String
+  dimKey        String   @default("org")
+  connectionId  String?
+  publicationId String?
+  campaignId    String?
+  url           String?
+  // daily: the day (UTC midnight). lifetime: the observation time truncated to the day.
+  periodStart   DateTime
+  value         Float
+  currency      String?
+  // api | manual | import
+  source        String   @default("api")
+  // organic | paid | unknown
+  paidMode      String   @default("unknown")
+  grade         String?
+  syncedAt      DateTime @default(now())
+  enteredById   String?
+  demo          Boolean  @default(false)
+
+  @@unique([orgId, provider, metric, kind, dimKey, periodStart])
+  @@index([orgId, publicationId])
+  @@index([orgId, campaignId])
+}
+
+// Sales opportunity on a lead. status=won + valueMinor + currency + closeDate = a recorded sale.
+model CosOpportunity {
+  id           String   @id @default(cuid())
+  orgId        String
+  org          LosOrg   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  leadId       String?
+  engagementId String?
+  campaignId   String?
+  variantId    String?
+  title        String
+  // open | qualified | proposal | won | lost
+  status       String   @default("open")
+  valueMinor   BigInt?
+  currency     String?
+  closeDate    DateTime?
+  lostReason   String?
+  // copied from the lead at creation so later lead edits cannot rewrite history
+  attributionKind String @default("unknown")
+  attributionNote String?
+  ownerId      String?
+  createdById  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  demo         Boolean  @default(false)
+
+  @@index([orgId, status])
+  @@index([orgId, campaignId])
+  @@index([leadId])
+}
+
+// One recurring delivery period. The unique key is what makes generation idempotent.
+model CosCycle {
+  id           String        @id @default(cuid())
+  orgId        String
+  org          LosOrg        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  engagementId String
+  engagement   CosEngagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  periodStart  DateTime
+  periodEnd    DateTime
+  // open | closed | skipped (paused)
+  status       String        @default("open")
+  itemsCreated Int           @default(0)
+  createdAt    DateTime      @default(now())
+
+  @@unique([engagementId, periodStart])
+}
+
+// A fee the client owes: setup, recurring period, approved change. Invoices may live elsewhere
+// (managedExternally) — then only the reference and the status someone recorded are kept.
+model CosCommercialRecord {
+  id           String        @id @default(cuid())
+  orgId        String
+  org          LosOrg        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  engagementId String
+  engagement   CosEngagement @relation(fields: [engagementId], references: [id])
+  // setup | recurring | change | other
+  kind         String
+  description  String
+  amountMinor  BigInt
+  currency     String
+  // draft | issued | part_paid | paid | overdue | void | refunded
+  status       String        @default("draft")
+  managedExternally Boolean  @default(true)
+  invoiceRef   String?
+  invoiceUrl   String?
+  dueAt        DateTime?
+  workItemId   String?
+  cycleId      String?
+  paidMinor    BigInt        @default(0)
+  // how "paid" was established: webhook (verified) | recorded (a person entered it)
+  paidBasis    String?
+  // WP-50: GST export fields (blank when unknown — never guessed)
+  taxRateBp    Int?
+  taxMinor     BigInt?
+  hsnSac       String?
+  createdById  String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  demo         Boolean       @default(false)
+
+  payments     CosPaymentEvent[]
+
+  // one record per change request / per cycle — generation can never double-charge
+  @@unique([engagementId, kind, workItemId])
+  @@unique([engagementId, kind, cycleId])
+  @@index([orgId, status])
+}
+
+// APPEND-ONLY. providerEventId unique ⇒ a replayed webhook is a no-op.
+model CosPaymentEvent {
+  id              String               @id @default(cuid())
+  orgId           String?
+  org             LosOrg?              @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  recordId        String?
+  record          CosCommercialRecord? @relation(fields: [recordId], references: [id])
+  // stripe | manual
+  provider        String
+  providerEventId String               @unique
+  type            String
+  amountMinor     BigInt?
+  currency        String?
+  // true only when the provider's signature was verified
+  verified        Boolean              @default(false)
+  // token_pack | subscription | deposit | commercial_record | ai_credits | ai_credits_reversal | record_refund | unmatched
+  appliedTo       String               @default("unmatched")
+  // provider payment id (Stripe payment_intent): ties refund / dispute events to the original payment
+  providerPaymentId String?
+  creditOrderId   String?
+  note            String?
+  createdAt       DateTime             @default(now())
+
+  @@index([orgId, createdAt])
+  @@index([providerPaymentId])
+}
+
+// APPEND-ONLY. costMicros NULL = price not configured (unknown), never 0.
+model CosAiUsage {
+  id           String   @id @default(cuid())
+  orgId        String
+  org          LosOrg   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  feature      String
+  // text | image | video
+  modality     String   @default("text")
+  model        String
+  inputTokens  Int?
+  outputTokens Int?
+  units        Int?
+  costMicros   Int?
+  ok           Boolean  @default(true)
+  workItemId   String?
+  userId       String?
+  createdAt    DateTime @default(now())
+  demo         Boolean  @default(false)
+  // WHO PAYS. orgId is only who the output is FOR. Historical rows default to internal, so
+  // nothing recorded before the wallet existed can ever become a client debit.
+  // catalyst_internal | client_wallet
+  payer          String  @default("catalyst_internal")
+  // internal_delivery | client_self_service | staff_assisted_client_billed | system
+  billingPurpose String  @default("internal_delivery")
+  operationId    String?
+
+  @@index([orgId, createdAt])
+  @@index([operationId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AI CREDITS. Integer units. NOT lead tokens (LosTokenLedger) and never convertible to them.
+// Invariant (lib/os/credits.ts walletInvariant):
+//   sum(CosCreditLedger.delta) = sum(CosCreditGrant.remaining) + sum(active reservation amount) - wallet.deficit
+//   available = sum(remaining of unexpired grants); every mutation runs under a row lock on the wallet.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model CosCreditWallet {
+  orgId        String   @id
+  org          LosOrg   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  // credits consumed and later clawed back by a refund / lost dispute. While > 0 metered AI is blocked;
+  // the next grant pays it down first. Nothing is ever charged to a card automatically.
+  deficit      Int      @default(0)
+  // low-balance notice threshold (credits); null = no notice
+  lowBalanceAt Int?
+  // emailed low-balance notice to billing members: opt-out, one per episode. `lowArmed` flips off when a notice goes out and
+  // back on when the balance recovers above the threshold or the threshold changes; `lowNotifiedAt` enforces the cooldown.
+  lowBalanceEmail Boolean @default(true)
+  lowArmed        Boolean @default(true)
+  lowNotifiedAt   DateTime?
+  // paid auto-recharge is NOT implemented in this release; the flag exists so "off" is explicit
+  autoRecharge Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// Provenance of every credit. `remaining` only goes down, except when an unused reservation returns.
+model CosCreditGrant {
+  id        String    @id @default(cuid())
+  orgId     String
+  org       LosOrg    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  // purchased | included | promotional | adjustment
+  kind      String
+  amount    Int
+  remaining Int
+  // purchased credits: null (do not expire) unless commercially configured; included/promotional: explicit
+  expiresAt DateTime?
+  // unique provenance, so granting is idempotent: order:<id> | contract:<id> | admin:<uuid> | dispute_won:<orderId>
+  sourceRef String    @unique
+  reason    String
+  createdBy String?
+  createdAt DateTime  @default(now())
+  demo      Boolean   @default(false)
+
+  @@index([orgId, expiresAt])
+}
+
+// APPEND-ONLY. Corrections are compensating entries; rows are never updated or deleted.
+model CosCreditLedger {
+  id          String   @id @default(cuid())
+  orgId       String
+  org         LosOrg   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  // grant | debit | expire | reversal | adjustment | deficit_recovery
+  kind        String
+  delta       Int
+  reason      String
+  // source references: what caused it
+  grantId     String?
+  operationId String?
+  orderId     String?
+  actorId     String?
+  createdAt   DateTime @default(now())
+
+  @@index([orgId, createdAt])
+  @@index([operationId])
+}
+
+// One per logical AI operation (operationId unique): a request reserves and settles at most once.
+model CosCreditReservation {
+  id             String    @id @default(cuid())
+  orgId          String
+  org            LosOrg    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  operationId    String    @unique
+  userId         String
+  amount         Int
+  // JSON [{grantId, amount}]: which grants the hold was taken from (returned on release)
+  allocations    String
+  // active | settled | released
+  status         String    @default("active")
+  settledCredits Int?
+  releaseReason  String?
+  createdAt      DateTime  @default(now())
+  closedAt       DateTime?
+
+  @@index([orgId, status])
+  @@index([orgId, userId, createdAt])
+}
+
+// Versioned prices in credits. At most one row is `active`; quotes pin the version they were made under.
+model CosCreditRateCard {
+  id          String    @id @default(cuid())
+  version     Int       @unique
+  // draft | active | retired
+  status      String    @default("draft")
+  // JSON { [toolKey]: { base: int, perKOutputTokens: int } }
+  rates       String
+  note        String?
+  // true = synthetic values for dev/test; refused in production
+  synthetic   Boolean   @default(false)
+  createdBy   String?
+  createdAt   DateTime  @default(now())
+  activatedAt DateTime?
+}
+
+model CosCreditQuote {
+  id              String    @id @default(cuid())
+  orgId           String
+  org             LosOrg    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  userId          String
+  toolKey         String
+  // sha256 of the canonical inputs: executing with different inputs is refused
+  inputHash       String
+  model           String
+  maxOutputTokens Int
+  rateCardId      String
+  rateVersion     Int
+  maxCredits      Int
+  payer           String
+  billingPurpose  String
+  billingAuthId   String?
+  expiresAt       DateTime
+  usedAt          DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([orgId, userId, createdAt])
+}
+
+// The logical AI request. requestId is the caller's idempotency key (double submit = same operation).
+model CosAiOperation {
+  id             String    @id @default(cuid())
+  orgId          String
+  org            LosOrg    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  requestId      String
+  quoteId        String    @unique
+  // who started it
+  userId         String
+  toolKey        String
+  // JSON, the tool's own fields; never lead personal data
+  inputs         String
+  inputHash      String
+  model          String
+  maxOutputTokens Int
+  payer          String
+  billingPurpose String
+  billingAuthId  String?
+  // queued | running | completed | failed | uncertain | cancelled
+  status         String    @default("queued")
+  maxCredits     Int
+  chargedCredits Int       @default(0)
+  // JSON tool output (a DRAFT). Null until completed.
+  output         String?
+  // deterministic validator results shown to the editor
+  flags          String    @default("[]")
+  error          String?
+  // JSON [{kind: variant|work|asset|campaign, id}]: where the draft was saved
+  savedTo        String    @default("[]")
+  engagementId   String?
+  campaignId     String?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  demo           Boolean   @default(false)
+  attempts       CosAiAttempt[]
+
+  @@unique([orgId, requestId])
+  @@index([orgId, createdAt])
+  @@index([status, startedAt])
+}
+
+// A `started` row with no end = the worker died around the provider call (reconciled, never blindly retried).
+model CosAiAttempt {
+  id           String         @id @default(cuid())
+  operationId  String
+  operation    CosAiOperation @relation(fields: [operationId], references: [id], onDelete: Cascade)
+  n            Int
+  // started | ok | failed | uncertain (uncertain = the provider may have done the work: worker lost, or our timeout)
+  status       String         @default("started")
+  model        String
+  // the provider's own id for the (last) answered request, when it gave one — for matching a provider invoice line
+  providerRequestId String?
+  inputTokens  Int?
+  outputTokens Int?
+  // provider money cost in micro-USD; NULL = unknown (never 0)
+  costMicros   Int?
+  error        String?
+  startedAt    DateTime       @default(now())
+  endedAt      DateTime?
+
+  @@unique([operationId, n])
+}
+
+// A client billing user lets Catalyst staff spend from the client's wallet, up to a ceiling, until a date.
+// Without a live row, staff usage is ALWAYS catalyst_internal.
+model CosAiBillingAuth {
+  id          String    @id @default(cuid())
+  orgId       String
+  org         LosOrg    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  grantedById String
+  maxCredits  Int
+  usedCredits Int       @default(0)
+  note        String
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([orgId, expiresAt])
+}
+
+// Caps restrict a SHARED wallet per member per calendar month (workspace zone). They create no credits.
+model CosCreditMemberLimit {
+  orgId          String
+  org            LosOrg   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  userId         String
+  monthlyCredits Int
+  updatedBy      String?
+  updatedAt      DateTime @updatedAt
+
+  @@id([orgId, userId])
+}
+
+// Operator-configured packs. No pack exists until someone enters real commercial values.
+model CosCreditPack {
+  id          String   @id @default(cuid())
+  label       String
+  credits     Int
+  currency    String
+  amountMinor Int
+  // IN | US | null (any)
+  market      String?
+  active      Boolean  @default(false)
+  // synthetic = dev/test values, never purchasable in production
+  synthetic   Boolean  @default(false)
+  createdBy   String?
+  createdAt   DateTime @default(now())
+}
+
+// A tenant-linked purchase. Credits are granted ONLY from a verified provider event, never from a redirect.
+model CosCreditOrder {
+  id                String    @id @default(cuid())
+  orgId             String
+  org               LosOrg    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  userId            String
+  packId            String
+  // snapshot of the pack at order time; later pack edits never change an order
+  credits           Int
+  currency          String
+  amountMinor       Int
+  // pending | paid | failed | expired | refunded | part_refunded | disputed
+  status            String    @default("pending")
+  // live | test: must match the event's livemode
+  providerMode      String
+  providerSessionId String?   @unique
+  providerPaymentId String?   @unique
+  // cumulative, straight from the provider: refund handling is order-independent and idempotent
+  refundedMinor     Int       @default(0)
+  // open | won | lost
+  disputeStatus     String?
+  reversedCredits   Int       @default(0)
+  paidAt            DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  demo              Boolean   @default(false)
+
+  @@index([orgId, createdAt])
+}
+
+model CosNotification {
+  id        String    @id @default(cuid())
+  orgId     String
+  org       LosOrg    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  // a person, or an audience when userId is null: client | staff
+  userId    String?
+  audience  String    @default("staff")
+  // approval_requested | revision_requested | blocked | publish_failed | publish_uncertain |
+  // connection_failed | renewal_due | access_needed | payment | cycle_generated
+  kind      String
+  title     String
+  body      String?
+  href      String?
+  // same key ⇒ same notification (no duplicates from retries / re-ticks)
+  dedupeKey String    @unique
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([orgId, audience, readAt])
+  @@index([userId, readAt])
+}
+
+// Scheduler heartbeat — lets the operator console say "scheduler last ran N min ago".
+model CosHeartbeat {
+  key   String   @id
+  at    DateTime
+  note  String?
+}
+
+// ── First-party build 2026-09-27 (docs/os/integrations-plan.md v2) ───────────
+
+// WP-03 · request errors captured by instrumentation.onRequestError, one row per fingerprint. Never holds a request
+// body or personal data: message + truncated stack + route only.
+model CosErrorEvent {
+  id          String   @id @default(cuid())
+  fingerprint String   @unique
+  message     String
+  stack       String?
+  route       String?
+  orgId       String?
+  count       Int      @default(1)
+  firstAt     DateTime @default(now())
+  lastAt      DateTime @default(now())
+  resolvedAt  DateTime?
+
+  @@index([lastAt])
+}
+
+// WP-06 · feature flags read by gateAction: an org row overrides the global row (orgId = ""). Kill switch stays separate.
+model CosFeatureFlag {
+  id        String   @id @default(cuid())
+  key       String
+  // "" = global
+  orgId     String   @default("")
+  on        Boolean  @default(false)
+  note      String?
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+
+  @@unique([key, orgId])
+}
+
+// WP-07 · per-user notification preferences per kind; absent row = in-app only.
+model CosNotificationPref {
+  id      String  @id @default(cuid())
+  userId  String
+  orgId   String
+  kind    String
+  inApp   Boolean @default(true)
+  email   Boolean @default(false)
+  slack   Boolean @default(false)
+
+  @@unique([userId, orgId, kind])
+}
+
+// WP-05 · short-link clicks. No IP, no user-agent string: referrer host and a coarse UA class only.
+model LosLinkClick {
+  id        String   @id @default(cuid())
+  linkId    String
+  at        DateTime @default(now())
+  refDomain String?
+  // bot | mobile | desktop | unknown
+  uaClass   String   @default("unknown")
+
+  @@index([linkId, at])
+}
+
+// WP-05 · short links for published content (/l/:code → tagged destination). One per variant, stable code.
+model CosShortLink {
+  id        String   @id @default(cuid())
+  orgId     String
+  code      String   @unique
+  url       String
+  variantId String?  @unique
+  label     String?
+  createdAt DateTime @default(now())
+
+  @@index([orgId])
+}
+
+// WP-14 · Search Console query × page rows (28-day window, one snapshot per sync day). Impressions, clicks and position
+// are real first-party numbers; search VOLUME is never stored or shown.
+model CosSearchQuery {
+  id          String   @id @default(cuid())
+  orgId       String
+  day         DateTime
+  query       String
+  page        String
+  impressions Int
+  clicks      Int
+  position    Float
+
+  @@unique([orgId, day, query, page])
+  @@index([orgId, day])
+}
+
+// WP-15 · contact verification before the first send. Keyed by the contact hash (never the address); 90-day TTL.
+// ponytail: no mailbox-level probe — Vercel has no outbound port 25; syntax + MX + disposable list + role detection only.
+model LosContactCheck {
+  id          String   @id @default(cuid())
+  contactHash String   @unique
+  // email | phone
+  kind        String
+  // ok | risky | invalid
+  verdict     String
+  reason      String?
+  provider    String
+  checkedAt   DateTime @default(now())
+
+  @@index([checkedAt])
+}
+
+// WP-16 · booking pages. One host per type (team round-robin out of scope). A slot is claimed by the unique slotKey
+// (`hostId:startAtISO`) on the live booking; cancelling clears it so the slot frees without deleting the record.
+model CosBookingType {
+  id          String   @id @default(cuid())
+  orgId       String
+  name        String
+  description String?
+  durationMin Int      @default(30)
+  bufferMin   Int      @default(10)
+  hostId      String
+  // JSON [{key,label,required}]
+  questions   String   @default("[]")
+  // draft | active | paused
+  status      String   @default("draft")
+  // IANA zone the availability rows are written in
+  timezone    String   @default("UTC")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  demo        Boolean  @default(false)
+
+  @@index([orgId, status])
+}
+
+model CosAvailability {
+  id      String @id @default(cuid())
+  orgId   String
+  userId  String
+  // 0 = Sunday … 6 = Saturday
+  weekday Int
+  // HH:MM in the booking type's zone
+  start   String
+  end     String
+
+  @@index([orgId, userId])
+}
+
+model CosBooking {
+  id              String    @id @default(cuid())
+  orgId           String
+  typeId          String
+  hostId          String
+  startAt         DateTime
+  endAt           DateTime
+  // hostId:startAt while confirmed; null once cancelled (frees the slot)
+  slotKey         String?   @unique
+  // client-generated idempotency key
+  requestId       String?   @unique
+  leadId          String?
+  name            String
+  email           String
+  phone           String?
+  answers         String?
+  // confirmed | cancelled
+  status          String    @default("confirmed")
+  // sha256 of the manage token in the confirmation email
+  tokenHash       String    @unique
+  calendarEventId String?
+  visitorTz       String?
+  createdAt       DateTime  @default(now())
+  cancelledAt     DateTime?
+  demo            Boolean   @default(false)
+
+  @@index([orgId, startAt])
+  @@index([hostId, startAt])
+}
+
+// WP-21 · brand-voice rules per workspace, evaluated deterministically in copy checks (reading grade is a syllable
+// heuristic and labelled as such). `color` also feeds the WP-22 graphic templates.
+model CosBrandRules {
+  orgId           String   @id
+  bannedPhrases   String[] @default([])
+  requiredPhrases String[] @default([])
+  maxReadingGrade Int?
+  toneNotes       String?
+  // #rrggbb used by the graphic templates
+  color           String?
+  updatedById     String?
+  updatedAt       DateTime @updatedAt
+}
+
+// WP-24 · tracked search phrases (positions read from Search Console rows weekly; never scraped).
+model CosTrackedKeyword {
+  id          String   @id @default(cuid())
+  orgId       String
+  query       String
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@unique([orgId, query])
+}
+
+// WP-28 · which Results widgets a workspace shows, in what order (client-editable layout).
+model CosReportLayout {
+  orgId     String   @id
+  // JSON [{key, hidden, order}]
+  widgets   String   @default("[]")
+  updatedAt DateTime @updatedAt
+}
+
+// WP-29 · uptime monitors pinged from the scheduler tick (HEAD, 10 s), alert after 3 consecutive failures.
+model CosMonitor {
+  id          String    @id @default(cuid())
+  orgId       String
+  url         String
+  everyMin    Int       @default(5)
+  // ok | down | unknown
+  lastStatus  String    @default("unknown")
+  lastAt      DateTime?
+  failures    Int       @default(0)
+  alertedAt   DateTime?
+  createdById String?
+  createdAt   DateTime  @default(now())
+
+  @@index([orgId])
+}
+
+// WP-40 · site copy: append-only versions per (project, key, locale); latest = highest version.
+model CosSiteContent {
+  id          String   @id @default(cuid())
+  orgId       String
+  workItemId  String
+  key         String
+  locale      String   @default("en")
+  value       String
+  version     Int
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@unique([workItemId, key, locale, version])
+  @@index([orgId, workItemId])
+}
+
+// WP-42 · a comment pin on a preview (work item / variant image), x/y in percent; the thread is the CosWorkEvent comment.
+model CosPin {
+  id          String    @id @default(cuid())
+  orgId       String
+  // work_item | variant
+  subject     String
+  subjectId   String
+  version     Int
+  x           Float
+  y           Float
+  eventId     String?
+  createdById String?
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([orgId, subject, subjectId])
+}
+
+// WP-43 · behaviour beacon rows (no text, no input values, no cookies); 30-day retention swept from tick.
+model CosBehaviorEvent {
+  id        String   @id @default(cuid())
+  orgId     String
+  day       DateTime
+  // pv | click | scroll
+  type      String
+  path      String
+  x         Float?
+  y         Float?
+  tag       String?
+  depth     Int?
+  createdAt DateTime @default(now())
+
+  @@index([orgId, day])
+  @@index([orgId, path, type])
+}
+
+// WP-44 · chat widget conversations (visitor token in a header, never a cookie); 365-day retention.
+model CosConversation {
+  id           String    @id @default(cuid())
+  orgId        String
+  visitorToken String    @unique
+  email        String?
+  leadId       String?
+  // open | closed
+  status       String    @default("open")
+  page         String?
+  lastAt       DateTime  @default(now())
+  demo         Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  messages     CosChatMessage[]
+
+  @@index([orgId, status, lastAt])
+}
+
+model CosChatMessage {
+  id             String          @id @default(cuid())
+  conversationId String
+  conversation   CosConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  orgId          String
+  // visitor | staff | system
+  from           String
+  authorId       String?
+  text           String
+  createdAt      DateTime        @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+// WP-46 · company enrichment from the company's own public homepage (no personal data, nothing purchased).
+model LosLeadEnrichment {
+  leadId     String    @id
+  orgId      String
+  // JSON {fields: {name: {value, source, fetchedAt}}, robotsAllowed, url}
+  data       String
+  fetchedAt  DateTime
+  acceptedAt DateTime?
+
+  @@index([orgId])
+}
+
+// WP-47 · competitor domains observed weekly (first-party signals only, never estimated traffic).
+model CosCompetitor {
+  id         String    @id @default(cuid())
+  orgId      String
+  domain     String
+  lastRunAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([orgId, domain])
+}
+
+// WP-48 · AI-search visibility: tracked questions and weekly observations from the configured LLM provider.
+model CosTrackedQuestion {
+  id        String   @id @default(cuid())
+  orgId     String
+  question  String
+  createdAt DateTime @default(now())
+  observations CosAiVisibility[]
+
+  @@index([orgId])
+}
+
+model CosAiVisibility {
+  id             String             @id @default(cuid())
+  orgId          String
+  questionId     String
+  question       CosTrackedQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  at             DateTime           @default(now())
+  brandMentioned Boolean
+  // JSON string[] competitor names mentioned; JSON string[] cited URLs
+  competitors    String             @default("[]")
+  citedUrls      String             @default("[]")
+  model          String?
+
+  @@index([orgId, at])
+}
+
+// WP-49 · reviews read from Google Business Profile (public text; reviewer names are not stored).
+model CosReview {
+  id         String   @id @default(cuid())
+  orgId      String
+  provider   String   @default("gbp")
+  externalId String
+  rating     Int
+  snippet    String?
+  at         DateTime
+  syncedAt   DateTime @default(now())
+
+  @@unique([orgId, provider, externalId])
+  @@index([orgId, at])
 }

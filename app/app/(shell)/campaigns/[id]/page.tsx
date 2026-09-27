@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { clicksFor, shortUrl } from "@/lib/os/links";
+import GrowthStep from "@/components/os/GrowthStep";
 import { notFound } from "next/navigation";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { can } from "@/lib/leados/rbac";
 import { db } from "@/lib/audit/db";
 import { APP_URL } from "@/lib/leados/email";
@@ -15,7 +17,7 @@ const TONE: Record<string, "neutral" | "brand" | "success" | "warn" | "danger"> 
 };
 
 export default async function CampaignPage({ params }: { params: Promise<{ id: string }> }) {
-  const actor = await requireOrg("campaigns.view");
+  const actor = await requireOrgPage("campaigns.view");
   const { id } = await params;
   const campaign = await db.losCampaign.findFirst({
     where: { id, orgId: actor.orgId },
@@ -33,6 +35,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
   const views = stats.find((s) => s.kind === "view")?._count ?? 0;
   const submits = stats.find((s) => s.kind === "submit")?._count ?? 0;
   const publicUrl = `${APP_URL}/c/${campaign.publicId}`;
+  const linkClicks = await clicksFor(campaign.trackingLinks.map((t) => t.id));
 
   return (
     <div>
@@ -47,6 +50,11 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           Rejected by review: {campaign.reviewNote}
         </div>
       )}
+      {campaign.status === "active" && (
+        <div className="mb-4">
+          <GrowthStep done={campaign.type === "scorecard" ? "Scorecard is live." : "Lead capture is live."} step={{ pillar: "client_acquisition", metric: campaign.type === "scorecard" ? "scorecard.leads" : "key_events", metricLabel: campaign.type === "scorecard" ? "Scorecard leads" : "Enquiries", action: { kind: "goal", label: "Set a lead goal", title: `Leads from ${campaign.name}`, unit: "per month", horizon: "90 days" } }} />
+        </div>
+      )}
       <CampaignEditor
         campaign={{
           id: campaign.id, status: campaign.status, type: campaign.type,
@@ -55,7 +63,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           formSpec: JSON.parse(campaign.formSpec ?? "{}"),
           pageSpec: JSON.parse(campaign.pageSpec ?? "{}"),
           distribution: JSON.parse(campaign.distribution ?? "{}"),
-          trackingLinks: campaign.trackingLinks.map((t) => ({ id: t.id, label: t.label, code: t.code })),
+          trackingLinks: campaign.trackingLinks.map((t) => ({ id: t.id, label: t.label, code: t.code, shortUrl: shortUrl(t.code), clicks: linkClicks.get(t.id) ?? 0 })),
         }}
         canManage={can(actor.role, "campaigns.manage")}
         members={members.map((m) => ({ userId: m.userId, label: m.user.name ?? m.user.email }))}

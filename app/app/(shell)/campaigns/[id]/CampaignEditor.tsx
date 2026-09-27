@@ -11,6 +11,8 @@ import type { FormState } from "../../../(auth)/actions";
 import type { Distribution, FormField, FormSpec, PageSpec } from "@/lib/leados/campaigns";
 import { Badge, Card, GhostButton, Input, Label, Select, SubmitButton } from "@/components/leados/ui";
 import { useActionState } from "react";
+import ScorecardBuilder from "./ScorecardBuilder";
+import EmbedPanel from "./EmbedPanel";
 
 type Campaign = {
   id: string; status: string; type: string; publicUrl: string;
@@ -18,10 +20,10 @@ type Campaign = {
   formSpec: FormSpec;
   pageSpec: PageSpec;
   distribution: Distribution;
-  trackingLinks: { id: string; label: string; code: string }[];
+  trackingLinks: { id: string; label: string; code: string; shortUrl: string; clicks: number }[];
 };
 
-const PURPOSES = ["sales_contact", "service_updates", "marketing", "survey"];
+const PURPOSES = ["sales_contact", "service_updates", "marketing", "survey", "newsletter"];
 const CHANNELS = ["call", "whatsapp", "sms", "email"];
 
 export default function CampaignEditor(props: {
@@ -33,7 +35,7 @@ export default function CampaignEditor(props: {
 }) {
   const { campaign: c, canManage } = props;
   const router = useRouter();
-  const [tab, setTab] = useState<"offer" | "form" | "page" | "distribution" | "launch">("offer");
+  const [tab, setTab] = useState<"offer" | "form" | "scorecard" | "page" | "distribution" | "launch" | "embed">(c.type === "scorecard" ? "scorecard" : "offer");
   const [pending, start] = useTransition();
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const [problems, setProblems] = useState<{ severity: string; message: string }[]>([]);
@@ -55,13 +57,19 @@ export default function CampaignEditor(props: {
       router.refresh();
     });
 
-  const tabs = [
+  const tabs = (c.type === "scorecard" ? [
+    { key: "scorecard", label: "1 · Scorecard" },
+    { key: "form", label: "2 · Contact fields" },
+    { key: "page", label: "3 · Landing page" },
+    { key: "distribution", label: "4 · Follow-up" },
+    { key: "launch", label: "5 · Review & launch" },
+  ] : [
     { key: "offer", label: "1 · Offer" },
     { key: "form", label: "2 · Lead form" },
     { key: "page", label: "3 · Landing page" },
     { key: "distribution", label: "4 · Follow-up" },
     { key: "launch", label: "5 · Review & launch" },
-  ] as const;
+  ].concat(c.status === "active" || c.status === "paused" ? [{ key: "embed", label: "6 · Embed" }] : [])) as { key: typeof tab; label: string }[];
 
   const field = (f: FormField, list: "fields" | "qualifying", i: number) => (
     <div key={`${list}-${i}`} className="flex flex-wrap items-center gap-2 rounded-lg bg-[var(--los-surface-2)] px-3 py-2 text-[13px]">
@@ -145,6 +153,12 @@ export default function CampaignEditor(props: {
           </div>
           {canManage && <button className="inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--los-brand)] px-4 py-2 text-[14px] font-semibold text-white hover:opacity-90 disabled:opacity-50" disabled={pending} onClick={() => save("offer", offer)}>Save offer</button>}
         </Card>
+      )}
+
+      {tab === "embed" && <EmbedPanel publicId={c.publicUrl.split("/c/")[1] ?? ""} publicUrl={c.publicUrl} />}
+
+      {tab === "scorecard" && c.formSpec.scorecard && (
+        <ScorecardBuilder spec={c.formSpec.scorecard} canManage={canManage} brandColor={page.brandColor} pending={pending} onSave={(spec) => save("scorecard", spec)} />
       )}
 
       {tab === "form" && (
@@ -430,7 +444,7 @@ export default function CampaignEditor(props: {
   );
 }
 
-function TrackingPanel(props: { campaignId: string; publicUrl: string; links: { id: string; label: string; code: string }[]; canManage: boolean }) {
+function TrackingPanel(props: { campaignId: string; publicUrl: string; links: { id: string; label: string; code: string; shortUrl: string; clicks: number }[]; canManage: boolean }) {
   const [state, action] = useActionState<FormState, FormData>(addTrackingLink, {});
   return (
     <Card className="p-5">
@@ -440,7 +454,7 @@ function TrackingPanel(props: { campaignId: string; publicUrl: string; links: { 
         {props.links.map((l) => (
           <li key={l.id} className="break-all">
             <span className="font-medium">{l.label}:</span>{" "}
-            <span className="text-[var(--los-brand)]">{props.publicUrl}?t={l.code}</span>
+            <span className="text-[var(--los-brand)]">{l.shortUrl}</span> <span className="text-[var(--los-faint)]">({l.clicks} click{l.clicks === 1 ? "" : "s"} · long form {props.publicUrl}?t={l.code})</span>
           </li>
         ))}
         {props.links.length === 0 && <li className="text-[var(--los-faint)]">No tracking links yet.</li>}

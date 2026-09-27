@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { db } from "@/lib/audit/db";
 import { buildRow, fieldsForType } from "@/lib/leados/leads";
 import { Badge, Card } from "@/components/leados/ui";
@@ -10,7 +10,7 @@ import CommitPanel from "./CommitPanel";
 export const metadata = { title: "Import mapping" };
 
 export default async function ImportDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const actor = await requireOrg("leads.import");
+  const actor = await requireOrgPage("leads.import");
   const { id } = await params;
   const imp = await db.losImport.findFirst({ where: { id, orgId: actor.orgId } });
   if (!imp) notFound();

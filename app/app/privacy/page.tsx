@@ -8,7 +8,7 @@ export default function PrivacyRequestPage() {
     <div className="flex min-h-dvh items-start justify-center px-5 py-14">
       <div className="w-full max-w-[520px]">
         <div className="mb-6">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[var(--los-muted)]">LeadOS · Catalyst Solutions</div>
+          <div className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[var(--los-muted)]">CatalystGrowthOS · Catalyst Solutions</div>
           <h1 className="text-[24px] font-extrabold tracking-tight">Privacy request</h1>
           <p className="mt-2 text-[14px] leading-relaxed text-[var(--los-muted)]">
             Ask what data we hold about you, correct it, object to its use, or have it deleted.

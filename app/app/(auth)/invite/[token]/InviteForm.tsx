@@ -32,7 +32,7 @@ export default function InviteForm(props: {
               <Label htmlFor="password">Choose a password</Label>
               <Input id="password" name="password" type="password" autoComplete="new-password" required minLength={10} />
               <p className="mt-1 text-[12px] text-[var(--los-faint)]">
-                At least 10 characters. If you already have a LeadOS account with this email, enter its password.
+                At least 10 characters. If you already have a CatalystGrowthOS account with this email, enter its password.
               </p>
             </div>
           </>

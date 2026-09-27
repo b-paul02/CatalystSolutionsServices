@@ -12,6 +12,9 @@ import { sendOutreachMessage } from "@/lib/leados/outreach";
 import { rollupOrgDay } from "@/lib/leados/metrics";
 
 const tag = `e2e-${Date.now()}`;
+// rollupOrgDay filters on real createdAt, so the run date must be the actual
+// UTC day this test executes — a hardcoded date goes stale as time passes.
+const runDate = new Date().toISOString().slice(0, 10);
 const cleanup: (() => Promise<unknown>)[] = [];
 
 afterAll(async () => {
@@ -60,6 +63,7 @@ describe("§23 acceptance slice", () => {
         orgId: org.id, name: `${tag}-plan`, leadType: "b2c", dailyQuota: 10,
         startDate: new Date("2026-08-01"), purpose: "sales_contact", exclusivity: "exclusive", demo: true,
         targeting: JSON.stringify({ cities: [tag] }),
+        workingDays: JSON.stringify([1, 2, 3, 4, 5, 6, 7]), // green on weekends too
       },
     });
     cleanup.push(() => db.losLeadPlan.delete({ where: { id: plan.id } }));
@@ -67,12 +71,12 @@ describe("§23 acceptance slice", () => {
     cleanup.push(() => db.losAllocationRun.deleteMany({ where: { planId: plan.id } }));
 
     // 5. allocation preview
-    const preview = await allocatePlan(plan.id, { execute: false, runDate: "2026-08-28" });
+    const preview = await allocatePlan(plan.id, { execute: false, runDate: runDate });
     expect(preview.due).toBe(10);
     expect(preview.allocated).toBe(10);
 
     // 6. execute the allocation transaction
-    const run = await allocatePlan(plan.id, { execute: true, runDate: "2026-08-28" });
+    const run = await allocatePlan(plan.id, { execute: true, runDate: runDate });
     expect(run.allocated).toBe(10);
 
     // 7. the ten allocated leads exist in the client org
@@ -95,11 +99,11 @@ describe("§23 acceptance slice", () => {
     expect(send.outcome).toBe("blocked");
     // reallocation impossible: same record can't go to the org twice, and the
     // suppression check excludes it for any other plan of this org.
-    const rerun = await allocatePlan(plan.id, { execute: true, runDate: "2026-08-28" });
+    const rerun = await allocatePlan(plan.id, { execute: true, runDate: runDate });
     expect(rerun.skipped).toBe("already_executed");
 
     // 10. quota fulfilment and conversion analytics
-    const metrics = await rollupOrgDay(org.id, "2026-08-28");
+    const metrics = await rollupOrgDay(org.id, runDate);
     expect(metrics.delivered).toBe(10);
     expect(metrics.leadsCreated).toBe(10);
     const balance = await tokenBalance(org.id);

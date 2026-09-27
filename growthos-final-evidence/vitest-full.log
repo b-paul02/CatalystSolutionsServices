@@ -1,0 +1,118 @@
+# npx vitest run (FINAL) — 2026-09-21T07:08:30Z — DATABASE pinned to local growthos_test; disposable marker verified by tests/setup.ts; no network (provider fetch stubbed per suite)
+
+ RUN  v3.2.7 C:/CatalystSolutionsServices
+
+ ✓ tests/os/completion-credits.test.ts (34 tests) 6454ms
+   ✓ quote → reserve → run → settle (client action path) > a client gets a server quote, runs once, is charged once, and the output is a draft in history  627ms
+   ✓ web research: real retrieval with citations, or nothing > editing and saving cannot corrupt the citation mapping; the sources travel into the saved draft and the export  503ms
+   ✓ purchase → webhook → refund / dispute (checkout action + webhook route) > server-priced order; credits only from a verified, matching event; duplicates and related events grant once; scope unchanged  337ms
+ ✓ tests/os/v2-acceptance.test.ts (17 tests) 4238ms
+   ✓ GrowthOS v2 acceptance > 3. missing access blocks dependent work while independent work continues  569ms
+   ✓ GrowthOS v2 acceptance > 8b. provider outcomes: retry only when safe, never after an ambiguous answer, resume threads without re-posting  674ms
+ ✓ tests/os/completion-journey.test.ts (7 tests) 2625ms
+   ✓ delivery journey through entry points > step 3 — a missing client input blocks only the work that depends on it  356ms
+   ✓ delivery journey through entry points > steps 8–11 — goal-linked campaign → master → variant → QA → client approval → scheduled → published exactly once by the scheduler  622ms
+   ✓ delivery journey through entry points > a provider refusal AFTER the media upload: the retry reuses the original upload, posts once, and a finished publication forgets it  470ms
+stdout | tests/os/e2e-slice.test.ts > OS acceptance slice > MANDATORY NEGATIVE: kill switch also blocks LeadOS outreach sends for the workspace
+[leados outreach:dev] whatsapp to=+917000112299 body="hi…"
+
+ ✓ tests/os/e2e-slice.test.ts (15 tests) 1679ms
+   ✓ OS acceptance slice > delivery → QA → client review; clients can't move work, staff can't approve  327ms
+ ✓ tests/leados/allocation.test.ts (6 tests) 1127ms
+   ✓ allocation engine > previews and executes a quota, creates leads, debits tokens, is idempotent  500ms
+ ✓ tests/os/automation-db.test.ts (8 tests) 1729ms
+   ✓ workflow engine > MANDATORY NEGATIVE: staff can build but not activate; unpaid workspaces get nothing  315ms
+ ✓ tests/leados/e2e-slice.test.ts (1 test) 1313ms
+   ✓ §23 acceptance slice > runs the full vertical slice  1008ms
+ ✓ tests/os/completion-entry.test.ts (9 tests) 2256ms
+   ✓ client journey through the real actions > only the client's signature accepts scope — an admin cannot sign, staff cannot sign, the owner can  351ms
+   ✓ client journey through the real actions > handover: the workspace turns read-only — AI and tools stop, history stays, export still works  383ms
+   ✓ scheduler > overlapping ticks: one runs, the others skip; the lease frees itself afterwards  365ms
+ ✓ tests/os/completion-templates.test.ts (15 tests) 1697ms
+ ✓ tests/os/completion-operator.test.ts (5 tests) 1490ms
+   ✓ operator actions > grants: expiry is an explicit choice, purchased credits cannot be typed in, a double click grants once, adjustments are bounded  306ms
+   ✓ engagement invoice paid by card, then refunded (webhook route) > the record follows the provider's cumulative refund; a replay changes nothing  347ms
+ ✓ tests/os/completion-signing.test.ts (3 tests) 1528ms
+   ✓ included credits: proposal → signature > five concurrent signatures and a later repeat: one acceptance, one grant, matching the proposal; the tier placeholder grants nothing  716ms
+ ✓ tests/os/v2-console.test.tsx (2 tests) 928ms
+   ✓ operator console > renders engagements, queues, capacity, renewals and AI usage — unknown AI cost is said, not shown as 0  443ms
+ ✓ tests/leados/leadWrite.test.ts (4 tests) 732ms
+   ✓ createLead > creates, then dedupes within the same org+type, allows across orgs  334ms
+ ✓ tests/leados/b2bDiscovery.test.ts (4 tests) 829ms
+   ✓ b2b discovery > reveal debits once, creates the lead, and is idempotent  375ms
+ ✓ tests/roles.test.ts (16 tests) 637ms
+   ✓ passwords > round-trips and rejects the wrong password  372ms
+stdout | tests/leados/outreach.test.ts > outreach guards > sends on the consented channel (dev transport) and moves lead to contacted
+[leados outreach:dev] whatsapp to=+917000112233 body="Hi Guard…"
+
+stdout | tests/leados/outreach.test.ts > outreach guards > per-lead daily cap blocks the 4th message
+[leados outreach:dev] whatsapp to=+917000112233 body="2…"
+
+stdout | tests/leados/outreach.test.ts > outreach guards > per-lead daily cap blocks the 4th message
+[leados outreach:dev] whatsapp to=+917000112233 body="3…"
+
+ ✓ tests/leados/outreach.test.ts (5 tests) 818ms
+ ✓ tests/leados/suppression.test.ts (2 tests) 541ms
+ ✓ tests/leados/tenancy.test.ts (7 tests) 404ms
+ ✓ tests/os/v2-rules.test.ts (18 tests) 346ms
+ ✓ tests/leados/jobs.test.ts (4 tests) 224ms
+ ✓ tests/os/completion-adapters.test.ts (14 tests) 188ms
+ ✓ tests/leados/totp-crypto.test.ts (7 tests) 146ms
+ ✓ tests/leados/metrics.test.ts (2 tests) 79ms
+ ✓ tests/custom-price.test.ts (14 tests) 72ms
+ ✓ tests/os/automation.test.ts (12 tests) 51ms
+ ✓ tests/leados/allocationRules.test.ts (11 tests) 43ms
+ ✓ tests/earnings-estimate.test.ts (9 tests) 63ms
+ ✓ tests/money.test.ts (12 tests) 48ms
+ ✓ tests/admin-authz.test.ts (35 tests) 54ms
+ ✓ tests/os/v2-adapters.test.ts (14 tests) 41ms
+ ✓ tests/os/workflow.test.ts (26 tests) 32ms
+ ✓ tests/commission-lifecycle.test.ts (28 tests) 36ms
+ ✓ tests/rates.test.ts (28 tests) 45ms
+ ✓ tests/ledger.test.ts (14 tests) 30ms
+ ✓ tests/deal-registration.test.ts (25 tests) 32ms
+ ✓ tests/quote.test.ts (12 tests) 25ms
+ ✓ tests/dashboard.test.ts (17 tests) 21ms
+ ✓ tests/leados/leads.test.ts (12 tests) 21ms
+ ✓ tests/applicant-edit.test.ts (7 tests) 13ms
+ ✓ tests/partner-status.test.ts (7 tests) 14ms
+stdout | tests/os/completion-pricing.test.ts > proposed AI-credit pricing > activation floor: worst-case MODEL cost stays well under the cheapest credit's value (a guard against selling below cost, not a profit forecast)
+┌─────────┬───────────────────────┬────────────┬──────────────┬────────────────┬──────────────────┐
+│ (index) │ tool                  │ maxCredits │ cost today $ │ margin today % │ margin premium % │
+├─────────┼───────────────────────┼────────────┼──────────────┼────────────────┼──────────────────┤
+│ 0       │ 'campaign_brief'      │ 13         │ '0.0162'     │ 97.8           │ 89.7             │
+│ 1       │ 'content_calendar'    │ 15         │ '0.0192'     │ 97.8           │ 89.7             │
+│ 2       │ 'blog_outline'        │ 10         │ '0.0142'     │ 97.5           │ 88.1             │
+│ 3       │ 'blog_article'        │ 27         │ '0.0342'     │ 97.8           │ 90.4             │
+│ 4       │ 'web_copy'            │ 16         │ '0.0202'     │ 97.8           │ 89.9             │
+│ 5       │ 'linkedin_post'       │ 6          │ '0.0087'     │ 97.5           │ 86.5             │
+│ 6       │ 'linkedin_carousel'   │ 8          │ '0.0112'     │ 97.5           │ 87.7             │
+│ 7       │ 'x_post'              │ 3          │ '0.0062'     │ 96.4           │ 78.9             │
+│ 8       │ 'x_thread'            │ 8          │ '0.0107'     │ 97.7           │ 88.2             │
+│ 9       │ 'social_caption'      │ 6          │ '0.0092'     │ 97.3           │ 86               │
+│ 10      │ 'youtube_script'      │ 21         │ '0.0267'     │ 97.8           │ 90.1             │
+│ 11      │ 'short_script'        │ 7          │ '0.0097'     │ 97.6           │ 87.5             │
+│ 12      │ 'email_sequence'      │ 15         │ '0.0192'     │ 97.8           │ 89.7             │
+│ 13      │ 'seo_brief'           │ 10         │ '0.0132'     │ 97.7           │ 88.8             │
+│ 14      │ 'repurpose'           │ 13         │ '0.0183'     │ 97.5           │ 87.8             │
+│ 15      │ 'image'               │ 10         │ '0.0336'     │ 94.1           │ 77.2             │
+│ 16      │ 'performance_summary' │ 8          │ '0.0102'     │ 97.8           │ 88.6             │
+│ 17      │ 'research'            │ 2          │ '0.0090'     │ 92.1           │ 92.1             │
+└─────────┴───────────────────────┴────────────┴──────────────┴────────────────┴──────────────────┘
+
+ ✓ tests/os/completion-pricing.test.ts (3 tests) 16ms
+ ✓ tests/domain.test.ts (16 tests) 16ms
+ ✓ tests/leados/compliance.test.ts (10 tests) 17ms
+ ✓ tests/leados/campaigns.test.ts (6 tests) 19ms
+ ✓ tests/scoring.test.ts (9 tests) 11ms
+ ✓ tests/partner-layout.test.tsx (5 tests) 23ms
+ ✓ tests/leados/rbac.test.ts (9 tests) 10ms
+ ✓ tests/leados/scoring.test.ts (4 tests) 9ms
+ ✓ tests/leados/hosts.test.ts (5 tests) 7ms
+
+ Test Files  49 passed (49)
+      Tests  555 passed (555)
+   Start at  12:38:34
+   Duration  88.84s (transform 3.38s, setup 10.43s, collect 13.71s, tests 32.78s, environment 22ms, prepare 12.81s)
+
+EXIT=0

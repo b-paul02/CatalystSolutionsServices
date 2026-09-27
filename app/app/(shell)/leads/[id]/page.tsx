@@ -1,16 +1,18 @@
 import Link from "next/link";
+import { LeadOutcomes } from "@/components/os/panels";
 import { notFound } from "next/navigation";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { can } from "@/lib/leados/rbac";
 import { db } from "@/lib/audit/db";
 import { Badge, Card } from "@/components/leados/ui";
 import LeadControls from "./LeadControls";
 import LeadWorkspace from "./LeadWorkspace";
+import EnrichmentPanel from "./EnrichmentPanel";
 
 export const metadata = { title: "Lead" };
 
 export default async function LeadPage({ params }: { params: Promise<{ id: string }> }) {
-  const actor = await requireOrg("leads.view");
+  const actor = await requireOrgPage("leads.view");
   const { id } = await params;
   const lead = await db.losLead.findFirst({
     where: { id, orgId: actor.orgId, deletedAt: null },
@@ -40,23 +42,29 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
   const b2c = lead.b2c;
   const parse = (s: string | null | undefined): string[] => { try { return s ? JSON.parse(s) : []; } catch { return []; } };
 
+  const verdicts = await import("@/lib/leados/contactCheck").then((m) => m.contactVerdicts(lead.email, lead.phone));
+  const verdictBadge = (v: { verdict: string; reason: string | null } | null) => v ? <Badge tone={v.verdict === "ok" ? "success" : v.verdict === "risky" ? "warn" : "danger"}>{v.verdict === "ok" ? "checked" : v.verdict}{v.reason ? ` · ${v.reason.replace(/_/g, " ")}` : ""}</Badge> : null;
+  const latestScored = await db.losFormSubmission.findFirst({ where: { leadId: lead.id, score: { not: null } }, orderBy: { createdAt: "desc" }, select: { score: true } });
+  const scorecard = latestScored?.score ? (JSON.parse(latestScored.score) as { band: string; pct: number }) : null;
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <Link href="/app/leads" className="text-[13px] text-[var(--los-muted)] hover:text-[var(--los-fg)]">← Leads</Link>
         <h1 className="text-[22px] font-extrabold tracking-tight">{name}</h1>
         <Badge tone="brand">{lead.leadType.toUpperCase()}</Badge>
+        {scorecard && <Badge tone="warn">Scorecard: {scorecard.band} · {scorecard.pct}% (self-reported)</Badge>}
         {b2c?.suppressedAt && <Badge tone="danger">suppressed</Badge>}
         {b2c?.withdrawnAt && <Badge tone="danger">consent withdrawn</Badge>}
       </div>
+      <LeadOutcomes orgId={actor.orgId} leadId={lead.id} role={actor.role} currency={lead.country === "US" ? "USD" : "INR"} />
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* identity */}
         <Card className="p-5">
           <h2 className="mb-3 text-[14px] font-bold">Contact</h2>
           <dl className="space-y-2 text-[13.5px]">
-            <div><dt className="text-[var(--los-faint)]">Email</dt><dd>{lead.email ?? "—"} {lead.emailStatus !== "unverified" && <Badge tone={lead.emailStatus === "valid" ? "success" : "danger"}>{lead.emailStatus}</Badge>}</dd></div>
-            <div><dt className="text-[var(--los-faint)]">Phone</dt><dd>{lead.phone ?? "—"} {lead.phoneStatus !== "unverified" && <Badge tone={lead.phoneStatus === "valid" ? "success" : "danger"}>{lead.phoneStatus}</Badge>}</dd></div>
+            <div><dt className="text-[var(--los-faint)]">Email</dt><dd>{lead.email ?? "—"} {lead.emailStatus !== "unverified" && <Badge tone={lead.emailStatus === "valid" ? "success" : "danger"}>{lead.emailStatus}</Badge>} {verdictBadge(verdicts.email)}</dd></div>
+            <div><dt className="text-[var(--los-faint)]">Phone</dt><dd>{lead.phone ?? "—"} {lead.phoneStatus !== "unverified" && <Badge tone={lead.phoneStatus === "valid" ? "success" : "danger"}>{lead.phoneStatus}</Badge>} {verdictBadge(verdicts.phone)}</dd></div>
             <div><dt className="text-[var(--los-faint)]">Location</dt><dd>{[lead.city, lead.state, lead.country].filter(Boolean).join(", ") || "—"}</dd></div>
             <div><dt className="text-[var(--los-faint)]">Language</dt><dd>{lead.language ?? "—"}</dd></div>
             <div><dt className="text-[var(--los-faint)]">Source</dt><dd>{lead.source}{lead.sourceRef ? ` · ${lead.sourceRef.slice(0, 12)}…` : ""}</dd></div>
@@ -144,6 +152,7 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
         members={members.map((m) => ({ userId: m.userId, label: m.user.name ?? m.user.email }))}
         permittedChannels={lead.leadType === "b2c" ? (JSON.parse(lead.b2c?.permittedChannels ?? "[]") as string[]) : null}
       />
+      {lead.leadType === "b2b" && <EnrichmentPanel leadId={lead.id} canEdit={can(actor.role, "leads.edit")} />}
     </div>
   );
 }

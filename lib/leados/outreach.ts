@@ -8,6 +8,7 @@ import { contactHashes, isSuppressed } from "./suppression";
 import { randomToken } from "./crypto";
 import { APP_URL, sendLosMail } from "./email";
 import { logLosAudit } from "./audit";
+import { checkContact } from "./contactCheck";
 
 const DAILY_CAP_PER_CHANNEL = 500; // per org — ponytail: env/plan-based caps when a customer needs more
 const DAILY_CAP_PER_LEAD = 3;
@@ -69,6 +70,12 @@ export async function sendOutreachMessage(opts: {
     include: { b2c: true },
   });
   if (!lead) return { outcome: "blocked", reason: "lead_not_found" };
+  // GrowthOS kill switch (blueprint §9.3): blocks every outbound job for the workspace immediately.
+  const ws = await db.cosWorkspace.findUnique({ where: { orgId: opts.orgId }, select: { killSwitch: true } });
+  if (ws?.killSwitch) {
+    await recordBlocked(opts, lead.id, "kill_switch");
+    return { outcome: "blocked", reason: "kill_switch" };
+  }
 
   const purpose = opts.purpose ?? "sales_contact";
 
@@ -97,6 +104,13 @@ export async function sendOutreachMessage(opts: {
 
   const to = opts.channel === "email" ? lead.normalizedEmail : lead.normalizedPhone;
   if (!to) return { outcome: "blocked", reason: `no_${opts.channel === "email" ? "email" : "phone"}` };
+  // WP-15: silent contact check before the transport (cached 90 days). Invalid ⇒ refused and logged; risky still goes.
+  const check = await checkContact(opts.channel === "email" ? "email" : "phone", to, opts.orgId);
+  if (check.verdict === "invalid") {
+    await recordBlocked(opts, lead.id, `contact_invalid:${check.reason ?? "unknown"}`);
+    await db.losLead.update({ where: { id: lead.id }, data: opts.channel === "email" ? { emailStatus: "invalid" } : { phoneStatus: "invalid" } }).catch(() => undefined);
+    return { outcome: "blocked", reason: `contact_invalid:${check.reason ?? "unknown"}` };
+  }
 
   // Sending caps
   const since = new Date(Date.now() - 86_400_000);
@@ -116,7 +130,9 @@ export async function sendOutreachMessage(opts: {
   let dev = false;
   if (opts.channel === "email") {
     const footer = `\n\n—\nReply STOP or use this link to stop these messages: ${APP_URL}/u/${optOutToken}`;
-    const r = await sendLosMail({ to, subject: opts.subject ?? "Hello from our team", text: rendered + footer });
+    // WP-31: a verified workspace sending domain is the From; the org tag comes back on bounce / complaint webhooks
+    const from = await import("@/lib/os/emailDomain").then((m) => m.senderFor(opts.orgId)).catch(() => null);
+    const r = await sendLosMail({ to, subject: opts.subject ?? "Hello from our team", text: rendered + footer, from, tags: { orgId: opts.orgId } });
     dev = !r.delivered;
     status = r.delivered ? "sent" : "dev_logged";
   } else {

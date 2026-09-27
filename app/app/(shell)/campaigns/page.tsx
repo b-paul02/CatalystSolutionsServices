@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { can } from "@/lib/leados/rbac";
 import { db } from "@/lib/audit/db";
 import { Badge, Card } from "@/components/leados/ui";
@@ -13,7 +13,7 @@ const TONE: Record<string, "neutral" | "brand" | "success" | "warn" | "danger"> 
 };
 
 export default async function CampaignsPage() {
-  const actor = await requireOrg("campaigns.view");
+  const actor = await requireOrgPage("campaigns.view");
   const campaigns = await db.losCampaign.findMany({
     where: { orgId: actor.orgId },
     orderBy: { createdAt: "desc" },

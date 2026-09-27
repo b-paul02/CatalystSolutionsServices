@@ -22,12 +22,16 @@ export default function DiscoverClient(props: {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [preview, setPreview] = useState<{ perRecord: number; total: number; balance: number; alreadyRevealed: number } | null>(null);
   const [pending, start] = useTransition();
+  const [denied, setDenied] = useState<string | null>(null); // a refused call (signed out, role, scope) is said, never shown as "no results"
   const [saveState, saveAction] = useActionState<FormState, FormData>(saveSearch, {});
   const [exclState, exclAction] = useActionState<FormState, FormData>(addExclusion, {});
 
   const search = (f: B2bSearchFilters) =>
     start(async () => {
-      setHits(await runSearch(f));
+      const r = await runSearch(f);
+      if ("error" in r) return setDenied(r.error);
+      setDenied(null);
+      setHits(r);
       setSelected(new Set());
       setPreview(null);
     });
@@ -109,6 +113,7 @@ export default function DiscoverClient(props: {
 
         {/* results */}
         <div className="space-y-3">
+          {denied && <p role="alert" className="rounded-lg bg-[var(--los-danger-soft)] px-4 py-2.5 text-[13.5px] text-[var(--los-danger)]">{denied}</p>}
           {props.canReveal && selected.size > 0 && (
             <Card className="flex flex-wrap items-center gap-3 p-3 text-[13.5px]">
               <span className="font-semibold">{selected.size} selected</span>
@@ -122,7 +127,8 @@ export default function DiscoverClient(props: {
                     disabled={pending || preview.total > preview.balance}
                     onClick={() =>
                       start(async () => {
-                        await doReveal([...selected]);
+                        const r = await doReveal([...selected]);
+                        if ("error" in r) return setDenied(r.error);
                         await search(filters);
                       })
                     }
@@ -132,7 +138,7 @@ export default function DiscoverClient(props: {
                   </button>
                 </>
               ) : (
-                <GhostButton disabled={pending} onClick={() => start(async () => setPreview(await previewReveal([...selected])))} className="!px-3 !py-1.5">
+                <GhostButton disabled={pending} onClick={() => start(async () => { const r = await previewReveal([...selected]); if ("error" in r) setDenied(r.error); else setPreview(r); })} className="!px-3 !py-1.5">
                   Preview cost
                 </GhostButton>
               )}

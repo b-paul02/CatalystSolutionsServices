@@ -23,6 +23,12 @@ export async function apiActor(req: NextRequest): Promise<ApiActor | NextRespons
   if (!key.lastUsedAt || Date.now() - key.lastUsedAt.getTime() > 60_000) {
     db.losApiKey.update({ where: { id: key.id }, data: { lastUsedAt: new Date() } }).catch(() => {});
   }
+  // same purchased-scope rule as the app: the leads API belongs to the CRM module
+  const { entitlements } = await import("@/lib/os/entitlements");
+  const ent = await entitlements(key.orgId);
+  if (ent.accessMode === "revoked" || (!ent.modules.has("crm") && !ent.modules.has("lead_supply"))) {
+    return NextResponse.json({ error: { code: "forbidden", message: "The leads API is not part of this workspace's scope." } }, { status: 403 });
+  }
   return { orgId: key.orgId, apiKeyId: key.id };
 }
 

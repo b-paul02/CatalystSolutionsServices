@@ -1,4 +1,4 @@
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { db } from "@/lib/audit/db";
 import { tokenBalance } from "@/lib/leados/tokens";
 import { currentPackage, PACKAGES, settleCheckoutSession, syncSubscription, TOKEN_PACKS } from "@/lib/leados/billing";
@@ -8,7 +8,7 @@ import { PackageGrid, TokenPackGrid } from "./BuyButtons";
 export const metadata = { title: "Tokens & billing" };
 
 export default async function BillingPage({ searchParams }: { searchParams: Promise<{ session_id?: string }> }) {
-  const actor = await requireOrg("org.billing");
+  const actor = await requireOrgPage("org.billing");
   const { session_id } = await searchParams;
 
   // Returning from Stripe checkout: settle idempotently before rendering.

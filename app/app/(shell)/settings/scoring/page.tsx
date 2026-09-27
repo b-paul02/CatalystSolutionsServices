@@ -1,4 +1,4 @@
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { can } from "@/lib/leados/rbac";
 import { db } from "@/lib/audit/db";
 import { parseWeights } from "@/lib/leados/scoring";
@@ -7,7 +7,7 @@ import ScoringForm from "./ScoringForm";
 export const metadata = { title: "Lead scoring" };
 
 export default async function ScoringPage() {
-  const actor = await requireOrg("reports.view");
+  const actor = await requireOrgPage("reports.view");
   const config = await db.losScoringConfig.findUnique({ where: { orgId: actor.orgId } });
   return (
     <ScoringForm

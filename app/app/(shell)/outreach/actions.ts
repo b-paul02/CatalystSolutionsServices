@@ -3,12 +3,12 @@
 // Templates + sequences management.
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/audit/db";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgAction, requireOrgOrRedirect } from "@/lib/leados/auth";
 import { logLosAudit } from "@/lib/leados/audit";
 import type { FormState } from "../../(auth)/actions";
 
 export async function saveTemplate(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("leads.contact");
+  const actor = await requireOrgAction("leads.contact"); if ("error" in actor) return actor;
   const id = String(form.get("id") ?? "") || null;
   const name = String(form.get("name") ?? "").trim().slice(0, 120);
   const channel = String(form.get("channel"));
@@ -26,13 +26,13 @@ export async function saveTemplate(_prev: FormState, form: FormData): Promise<Fo
 }
 
 export async function deleteTemplate(id: string): Promise<void> {
-  const actor = await requireOrg("leads.contact");
+  const actor = await requireOrgOrRedirect("leads.contact");
   await db.losMessageTemplate.deleteMany({ where: { id, orgId: actor.orgId } });
   revalidatePath("/app/outreach");
 }
 
 export async function createSequence(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("pipeline.manage");
+  const actor = await requireOrgAction("pipeline.manage"); if ("error" in actor) return actor;
   const name = String(form.get("name") ?? "").trim().slice(0, 120);
   if (!name) return { error: "Name the sequence." };
   // steps come as parallel arrays step-template / step-delay
@@ -57,7 +57,7 @@ export async function createSequence(_prev: FormState, form: FormData): Promise<
 }
 
 export async function setSequenceStatus(id: string, status: "active" | "paused"): Promise<void> {
-  const actor = await requireOrg("pipeline.manage");
+  const actor = await requireOrgOrRedirect("pipeline.manage");
   await db.losSequence.updateMany({ where: { id, orgId: actor.orgId }, data: { status } });
   revalidatePath("/app/outreach");
 }

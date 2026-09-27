@@ -18,6 +18,8 @@ export async function GET(req: NextRequest) {
   await enqueueSequenceTick();
   await enqueueSearchAlerts();
   await enqueueMetricsJobs();
+  await (await import("@/lib/os/syncJob")).enqueueConnectorSyncs();
+  await (await import("@/lib/os/automation/engine")).tickWorkflows();
   let total = 0;
   // Drain in batches until quiet or ~4 min elapsed (Vercel limit headroom).
   const deadline = Date.now() + 4 * 60_000;

@@ -7,6 +7,8 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  // lets a verification build run beside a live `next dev` without sharing (and corrupting) its .next folder
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   async headers() {
     return [
       // Hosted campaign pages must stay embeddable (iframe snippet); everything

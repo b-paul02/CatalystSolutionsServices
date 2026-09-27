@@ -27,7 +27,7 @@ export default async function LoginPage() {
         </div>
       )}
       <p className="mt-4 text-center text-[13.5px] text-[var(--los-muted)]">
-        New to LeadOS?{" "}
+        New to CatalystGrowthOS?{" "}
         <Link href="/app/register" className="font-medium text-[var(--los-brand)]">Create an account</Link>
       </p>
     </>

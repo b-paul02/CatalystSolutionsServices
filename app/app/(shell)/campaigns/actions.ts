@@ -5,17 +5,18 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/audit/db";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrg, requireOrgAction, requireOrgOrRedirect } from "@/lib/leados/auth";
 import { logLosAudit } from "@/lib/leados/audit";
 import {
   defaultFormSpec, defaultPageSpec, sanitizeFormSpec, validateCampaign,
   type Distribution, type PageSpec,
 } from "@/lib/leados/campaigns";
 import { randomToken } from "@/lib/leados/crypto";
+import { defaultScorecard, sanitizeScorecard, scorecardProblems } from "@/lib/leados/scorecard";
 import type { FormState } from "../../(auth)/actions";
 
 export async function createCampaign(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("campaigns.manage");
+  const actor = await requireOrgAction("campaigns.manage"); if ("error" in actor) return actor;
   const name = String(form.get("name") ?? "").trim().slice(0, 160);
   const type = String(form.get("type") ?? "hosted_page");
   const objective = String(form.get("objective") ?? "generate_inquiries");
@@ -24,8 +25,8 @@ export async function createCampaign(_prev: FormState, form: FormData): Promise<
   const campaign = await db.losCampaign.create({
     data: {
       orgId: actor.orgId, name, type, objective,
-      formSpec: JSON.stringify(defaultFormSpec()),
-      pageSpec: JSON.stringify(defaultPageSpec(org?.name ?? "our team")),
+      formSpec: JSON.stringify(type === "scorecard" ? { ...defaultFormSpec(), scorecard: defaultScorecard() } : defaultFormSpec()),
+      pageSpec: JSON.stringify(type === "scorecard" ? { ...defaultPageSpec(org?.name ?? "our team"), headline: "How ready is your business to grow? Take the 2-minute assessment", cta: "See my score", thankYouMessage: "Here is your result." } : type === "survey" ? { ...defaultPageSpec(org?.name ?? "our team"), headline: "Two minutes of your time", cta: "Send my answers", thankYouMessage: "Thank you — your answers help us serve you better." } : defaultPageSpec(org?.name ?? "our team")),
       distribution: JSON.stringify({ mode: "round_robin", userIds: [], slaMinutes: 60, ackEmail: true } satisfies Distribution),
       offer: JSON.stringify({ product: "", geography: "", language: "en", budget: "", expectedVolume: "" }),
       createdById: actor.userId,
@@ -44,7 +45,7 @@ async function ownCampaign(orgId: string, id: string) {
 
 /** Saves one wizard section (offer | form | page | distribution) from JSON. */
 export async function saveCampaignSection(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("campaigns.manage");
+  const actor = await requireOrgAction("campaigns.manage"); if ("error" in actor) return actor;
   const id = String(form.get("campaignId"));
   const section = String(form.get("section"));
   const campaign = await ownCampaign(actor.orgId, id);
@@ -58,7 +59,11 @@ export async function saveCampaignSection(_prev: FormState, form: FormData): Pro
     return { error: "Invalid data." };
   }
   const data: Record<string, string> = {};
-  if (section === "form") data.formSpec = JSON.stringify(sanitizeFormSpec(payload));
+  if (section === "form") data.formSpec = JSON.stringify(sanitizeFormSpec({ ...(payload as object), scorecard: (JSON.parse(campaign.formSpec ?? "{}") as { scorecard?: unknown }).scorecard }));
+  else if (section === "scorecard") {
+    if (campaign.type !== "scorecard") return { error: "Only scorecard campaigns have a scorecard." };
+    data.formSpec = JSON.stringify({ ...sanitizeFormSpec(JSON.parse(campaign.formSpec ?? "{}")), scorecard: sanitizeScorecard(payload) });
+  }
   else if (section === "page") {
     const p = payload as Partial<PageSpec>;
     const current = JSON.parse(campaign.pageSpec ?? "{}") as PageSpec;
@@ -96,7 +101,8 @@ export async function saveCampaignSection(_prev: FormState, form: FormData): Pro
 }
 
 export async function submitCampaignForReview(campaignId: string): Promise<{ problems: { severity: string; message: string }[] }> {
-  const actor = await requireOrg("campaigns.manage");
+  // a refusal is shown in the same list the editor already renders; nothing is submitted
+  const actor = await requireOrgAction("campaigns.manage"); if ("error" in actor) return { problems: [{ severity: "error", message: actor.error }] };
   const campaign = await ownCampaign(actor.orgId, campaignId);
   if (!["draft", "rejected"].includes(campaign.status)) return { problems: [] };
   const problems = validateCampaign({
@@ -105,6 +111,7 @@ export async function submitCampaignForReview(campaignId: string): Promise<{ pro
     pageSpec: JSON.parse(campaign.pageSpec ?? "{}"),
     offerText: campaign.offer ?? "",
   });
+  if (campaign.type === "scorecard") for (const m of scorecardProblems(sanitizeFormSpec(JSON.parse(campaign.formSpec ?? "{}")).scorecard ?? { categories: [], questions: [], bands: [], gate: "none" })) problems.push({ severity: "error", message: m });
   if (problems.some((p) => p.severity === "error")) return { problems };
   await db.losCampaign.update({ where: { id: campaignId }, data: { status: "in_review", reviewNote: null } });
   await db.losComplianceReview.create({
@@ -125,7 +132,7 @@ export async function submitCampaignForReview(campaignId: string): Promise<{ pro
 }
 
 export async function launchCampaign(campaignId: string): Promise<FormState> {
-  const actor = await requireOrg("campaigns.manage");
+  const actor = await requireOrgAction("campaigns.manage"); if ("error" in actor) return actor;
   const campaign = await ownCampaign(actor.orgId, campaignId);
   if (!["approved", "paused"].includes(campaign.status)) {
     return { error: "Campaign must be approved before launch." };
@@ -146,7 +153,7 @@ export async function launchCampaign(campaignId: string): Promise<FormState> {
 }
 
 export async function setCampaignStatus(campaignId: string, status: "paused" | "completed"): Promise<void> {
-  const actor = await requireOrg("campaigns.manage");
+  const actor = await requireOrgOrRedirect("campaigns.manage");
   const campaign = await ownCampaign(actor.orgId, campaignId);
   if (campaign.status !== "active" && status === "paused") return;
   await db.losCampaign.update({ where: { id: campaignId }, data: { status } });
@@ -155,7 +162,7 @@ export async function setCampaignStatus(campaignId: string, status: "paused" | "
 }
 
 export async function addTrackingLink(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("campaigns.manage");
+  const actor = await requireOrgAction("campaigns.manage"); if ("error" in actor) return actor;
   const campaignId = String(form.get("campaignId"));
   const label = String(form.get("label") ?? "").trim().slice(0, 80);
   if (!label) return { error: "Label the link (e.g. 'Facebook post', 'Event QR')." };

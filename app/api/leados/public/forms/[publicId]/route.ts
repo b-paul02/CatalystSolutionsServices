@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/audit/db";
 import { rateLimit } from "@/lib/partner/ratelimit";
 import { processSubmission } from "@/lib/leados/submission";
+import { APP_URL } from "@/lib/leados/email";
 
 // Public form submission endpoint (§5.8 steps 1-2 live here; the rest in
 // processSubmission). Sub-second ack: verification/enrichment stay async.
@@ -53,5 +54,5 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ publicId: 
   if (result.outcome === "invalid") {
     return NextResponse.json({ error: result.problem }, { status: 422 });
   }
-  return NextResponse.json({ message: result.message });
+  return NextResponse.json({ message: result.message, ...(result.score ? { score: result.score, resultUrl: `${new URL(APP_URL).pathname}/c/${publicId}/r/${result.submissionId}` } : {}) });
 }

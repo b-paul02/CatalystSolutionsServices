@@ -60,7 +60,7 @@ export function PackageGrid({ packages, currency, current }: {
                 Upgrade
               </button>
             ) : !p.selfServe && current !== p.id ? (
-              <a href="mailto:info@catalystsolutionservices.com?subject=LeadOS%20plan" className="block w-full rounded-lg border border-[var(--los-line)] px-3 py-1.5 text-center text-[13px] font-medium text-[var(--los-muted)]">
+              <a href="mailto:info@catalystsolutionservices.com?subject=CatalystGrowthOS%20plan" className="block w-full rounded-lg border border-[var(--los-line)] px-3 py-1.5 text-center text-[13px] font-medium text-[var(--los-muted)]">
                 Contact us
               </a>
             ) : null}

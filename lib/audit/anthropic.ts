@@ -7,6 +7,20 @@
 const BASE_URL = process.env.LLM_BASE_URL ?? "https://api.tokenrouter.com/v1";
 const MODEL = process.env.LLM_MODEL ?? "moonshotai/kimi-k3-free";
 
+import { AsyncLocalStorage } from "node:async_hooks";
+
+// Usage metering: callers that must account for AI spend run inside withLlmUsage(); every completed
+// call reports the provider's own token counts (null when the provider does not return them).
+export type LlmUsage = { model: string; inputTokens: number | null; outputTokens: number | null; requestId?: string | null };
+/** Our side gave up waiting. The provider may still have done (and billed) the work: outcome and cost are UNKNOWN. */
+export class LlmTimeoutError extends Error { constructor() { super("The AI provider did not answer in time."); this.name = "LlmTimeoutError"; } }
+const usageSink = new AsyncLocalStorage<LlmUsage[]>();
+export async function withLlmUsage<T>(fn: () => Promise<T>): Promise<{ result: T; usage: LlmUsage[] }> {
+  const usage: LlmUsage[] = [];
+  const result = await usageSink.run(usage, fn);
+  return { result, usage };
+}
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // Free-tier providers return 429/503 under load — retry with backoff rather than
@@ -35,6 +49,9 @@ async function fetchWithRetry(system: string, user: string, maxTokens: number, a
         signal: AbortSignal.timeout(240_000),
       });
     } catch (e) {
+      // A METERED call (AI Studio) that timed out is not sent again: the provider may still be working on it, and a blind
+      // re-send would buy the same work twice. The caller releases the client's hold and records the cost as unknown.
+      if (usageSink.getStore() && (e as Error).name === "TimeoutError") throw new LlmTimeoutError();
       // network-level failure (reset, DNS, timeout) — retryable
       if (i >= attempts - 1) throw new Error(`LLM network error after ${attempts} attempts: ${(e as Error).message}`);
       await sleep(2000 * 2 ** i);
@@ -42,6 +59,7 @@ async function fetchWithRetry(system: string, user: string, maxTokens: number, a
     }
     if (res.ok) {
       const data = await res.json();
+      usageSink.getStore()?.push({ model: MODEL, inputTokens: data.usage?.prompt_tokens ?? null, outputTokens: data.usage?.completion_tokens ?? null, requestId: typeof data.id === "string" ? data.id.slice(0, 120) : res.headers.get("x-request-id")?.slice(0, 120) ?? null });
       const text = data.choices?.[0]?.message?.content ?? "";
       if (text) return text;
       throw new Error(`LLM returned no text: ${JSON.stringify(data).slice(0, 500)}`);

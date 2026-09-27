@@ -4,7 +4,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/audit/db";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrg, requireOrgAction, requireOrgOrRedirect } from "@/lib/leados/auth";
 import { logLosAudit } from "@/lib/leados/audit";
 import { LEAD_STATUSES, suggestMapping, toCsv, fieldsForType } from "@/lib/leados/leads";
 import { leadWhere } from "@/lib/leados/leadQuery";
@@ -21,7 +21,7 @@ const MAX_IMPORT_BYTES = 8 * 1024 * 1024;
 // ── manual create ────────────────────────────────────────────────────────────
 
 export async function createLeadManual(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("leads.edit");
+  const actor = await requireOrgAction("leads.edit"); if ("error" in actor) return actor;
   const leadType = String(form.get("leadType")) === "b2b" ? "b2b" : "b2c";
   const input: LeadInput = {};
   for (const f of fieldsForType(leadType)) {
@@ -54,7 +54,7 @@ async function ownLead(orgId: string, leadId: string) {
 }
 
 export async function updateLeadBasics(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("leads.edit");
+  const actor = await requireOrgAction("leads.edit"); if ("error" in actor) return actor;
   const leadId = String(form.get("leadId"));
   await ownLead(actor.orgId, leadId);
   const data: Record<string, string | null> = {};
@@ -68,7 +68,7 @@ export async function updateLeadBasics(_prev: FormState, form: FormData): Promis
 }
 
 export async function setLeadStatus(leadId: string, status: string, lostReason?: string, conversionValue?: number): Promise<void> {
-  const actor = await requireOrg("leads.edit");
+  const actor = await requireOrgOrRedirect("leads.edit");
   const { isValidStage } = await import("@/lib/leados/stages");
   if (!(await isValidStage(actor.orgId, status))) return;
   const lead = await ownLead(actor.orgId, leadId);
@@ -89,13 +89,17 @@ export async function setLeadStatus(leadId: string, status: string, lostReason?:
     },
   });
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "leads.status", entity: "LosLead", entityId: leadId, data: { status } });
+  if (lead.status !== status) {
+    const { dispatchEvent } = await import("@/lib/os/automation/engine");
+    await dispatchEvent(actor.orgId, "trigger.lead_stage_changed", { leadId, from: lead.status, to: status });
+  }
   revalidatePath(`/app/leads/${leadId}`);
   revalidatePath("/app/leads");
   revalidatePath("/app/pipeline");
 }
 
 export async function assignLead(leadId: string, ownerId: string | null): Promise<void> {
-  const actor = await requireOrg("leads.assign");
+  const actor = await requireOrgOrRedirect("leads.assign");
   await ownLead(actor.orgId, leadId);
   if (ownerId) {
     const member = await db.losMembership.findFirst({ where: { orgId: actor.orgId, userId: ownerId } });
@@ -111,7 +115,7 @@ export async function assignLead(leadId: string, ownerId: string | null): Promis
 }
 
 export async function deleteLead(leadId: string): Promise<void> {
-  const actor = await requireOrg("leads.delete");
+  const actor = await requireOrgOrRedirect("leads.delete");
   await ownLead(actor.orgId, leadId);
   await db.losLead.update({ where: { id: leadId }, data: { deletedAt: new Date() } });
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "leads.delete", entity: "LosLead", entityId: leadId });
@@ -120,8 +124,8 @@ export async function deleteLead(leadId: string): Promise<void> {
 
 // ── export ───────────────────────────────────────────────────────────────────
 
-export async function exportLeadsCsv(filters: { leadType?: string; status?: string; q?: string }): Promise<string> {
-  const actor = await requireOrg("leads.export");
+export async function exportLeadsCsv(filters: { leadType?: string; status?: string; q?: string }): Promise<{ csv: string } | { error: string }> {
+  const actor = await requireOrgAction("leads.export"); if ("error" in actor) return actor;
   // B2C export disabled by default (locked product decision).
   const where = leadWhere(actor.orgId, { ...filters, leadType: "b2b" });
   const leads = await db.losLead.findMany({
@@ -129,19 +133,19 @@ export async function exportLeadsCsv(filters: { leadType?: string; status?: stri
     include: { b2b: true, company: true },
   });
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "leads.export", entity: "LosLead", data: { count: leads.length } });
-  return toCsv(
+  return { csv: toCsv(
     ["First name", "Last name", "Email", "Phone", "Company", "Job title", "City", "Country", "Status", "Created"],
     leads.map((l) => [
       l.firstName, l.lastName, l.email, l.phone, l.company?.name, l.b2b?.jobTitle,
       l.city, l.country, l.status, l.createdAt.toISOString().slice(0, 10),
     ]),
-  );
+  ) };
 }
 
 // ── import wizard ────────────────────────────────────────────────────────────
 
 export async function uploadImport(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("leads.import");
+  const actor = await requireOrgAction("leads.import"); if ("error" in actor) return actor;
   const file = form.get("file");
   const leadType = String(form.get("leadType")) === "b2b" ? "b2b" : "b2c";
   if (!(file instanceof File)) return { error: "Choose a CSV file." };
@@ -169,7 +173,7 @@ export async function uploadImport(_prev: FormState, form: FormData): Promise<Fo
 }
 
 export async function saveImportMapping(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("leads.import");
+  const actor = await requireOrgAction("leads.import"); if ("error" in actor) return actor;
   const importId = String(form.get("importId"));
   const imp = await db.losImport.findFirst({ where: { id: importId, orgId: actor.orgId } });
   if (!imp || (imp.status !== "mapping" && imp.status !== "previewed")) return { error: "Import not editable." };
@@ -202,7 +206,7 @@ export async function saveImportMapping(_prev: FormState, form: FormData): Promi
 }
 
 export async function commitImport(importId: string): Promise<void> {
-  const actor = await requireOrg("leads.import");
+  const actor = await requireOrgOrRedirect("leads.import");
   const imp = await db.losImport.findFirst({ where: { id: importId, orgId: actor.orgId } });
   if (!imp || imp.status !== "previewed") return;
   await enqueueJob({ type: IMPORT_JOB, payload: { importId }, idempotencyKey: `import-${importId}` });
@@ -215,7 +219,7 @@ export async function commitImport(importId: string): Promise<void> {
 // ── notes, tasks, messages (lead workspace) ──────────────────────────────────
 
 export async function addNote(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("leads.edit");
+  const actor = await requireOrgAction("leads.edit"); if ("error" in actor) return actor;
   const leadId = String(form.get("leadId"));
   const body = String(form.get("body") ?? "").trim().slice(0, 4000);
   if (!body) return { error: "Write something first." };
@@ -232,7 +236,7 @@ export async function addNote(_prev: FormState, form: FormData): Promise<FormSta
 }
 
 export async function addTask(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("leads.edit");
+  const actor = await requireOrgAction("leads.edit"); if ("error" in actor) return actor;
   const leadId = String(form.get("leadId") ?? "") || null;
   const title = String(form.get("title") ?? "").trim().slice(0, 300);
   const kind = ["call", "follow_up", "other"].includes(String(form.get("kind"))) ? String(form.get("kind")) : "follow_up";
@@ -257,7 +261,7 @@ export async function addTask(_prev: FormState, form: FormData): Promise<FormSta
 }
 
 export async function toggleTask(taskId: string): Promise<void> {
-  const actor = await requireOrg("leads.edit");
+  const actor = await requireOrgOrRedirect("leads.edit");
   const task = await db.losTask.findFirst({ where: { id: taskId, orgId: actor.orgId } });
   if (!task) return;
   const doneAt = task.doneAt ? null : new Date();
@@ -272,7 +276,7 @@ export async function toggleTask(taskId: string): Promise<void> {
 }
 
 export async function sendOneToOne(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("leads.contact");
+  const actor = await requireOrgAction("leads.contact"); if ("error" in actor) return actor;
   const leadId = String(form.get("leadId"));
   const channel = String(form.get("channel"));
   if (!["whatsapp", "sms", "email"].includes(channel)) return { error: "Pick a channel." };
@@ -293,7 +297,7 @@ export async function sendOneToOne(_prev: FormState, form: FormData): Promise<Fo
 }
 
 export async function enrollInSequence(leadId: string, sequenceId: string): Promise<void> {
-  const actor = await requireOrg("leads.contact");
+  const actor = await requireOrgOrRedirect("leads.contact");
   await ownLead(actor.orgId, leadId);
   const sequence = await db.losSequence.findFirst({ where: { id: sequenceId, orgId: actor.orgId } });
   if (!sequence) return;
@@ -307,12 +311,13 @@ export async function enrollInSequence(leadId: string, sequenceId: string): Prom
 }
 
 export async function recomputeScore(leadId: string): Promise<void> {
-  const actor = await requireOrg("leads.view");
+  const actor = await requireOrgOrRedirect("leads.view");
   const lead = await db.losLead.findFirst({ where: { id: leadId, orgId: actor.orgId, deletedAt: null }, include: { b2c: true } });
   if (!lead) return;
   const { scoreLead, parseWeights } = await import("@/lib/leados/scoring");
   const config = await db.losScoringConfig.findUnique({ where: { orgId: actor.orgId } });
-  const result = scoreLead(lead, parseWeights(config?.weights));
+  const { latestBandRank } = await import("@/lib/leados/submission");
+  const result = scoreLead({ ...lead, scorecardBandRank: await latestBandRank(leadId) }, parseWeights(config?.weights));
   await db.losLead.update({ where: { id: leadId }, data: { qualityScore: result.quality, intentScore: result.intent } });
   await db.losScoreEvent.create({
     data: { orgId: actor.orgId, leadId, quality: result.quality, intent: result.intent, explanation: JSON.stringify(result.explanation) },

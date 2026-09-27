@@ -23,3 +23,9 @@ leados-production-env.txt
 
 .vercel
 .env*
+
+leados-client/
+
+# Local asset storage (development uploads)
+/.data
+/.next-verify

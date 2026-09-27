@@ -46,13 +46,19 @@ export default function KanbanBoard(props: { stages: Stage[]; leads: Lead[]; can
             onDragOver={(e) => {
               if (props.canEdit) {
                 e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
                 setOver(stage.key);
               }
             }}
-            onDragLeave={() => setOver(null)}
-            onDrop={() => {
+            onDragLeave={(e) => {
+              // ignore leave events fired when moving over the column's children
+              if (!e.currentTarget.contains(e.relatedTarget as Node)) setOver(null);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
               setOver(null);
-              if (dragId && props.canEdit) move(dragId, stage);
+              const id = dragId ?? e.dataTransfer.getData("text/plain");
+              if (id && props.canEdit) move(id, stage);
             }}
           >
             <div className="flex items-center justify-between px-3 py-2.5">
@@ -66,11 +72,16 @@ export default function KanbanBoard(props: { stages: Stage[]; leads: Lead[]; can
                 <div
                   key={l.id}
                   draggable={props.canEdit && !pending}
-                  onDragStart={() => setDragId(l.id)}
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData("text/plain", l.id); // required for Firefox to start the drag
+                    e.dataTransfer.effectAllowed = "move";
+                    setDragId(l.id);
+                  }}
                   onDragEnd={() => setDragId(null)}
                   className={`rounded-lg border border-[var(--los-line)] bg-[var(--los-surface)] p-2.5 ${props.canEdit ? "cursor-grab" : ""} ${dragId === l.id ? "opacity-50" : ""}`}
                 >
-                  <Link href={`/app/leads/${l.id}`} className="block text-[13px] font-semibold text-[var(--los-fg)] hover:text-[var(--los-brand)]">
+                  {/* draggable=false: otherwise the browser drags the link itself and the card drag never starts */}
+                  <Link href={`/app/leads/${l.id}`} draggable={false} className="block text-[13px] font-semibold text-[var(--los-fg)] hover:text-[var(--los-brand)]">
                     {l.name}
                   </Link>
                   {l.interest && <div className="truncate text-[12px] text-[var(--los-muted)]">{l.interest}</div>}

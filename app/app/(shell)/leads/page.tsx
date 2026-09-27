@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { can } from "@/lib/leados/rbac";
 import { db } from "@/lib/audit/db";
 import { leadWhere } from "@/lib/leados/leadQuery";
@@ -16,7 +16,7 @@ const STATUS_TONE: Record<string, "neutral" | "brand" | "success" | "warn" | "da
 };
 
 export default async function LeadsPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
-  const actor = await requireOrg("leads.view");
+  const actor = await requireOrgPage("leads.view");
   const sp = await searchParams;
   const filters = { leadType: sp.type, status: sp.status, q: sp.q?.slice(0, 100) };
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);

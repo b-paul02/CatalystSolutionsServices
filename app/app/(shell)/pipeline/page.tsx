@@ -1,4 +1,4 @@
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { can } from "@/lib/leados/rbac";
 import { db } from "@/lib/audit/db";
 import { getStages } from "@/lib/leados/stages";
@@ -7,7 +7,7 @@ import KanbanBoard from "./KanbanBoard";
 export const metadata = { title: "Pipeline" };
 
 export default async function PipelinePage() {
-  const actor = await requireOrg("leads.view");
+  const actor = await requireOrgPage("leads.view");
   const [stages, leads, members] = await Promise.all([
     getStages(actor.orgId),
     db.losLead.findMany({

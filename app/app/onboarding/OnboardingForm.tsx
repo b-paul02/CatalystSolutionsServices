@@ -27,7 +27,7 @@ export default function OnboardingForm() {
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="intendedUse">How will you use LeadOS?</Label>
+            <Label htmlFor="intendedUse">How will you use CatalystGrowthOS?</Label>
             <Select id="intendedUse" name="intendedUse" defaultValue="both">
               <option value="b2b">B2B leads</option>
               <option value="b2c">B2C leads</option>
@@ -58,7 +58,7 @@ export default function OnboardingForm() {
         <div className="space-y-2 rounded-lg bg-[var(--los-surface-2)] p-3 text-[13px] leading-relaxed">
           <label className="flex items-start gap-2">
             <input type="checkbox" name="acceptTerms" className="mt-0.5" required />
-            <span>I accept the LeadOS terms of service and data processing agreement on behalf of this organization.</span>
+            <span>I accept the CatalystGrowthOS terms of service and data processing agreement on behalf of this organization.</span>
           </label>
           <label className="flex items-start gap-2">
             <input type="checkbox" name="acceptProhibited" className="mt-0.5" required />

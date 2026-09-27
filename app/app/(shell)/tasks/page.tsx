@@ -1,14 +1,15 @@
 import Link from "next/link";
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { db } from "@/lib/audit/db";
 import { Badge, Card } from "@/components/leados/ui";
 import TaskList from "./TaskList";
+import QuickAddTask from "./QuickAddTask";
 
 export const metadata = { title: "My day" };
 
 // The personal work queue: due tasks first, then untouched assigned leads.
 export default async function TasksPage() {
-  const actor = await requireOrg("leads.view");
+  const actor = await requireOrgPage("leads.view");
   const now = new Date();
   const [tasks, needsAttention] = await Promise.all([
     db.losTask.findMany({
@@ -37,6 +38,7 @@ export default async function TasksPage() {
       <p className="mb-5 text-[13.5px] text-[var(--los-muted)]">
         {tasks.filter((t) => t.dueAt <= now).length} due now · {tasks.length} open task{tasks.length === 1 ? "" : "s"} · {needsAttention.length} lead{needsAttention.length === 1 ? "" : "s"} waiting for first contact
       </p>
+      <QuickAddTask />
       <TaskList
         tasks={tasks.map((t) => ({
           id: t.id, title: t.title, kind: t.kind,

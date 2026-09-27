@@ -136,7 +136,7 @@ export async function allocatePlan(planId: string, opts: { execute: boolean; run
         now.getTime() - record.lastAllocatedAt.getTime() < record.dataset.coolingDays * 86_400_000) {
       bump("cooling"); continue;
     }
-    if (!matchesTargeting(record, targeting)) { bump("targeting"); continue; }
+    if (!matchesTargeting(record, targeting, j<Record<string, unknown>>(record.fields, {}))) { bump("targeting"); continue; }
     const purposeRestriction = j<string[]>(record.dataset.purposeRestriction, []);
     if (purposeRestriction.length > 0 && !purposeRestriction.includes(plan.purpose)) { bump("dataset_purpose"); continue; }
     // Exclusivity: plan wanting exclusive gets only never-allocated records.

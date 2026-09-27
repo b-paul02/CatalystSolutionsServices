@@ -3,18 +3,18 @@
 // Settings mutations: org profile, team, MFA, sessions, API keys.
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/audit/db";
-import { requireOrg, requireLosUser } from "@/lib/leados/auth";
+import { requireLosUser, requireOrgAction, requireOrgOrRedirect } from "@/lib/leados/auth";
 import { logLosAudit } from "@/lib/leados/audit";
 import { encryptField, randomToken, sha256, tryDecryptField } from "@/lib/leados/crypto";
 import { generateTotpSecret, totpUri, verifyTotp } from "@/lib/leados/totp";
 import { APP_URL, sendLosMail } from "@/lib/leados/email";
-import { isClientRole } from "@/lib/leados/rbac";
+import { isClientRole, isStaffRole } from "@/lib/leados/rbac";
 import type { FormState } from "../../(auth)/actions";
 
 // ── organization ─────────────────────────────────────────────────────────────
 
 export async function updateOrg(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("org.manage");
+  const actor = await requireOrgAction("org.manage"); if ("error" in actor) return actor;
   const name = String(form.get("name") ?? "").trim().slice(0, 160);
   const website = String(form.get("website") ?? "").trim().slice(0, 200) || null;
   const industry = String(form.get("industry") ?? "").trim().slice(0, 80) || null;
@@ -28,7 +28,7 @@ export async function updateOrg(_prev: FormState, form: FormData): Promise<FormS
 // ── team ─────────────────────────────────────────────────────────────────────
 
 export async function inviteMember(_prev: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireOrg("team.manage");
+  const actor = await requireOrgAction("team.manage"); if ("error" in actor) return actor;
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   const role = String(form.get("role") ?? "");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "Enter a valid email address." };
@@ -52,8 +52,8 @@ export async function inviteMember(_prev: FormState, form: FormData): Promise<Fo
   const link = `${APP_URL}/invite/${token}`;
   const mail = await sendLosMail({
     to: email,
-    subject: `You're invited to ${org?.name} on LeadOS`,
-    text: `${actor.name ?? actor.email} invited you to join ${org?.name} on LeadOS as ${role.replace(/_/g, " ")}.\n\nAccept the invitation:\n${link}\n\nThe link expires in 7 days.`,
+    subject: `You're invited to ${org?.name} on CatalystGrowthOS`,
+    text: `${actor.name ?? actor.email} invited you to join ${org?.name} on CatalystGrowthOS as ${role.replace(/_/g, " ")}.\n\nAccept the invitation:\n${link}\n\nThe link expires in 7 days.`,
     link,
   });
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "team.invite", entity: "LosInvitation", entityId: invite.id, data: { role } });
@@ -62,7 +62,7 @@ export async function inviteMember(_prev: FormState, form: FormData): Promise<Fo
 }
 
 export async function revokeInvite(inviteId: string): Promise<void> {
-  const actor = await requireOrg("team.manage");
+  const actor = await requireOrgOrRedirect("team.manage");
   await db.losInvitation.updateMany({
     where: { id: inviteId, orgId: actor.orgId, acceptedAt: null },
     data: { revokedAt: new Date() },
@@ -72,11 +72,12 @@ export async function revokeInvite(inviteId: string): Promise<void> {
 }
 
 export async function changeMemberRole(membershipId: string, role: string): Promise<void> {
-  const actor = await requireOrg("team.manage");
+  const actor = await requireOrgOrRedirect("team.manage");
   if (!isClientRole(role)) return;
   const target = await db.losMembership.findFirst({ where: { id: membershipId, orgId: actor.orgId } });
   if (!target) return;
   if (target.role === "owner") return; // owners are never demoted here
+  if (isStaffRole(target.role)) return; // Catalyst staff memberships are platform-managed
   if (role === "owner" && actor.role !== "owner") return; // only an owner can promote to owner
   await db.losMembership.update({ where: { id: target.id }, data: { role } });
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "team.role_changed", entity: "LosMembership", entityId: target.id, data: { role } });
@@ -84,9 +85,9 @@ export async function changeMemberRole(membershipId: string, role: string): Prom
 }
 
 export async function removeMember(membershipId: string): Promise<void> {
-  const actor = await requireOrg("team.manage");
+  const actor = await requireOrgOrRedirect("team.manage");
   const target = await db.losMembership.findFirst({ where: { id: membershipId, orgId: actor.orgId } });
-  if (!target || target.role === "owner" || target.userId === actor.userId) return;
+  if (!target || target.role === "owner" || target.userId === actor.userId || isStaffRole(target.role)) return;
   await db.losMembership.delete({ where: { id: target.id } });
   await logLosAudit({ orgId: actor.orgId, actorUserId: actor.userId, actorType: "user", action: "team.member_removed", entity: "LosMembership", entityId: target.id });
   revalidatePath("/app/settings/team");
@@ -157,7 +158,7 @@ export async function revokeOtherSessions(): Promise<void> {
 // ── API keys ─────────────────────────────────────────────────────────────────
 
 export async function createApiKey(_prev: FormState, form: FormData): Promise<FormState & { secret?: string }> {
-  const actor = await requireOrg("apikeys.manage");
+  const actor = await requireOrgAction("apikeys.manage"); if ("error" in actor) return actor;
   const name = String(form.get("name") ?? "").trim().slice(0, 80);
   if (!name) return { error: "Name the key so you can recognize it later." };
   const secret = `los_${randomToken(24)}`;
@@ -175,7 +176,7 @@ export async function createApiKey(_prev: FormState, form: FormData): Promise<Fo
 }
 
 export async function revokeApiKey(keyId: string): Promise<void> {
-  const actor = await requireOrg("apikeys.manage");
+  const actor = await requireOrgOrRedirect("apikeys.manage");
   await db.losApiKey.updateMany({
     where: { id: keyId, orgId: actor.orgId },
     data: { revokedAt: new Date() },

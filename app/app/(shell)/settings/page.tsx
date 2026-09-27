@@ -1,4 +1,4 @@
-import { requireOrg } from "@/lib/leados/auth";
+import { requireOrgPage } from "@/lib/os/guard";
 import { db } from "@/lib/audit/db";
 import { Badge } from "@/components/leados/ui";
 import OrgForm from "./OrgForm";
@@ -6,7 +6,7 @@ import OrgForm from "./OrgForm";
 export const metadata = { title: "Organization settings" };
 
 export default async function OrgSettingsPage() {
-  const actor = await requireOrg();
+  const actor = await requireOrgPage();
   const org = await db.losOrg.findUnique({ where: { id: actor.orgId } });
   if (!org) return null;
   return (
