@@ -10,14 +10,9 @@ import { createWorkItem, WorkError, type WorkActor } from "./work";
 export const SCORING_VERSION = "scorecard-v2";
 
 // The six scored pillars (PDF pp. 2–5). Keys match lib/audit/scorecard.ts where they exist.
-export const PILLARS: { key: string; label: string }[] = [
-  { key: "visibility", label: "Search visibility" },
-  { key: "content", label: "Content & authority" },
-  { key: "conversion", label: "Conversion readiness" },
-  { key: "analytics", label: "Analytics & trust" },
-  { key: "ai", label: "AI-search readiness" },
-  { key: "speed", label: "Mobile & speed" },
-];
+// defined in pillarDefs.ts (pure) so client components can import it without the server graph
+export { AUDIT_PILLARS as PILLARS } from "./pillarDefs";
+import { AUDIT_PILLARS as PILLARS } from "./pillarDefs";
 
 export type PillarScore = { score: number | null; label: EvidenceLabel; confidence?: string };
 export type DraftFinding = { pillar: string; text: string; severity: string; label: EvidenceLabel; evidence: string; sourceUrl: string | null };

@@ -1,6 +1,6 @@
 // Scorecard campaigns (WP-10a). Pure: spec shape, sanitising, scoring and validation. A scorecard answer is
 // SELF-REPORTED evidence — it is shown next to verified checks, never blended into them (plan §7).
-import { PILLARS } from "@/lib/os/audit";
+import { AUDIT_PILLARS as PILLARS } from "@/lib/os/pillarDefs";
 
 export type ScorecardAnswer = { label: string; points: number };
 export type ScorecardQuestion = { key: string; text: string; category: string; answers: ScorecardAnswer[] };

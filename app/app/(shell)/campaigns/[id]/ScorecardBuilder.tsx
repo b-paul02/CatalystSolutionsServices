@@ -4,7 +4,7 @@
 // bands, gate — with a live preview of the result page at any score.
 import { useState } from "react";
 import { GhostButton, Input, Label, Select } from "@/components/leados/ui";
-import { PILLARS } from "@/lib/os/audit";
+import { AUDIT_PILLARS as PILLARS } from "@/lib/os/pillarDefs";
 import { scorecardProblems, type ScorecardSpec } from "@/lib/leados/scorecard";
 import ScoreDial from "@/components/os/ScoreDial";
 

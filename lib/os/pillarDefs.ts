@@ -27,3 +27,13 @@ export type GrowthStep = {
   action: { label: string } & ({ kind: "goal"; title: string; unit?: string; target?: number; horizon?: string } | { kind: "work_item"; title: string; type?: "task" | "content" | "experiment"; serviceSlug?: string | null; payload?: Record<string, unknown>; workItemId?: string; to?: string });
 };
 
+
+// The six scored audit pillars (PDF pp. 2–5). Re-exported as PILLARS from lib/os/audit.ts.
+export const AUDIT_PILLARS: { key: string; label: string }[] = [
+  { key: "visibility", label: "Search visibility" },
+  { key: "content", label: "Content & authority" },
+  { key: "conversion", label: "Conversion readiness" },
+  { key: "analytics", label: "Analytics & trust" },
+  { key: "ai", label: "AI-search readiness" },
+  { key: "speed", label: "Mobile & speed" },
+];

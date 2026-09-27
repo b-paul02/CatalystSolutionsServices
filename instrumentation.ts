@@ -13,11 +13,11 @@ export async function register() {
 // WP-03 · every unhandled request error lands in CosErrorEvent (fingerprinted, counted), staff notified on a new one.
 // Only the route path is recorded — never the query string, headers, cookies or body.
 export async function onRequestError(err: unknown, request: { path: string; method: string }, context: { routePath?: string; routeType?: string }) {
-  if (process.env.NEXT_RUNTIME !== "nodejs") return;
-  try {
-    // the edge bundle must not see lib/os/errors (node:crypto downstream); the path is opaque to webpack on purpose
-    const mod = "./lib/os/errors";
-    const { captureError } = (await import(/* webpackIgnore: true */ mod)) as typeof import("./lib/os/errors");
-    await captureError(err, { route: `${request.method} ${context.routePath ?? request.path.split("?")[0]}` });
-  } catch { /* capturing must never throw inside the error path */ }
+  // positive check (not an early return): the bundler drops this branch, and its imports, from the edge build
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    try {
+      const { captureError } = await import("./lib/os/errors");
+      await captureError(err, { route: `${request.method} ${context.routePath ?? request.path.split("?")[0]}` });
+    } catch { /* capturing must never throw inside the error path */ }
+  }
 }
