@@ -47,9 +47,12 @@ export async function provisionWorkspace(_p: FormState, form: FormData): Promise
     const deal = await db.deal.findUnique({ where: { id: partnerDealId }, include: { client: true } });
     if (!deal) return { error: "Partner deal not found." };
   }
-  const ownerEmail = str(form, "ownerEmail", 200).toLowerCase();
-  let name = str(form, "name", 120);
-  let website = str(form, "website", 200);
+  const accessRequestId = str(form, "accessRequestId", 60);
+  const request = accessRequestId ? await db.cosAccessRequest.findUnique({ where: { id: accessRequestId } }) : null;
+  if (accessRequestId && request?.status !== "pending") return { error: "That access request is no longer waiting." };
+  const ownerEmail = str(form, "ownerEmail", 200).toLowerCase() || (request?.email ?? "");
+  let name = str(form, "name", 120) || (request?.company ?? "");
+  let website = str(form, "website", 200) || (request?.website ?? "");
   if (ownerEmail && !EMAIL.test(ownerEmail)) return { error: "Owner email is invalid." };
   if (leadId) {
     const lead = await db.lead.findUnique({ where: { id: leadId }, include: { report: true } });
@@ -79,9 +82,19 @@ export async function provisionWorkspace(_p: FormState, form: FormData): Promise
     catch (e) { if (!(e instanceof WorkError)) throw e; }
   }
   const devLink = ownerEmail ? await invite(org.id, ownerEmail, "owner", admin.userId ?? admin.email, name) : undefined;
+  if (request) await db.cosAccessRequest.update({ where: { id: request.id }, data: { status: "invited", decidedAt: new Date(), decidedBy: admin.userId ?? admin.email } });
   await logLosAudit({ orgId: org.id, actorUserId: admin.userId, actorType: "platform_admin", action: "os.workspace_provisioned", entity: "LosOrg", entityId: org.id, data: { fromLead: Boolean(leadId), findings: imported } });
   revalidatePath("/admin/os");
   return { ok: `Workspace "${name}" created${leadId ? ` with ${imported} audit findings` : ""}${ownerEmail ? `; owner invited (${ownerEmail})` : ""}.${admin.userId ? "" : " You are signed in via the env admin — sign in with a CatalystGrowthOS staff account to work inside it."}`, devLink };
+}
+
+export async function declineAccessRequest(_p: FormState, form: FormData): Promise<FormState> {
+  const admin = await requirePlatform(...OS_ROLES);
+  const { count } = await db.cosAccessRequest.updateMany({ where: { id: str(form, "id", 60), status: "pending" }, data: { status: "declined", decidedAt: new Date(), decidedBy: admin.userId ?? admin.email } });
+  if (!count) return { error: "That access request is no longer waiting." };
+  await logLosAudit({ actorUserId: admin.userId, actorType: "platform_admin", action: "os.access_request_declined", entity: "CosAccessRequest", entityId: str(form, "id", 60) });
+  revalidatePath("/admin/os");
+  return { ok: "Declined." };
 }
 
 export async function addStaff(_p: FormState, form: FormData): Promise<FormState> {
