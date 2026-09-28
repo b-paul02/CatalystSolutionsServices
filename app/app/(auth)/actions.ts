@@ -42,7 +42,8 @@ export async function register(_prev: FormState, form: FormData): Promise<FormSt
 
   // Managed model: a new account needs a pending invitation unless public sign-up is switched on.
   if (process.env.GROWTHOS_SELF_SERVICE !== "on" && !(await db.losInvitation.findFirst({ where: { email, acceptedAt: null, expiresAt: { gt: new Date() } } }))) {
-    return { error: "Accounts are created by invitation. Ask your Catalyst account lead to invite you." };
+    const text = (key: string) => String(form.get(key) ?? "").trim().slice(0, 200) || null;
+    return requestAccess(email, name, text("company"), text("website"));
   }
   const existing = await db.losUser.findUnique({ where: { email } });
   if (!existing) {
@@ -54,6 +55,15 @@ export async function register(_prev: FormState, form: FormData): Promise<FormSt
   // Send (or resend) verification either way — response identical for both paths.
   const mail = await sendVerificationMail(email);
   return { ok: "Check your email to verify your account.", devLink: mail.devLink };
+}
+
+const ACCESS_REQUESTED = "Request sent. We'll review it and email you an invitation to set up your account.";
+
+/** Uninvited sign-up: no account and no password are stored — the request waits in /admin/os for a workspace + invitation. */
+async function requestAccess(email: string, name: string | null, company: string | null, website: string | null): Promise<FormState> {
+  // one row per email: asking again changes nothing, whatever was decided
+  await db.cosAccessRequest.upsert({ where: { email }, create: { email, name, company, website }, update: {} });
+  return { ok: ACCESS_REQUESTED };
 }
 
 async function sendVerificationMail(email: string) {

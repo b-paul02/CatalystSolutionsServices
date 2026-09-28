@@ -4,7 +4,7 @@ import { db } from "@/lib/audit/db";
 import { PROGRAM_OPTIONS } from "@/lib/os/catalog";
 import AdminForm from "./AdminForm";
 import OpsOverview from "./OpsOverview";
-import { provisionWorkspace } from "./actions";
+import { declineAccessRequest, provisionWorkspace } from "./actions";
 
 export const metadata = { title: "GrowthOS command center" };
 
@@ -15,7 +15,8 @@ export default async function OsAdminPage() {
   await requirePlatform();
   const now = new Date();
   const staleApprovals = new Date(now.getTime() - 3 * 86_400_000);
-  const [workspaces, orgs, approvals, blocked, overdue, failed, proposed, killed, recentLeads, leads, pendingReviews, openRequests, suppressions] = await Promise.all([
+  const [accessRequests, workspaces, orgs, approvals, blocked, overdue, failed, proposed, killed, recentLeads, leads, pendingReviews, openRequests, suppressions] = await Promise.all([
+    db.cosAccessRequest.findMany({ where: { status: "pending" }, orderBy: { createdAt: "asc" }, take: 50 }),
     db.cosWorkspace.findMany({ orderBy: { createdAt: "desc" } }),
     db.losOrg.findMany({ orderBy: { createdAt: "desc" }, select: { id: true, name: true, industry: true, market: true, demo: true } }),
     db.cosApproval.groupBy({ by: ["orgId"], where: { status: "requested", createdAt: { lt: staleApprovals } }, _count: true }),
@@ -123,7 +124,26 @@ export default async function OsAdminPage() {
         </div>
 
         <div className="space-y-6">
+          <div className="card !p-0">
+            <div className="border-b border-[var(--color-line)] px-4 py-3 text-[15px] font-bold text-white">Access requests</div>
+            <ul>
+              {accessRequests.map((r) => (
+                <li key={r.id} className="flex items-center justify-between gap-3 border-b border-[var(--color-line)] px-4 py-2 text-[13px]">
+                  <div className="text-white">{r.company ?? r.name ?? "(no name)"}<span className="ml-2 text-[12px] text-[var(--color-muted)]">{[r.company && r.name, r.email, r.website, r.createdAt.toISOString().slice(0, 10)].filter(Boolean).join(" · ")}</span></div>
+                  <AdminForm action={declineAccessRequest} submit="Decline" hidden={{ id: r.id }} confirm="Decline this access request?" />
+                </li>
+              ))}
+              {accessRequests.length === 0 && <li className="px-4 py-6 text-center text-[13px] text-[var(--color-muted)]">No one is waiting.</li>}
+            </ul>
+            {accessRequests.length > 0 && <p className="px-4 py-2 text-[12px] text-[var(--color-faint)]">To accept, pick the request in New workspace below: the person is invited as owner.</p>}
+          </div>
           <AdminForm action={provisionWorkspace} submit="Create workspace" title="New workspace">
+            <label className="flex flex-col gap-1 text-[12.5px] text-[var(--color-muted)]">From an access request (optional)
+              <select name="accessRequestId" className="rounded-lg border border-[var(--color-line)] bg-transparent px-2 py-1.5 text-white">
+                <option value="">— not from a request —</option>
+                {accessRequests.map((r) => <option key={r.id} value={r.id} className="text-black">{r.company ?? r.name ?? "(no name)"} · {r.email}</option>)}
+              </select>
+            </label>
             <label className="flex flex-col gap-1 text-[12.5px] text-[var(--color-muted)]">From a delivered Growth Audit (optional)
               <select name="leadId" className="rounded-lg border border-[var(--color-line)] bg-transparent px-2 py-1.5 text-white">
                 <option value="">— blank workspace —</option>
@@ -131,7 +151,7 @@ export default async function OsAdminPage() {
               </select>
             </label>
             <div className="flex flex-wrap gap-3">
-              <label className="flex flex-col gap-1 text-[12.5px] text-[var(--color-muted)]">Name<input name="name" placeholder="from audit if blank" className="rounded-lg border border-[var(--color-line)] bg-transparent px-2 py-1.5 text-white" /></label>
+              <label className="flex flex-col gap-1 text-[12.5px] text-[var(--color-muted)]">Name<input name="name" placeholder="from request or audit if blank" className="rounded-lg border border-[var(--color-line)] bg-transparent px-2 py-1.5 text-white" /></label>
               <label className="flex flex-col gap-1 text-[12.5px] text-[var(--color-muted)]">Website<input name="website" className="rounded-lg border border-[var(--color-line)] bg-transparent px-2 py-1.5 text-white" /></label>
               <label className="flex flex-col gap-1 text-[12.5px] text-[var(--color-muted)]">Market<select name="market" className="rounded-lg border border-[var(--color-line)] bg-transparent px-2 py-1.5 text-white"><option value="IN" className="text-black">India</option><option value="US" className="text-black">US</option></select></label>
             </div>

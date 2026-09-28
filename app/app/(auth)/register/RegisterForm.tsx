@@ -20,6 +20,14 @@ export default function RegisterForm() {
           <Input id="email" name="email" type="email" autoComplete="email" required placeholder="you@company.com" />
         </div>
         <div>
+          <Label htmlFor="company">Company</Label>
+          <Input id="company" name="company" autoComplete="organization" placeholder="Your company" />
+        </div>
+        <div>
+          <Label htmlFor="website">Website</Label>
+          <Input id="website" name="website" autoComplete="url" placeholder="yourcompany.com" />
+        </div>
+        <div>
           <Label htmlFor="password">Password</Label>
           <Input id="password" name="password" type="password" autoComplete="new-password" required minLength={10} />
           <p className="mt-1 text-[12px] text-[var(--los-faint)]">At least 10 characters.</p>
