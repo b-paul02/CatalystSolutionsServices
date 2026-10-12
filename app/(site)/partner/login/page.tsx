@@ -8,6 +8,7 @@ export default function PartnerLogin() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [shown, setShown] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -36,7 +37,10 @@ export default function PartnerLogin() {
         <label className="label mb-1.5 block">Email</label>
         <input className="field mb-4" type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} />
         <label className="label mb-1.5 block">Password</label>
-        <input className="field mb-5" type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <div className="relative mb-5">
+          <input className="field pr-11" type={shown ? "text" : "password"} required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <button type="button" onClick={() => setShown((s) => !s)} aria-label={shown ? "Hide password" : "Show password"} aria-pressed={shown} className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-[20px] text-[var(--color-muted)] hover:text-white"><Icon name={shown ? "visibility_off" : "visibility"} /></button>
+        </div>
         {error && <p className="mb-4 text-[13px] text-red-400">{error}</p>}
         <button className="btn-primary w-full" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
       </form>
